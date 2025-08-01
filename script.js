@@ -24,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (reason.length < 20) {
             alert('That\'s not a good enough reason. Please write an elaborate believable lie.');
         } else {
-            alert('Okay, I see. Your justification will be sent for review.');
-            // This opens the user's email client
-            window.location.href = `mailto:your-email@example.com?subject=A reason for saying no...&body=${encodeURIComponent(reason)}`;
+            alert('Your justification will be sent for review');
+            window.location.href = `mailto:samitmohan@gmail.com?subject=A reason for saying no...&body=${encodeURIComponent(reason)}`;
         }
     };
 
