@@ -1,0 +1,155 @@
+body {
+    position: relative; /* Required for the pseudo-element background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #fdf2f8, #fce7f3); /* Softer pink gradient */
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+    color: #444;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevents scrollbars if pseudo-element is slightly off */
+}
+
+/* This pseudo-element creates the background image layer */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('background.jpeg'); /* Make sure background.jpeg is in the same folder */
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15; /* You can adjust this value (0.0 to 1.0) to make it more or less visible */
+    z-index: -1; /* Places the image behind all other content */
+}
+
+.container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+}
+
+h1 {
+    font-family: 'Pacifico', cursive;
+    color: #ec4899; /* Softer, vibrant pink */
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.images {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.images img {
+    width: 150px;
+    height: 150px;
+    border-radius: 15px;
+    border: 4px solid #fff; /* Slightly thicker border */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+}
+
+.plus-sign {
+    font-size: 2.5em;
+    color: #ec4899; /* Match the heading color */
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smoother transition for all properties */
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px; /* Add some letter spacing */
+}
+
+button:hover {
+    transform: translateY(-3px); /* Lift effect on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#yes-btn-1, #yes-btn-2 {
+    background-color: #ec4899; /* Vibrant Pink */
+}
+
+#yes-btn-1:hover, #yes-btn-2:hover {
+    background-color: #db2777; /* Darker Pink */
+}
+
+#no-btn {
+    background-color: #a8a29e; /* Muted Stone color */
+}
+
+#no-btn:hover {
+    background-color: #78716c; /* Darker Stone */
+}
+
+#no-reason-container {
+    margin-top: 20px;
+}
+
+#no-reason-container p {
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+textarea {
+    width: 90%;
+    height: 80px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+    font-family: 'Inter', sans-serif;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+#submit-reason-btn {
+    background-color: #60a5fa; /* Softer Blue */
+}
+
+#submit-reason-btn:hover {
+    background-color: #3b82f6; /* Darker Blue */
+}
+
+.hidden {
+    display: none;
+}
+
+#yes-message-container img {
+    max-width: 150px;
+    margin-top: 20px;
+}
