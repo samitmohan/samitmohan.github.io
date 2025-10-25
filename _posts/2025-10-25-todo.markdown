@@ -161,8 +161,6 @@ https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
 - [Motivation](https://lelouch.dev/blog/you-are-probably-not-dumb/)
 - [NN Recipe by Karpathy](https://karpathy.github.io/2019/04/25/recipe/)
 
-### Resume
-- [Blog + Resume](https://www.maxmynter.com/pages/blog/jobhunt)
 ---
 
 ### Videos
