@@ -11,7 +11,7 @@ permalink: /projects/
 - **[sign language interpretor](https://github.com/rishabhpreethan/Sign-Language-Interpretor)** — college project to help the disabled communicate better
 - **[mvc url shortener scala](https://github.com/samitmohan/URLShortener)** — attempt to learn Scala and some sys design in first year
 - **[resnet paper implementation](https://github.com/samitmohan/deep-residual-learning-pytorch)** — residual networks are so beautiful, had to reimplement them
-- **[tennis analyser](https://github.com/samitmohan/tennis-analysis/tree/master)** — was watching a tennis match with my sister & also learning computer vision so..
+- **[tennis analyser](https://github.com/samitmohan/tennis-analysis/tree/master)** — was watching a tennis match with my sister & also learning computer vision
 - **[flash attention kernel from scratch](https://github.com/samitmohan/flash-attention-kernel)** — wanted to learn CUDA and optimise Attention is All You Need
 - **[dsa algorithms](https://github.com/samitmohan/interviews)** — documentation of interview prep
 - **[ml algorithms](https://github.com/samitmohan/ML)** — documentation of ml algorithms from scratch
