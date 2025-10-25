@@ -1,12 +1,12 @@
 title: samit
 author:
-  name: "samit"
-email: samitmohan@gmail.com
+  bio: "machine learning engineer"
+  email: samitmohan@gmail.com
 description: A home for poorly researched ideas that I find myself repeating a lot anyway
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "" 
 url: "https://samitmohan.github.io"
+github_username: samitmohan
 twitter_username: youngsinaatrra
-github_username:  samitmohan
 theme: minima
 future: true
 plugins:

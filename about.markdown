@@ -9,8 +9,8 @@ building real time AI pipelines, innate passion for intelligent systems, i live 
 
 [github](https://github.com/samitmohan).
 [x](https://x.com/youngsinaatrra/).
-[cv]()
-[linkedin](https://www.linkedin.com/in/samit-mohan/)
+[cv]().
+[linkedin](https://www.linkedin.com/in/samit-mohan/).
 
 
 
