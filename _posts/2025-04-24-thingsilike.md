@@ -35,6 +35,5 @@ in no particular order,
 - exclamation marks in pairs !!
 - converse chuck taylors
 - sound of clickity clack when i type fast
-- computers
 - shirts & ties
 - cocaine rap blasting in my ears at 100 volume

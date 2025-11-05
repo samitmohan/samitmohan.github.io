@@ -1,68 +1,70 @@
 ---
 layout: post
-title:  "todo"
+title:  "resources"
 date:   2025-10-25 14:06:04 +0530
 categories: goals
 ---
-Action > Plan/Talk
 
-### ML/DL
-- [CS231n 1](https://www.youtube.com/playlist?list=PLoROMvodv4rOmsNzYBMe0gJY2XS8AQg16)
-- [Computer Vision](https://www.youtube.com/playlist?list=PLyqSpQzTE6M_PI-rIz4O1jEgffhJU9GgG)
-- [CMU LLMs](https://llmsystem.github.io/llmsystem2025spring/)
+### Deep Learning
+**Core**
+- [Books]: [DL with Python](https://deeplearningwithpython.io/chapters/chapter01_what-is-deep-learning/), Hands on ML, Grokking DL, d2l.ai, Understanding DL, DL Bible (Ian), StatQuest, ISL
+- [CS231n](https://www.youtube.com/playlist?list=PLoROMvodv4rOmsNzYBMe0gJY2XS8AQg16)
+- [Deep Learning Math](https://www.youtube.com/playlist?list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9)
+- [Pytorch Internals](https://blog.ezyang.com/2019/05/pytorch-internals/)
+- [Attention Statquest](https://www.deeplearning.ai/short-courses/attention-in-transformers-concepts-and-code-in-pytorch/)
+- [Attention Michigan Lecture](https://www.youtube.com/watch?v=YAgjfMR9R_M)
+- [Attention Implement](https://www.youtube.com/watch?v=U0s0f995w14)
+- [Attention From Scratch](https://www.youtube.com/watch?v=bCz4OMemCcA)
+- [Annotated Transformer](https://nlp.seas.harvard.edu/annotated-transformer/)
+- [Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
+- [Transformer Blog](https://medium.com/@incy/anya-learns-transformers-from-scratch-2c08d3eebc4f)
+- [Transformer Implementation](https://www.tensorflow.org/text/tutorials/transformer#why_transformers_are_significant)
+- [Transformer From Scratch](https://www.youtube.com/watch?v=ISNdQcPhsts&t=7266s)
+- [Transformer Code](https://www.youtube.com/watch?v=rPFkX5fJdRY)
+- [Illustrated BERT](https://jalammar.github.io/illustrated-bert/)
+- [Illustrated GPT2](https://jalammar.github.io/illustrated-gpt2/)
+- [Karpathy](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)
+- [Fullstack](https://fullstackdeeplearning.com/course/2022/lecture-5-deployment/)
 - [CS336 Language Modeling](https://stanford-cs336.github.io/spring2025/)
 - [CS109 Intro to Prob](https://www.youtube.com/playlist?list=PLoROMvodv4rOpr_A7B9SriE_iZmkanvUg)
 - [CS224N NLP](https://www.youtube.com/playlist?list=PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4)
-- [Recap of ML](https://www.youtube.com/playlist?list=PLdAoL1zKcqTW-uzoSVBNEecKHsnug_M0k)
-- [DeepML Problem Solving](https://www.deep-ml.com/)
-- [Torch02Hero](https://www.learnpytorch.io/02_pytorch_classification/)
-- [Pytorch in 7 concepts](https://www.youtube.com/watch?v=_fZwxh2aro8&list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC&index=30)
-- [Pytorch Internals](aburl=https%3A%2F%2Fblog.ezyang.com%2F2019%2F05%2Fpytorch-internals%2F)
-- [Pytorch Projects](https://www.udemy.com/course/mastering-pytorch/learn/lecture/49681169#overview)
-- [DL with Pytorch Recap](https://www.youtube.com/watch?v=c36lUUr864M)
-- [Deep Learning Math](https://www.youtube.com/playlist?list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9)
-- [Transformer](https://medium.com/@incy/anya-learns-transformers-from-scratch-2c08d3eebc4f)
-- [Transformer Implementation](https://www.tensorflow.org/text/tutorials/transformer#why_transformers_are_significant)
-- [Transformer Code](https://www.youtube.com/watch?v=rPFkX5fJdRY)
-- [Transformers in PyTorch](https://www.youtube.com/@machinelearningwithpytorch/videos)
-- [CNN Winter Karpathy](https://www.youtube.com/playlist?list=PLkt2uSq6rBVctENoVBg1TpCC7OQi31AlC)
-- [Karpathy](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)
-- [Transformers](https://www.youtube.com/watch?v=CfJ3Cxtlcps)
-- [Transformer Karpathy](https://www.youtube.com/watch?v=XfpMkf4rD6E)
-- [Zero to GPT](https://github.com/VikParuchuri/zero_to_gpt?tab=readme-ov-file)
+- [Zero to LLM Recap](https://www.youtube.com/watch?v=QpZoqU6hemA)
 - [d2l.ai](https://d2l.ai/chapter_introduction/index.html)
-- *books* ml interview book, understanding dl, statquest, why machines learn, ai engineering, grokking dl, dl with python, math books,
+- [Playlist 4 ML/DL](https://www.youtube.com/playlist?list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC)
+- [Problem Solving : deepml, tensortonic](https://www.deep-ml.com/)
 
 **AI & LLMs**
+- [Books]: AI Engineering, Building LLMs Book
+- [CMU LLMs](https://llmsystem.github.io/llmsystem2025spring/)
 - [Visualisation](https://bbycroft.net/llm)
 - Gaurav Sen AI Engineering
 - [AI Engg Playlist](https://www.youtube.com/playlist?list=PL3tZ_eA1QJswSQrpDveVkIH-wElOmsxQT)
 - [Building LLMS Book Lectures](https://www.youtube.com/playlist?list=PLPTV0NXA_ZSgsLAr8YCgCwhPIJNNtexWu) + Book
-- AI Engineering Book
 - [What is ChatGPT doing](https://www.youtube.com/watch?v=flXrLGPY3SU)
 - [How LLM works + Math from this channel](https://www.youtube.com/watch?v=EFXiQSxa4d8)
 - [RAG from Scratch](https://www.youtube.com/playlist?list=PLYIE4hvbWhsAKSZVAn5oX1k0oGQ6Mnf1d)
 
-**Adv**
+**Misc**
 - [Vision](https://www.youtube.com/playlist?list=PLb49csYFtO2HAdNGChGzohFJGnJnXBOqd)
 - [NLP](https://www.youtube.com/playlist?list=PL8PYTP1V4I8D0UkqW2fEhgLrnlDW9QK7z)
 - [RL](https://www.youtube.com/watch?v=2pWv7GOvuf0) + RL book
-- [Misc Playlist 4 ML/DL](https://www.youtube.com/playlist?list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC)
 
 ### CUDA
+- [Books]: Programming Massively Parallel Processors
 - [Learn CUDA](https://github.com/gau-nernst/learn-cuda)
 - [FCC Cuda](https://www.youtube.com/watch?v=86FAWCzIe_4&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=8&t=25228s)
 - [GPUs](https://jax-ml.github.io/scaling-book/gpus/)
 - [Glossary](https://modal.com/gpu-glossary/device-software/memory-hierarchy)
 - [LeetGPU](https://leetgpu.com/challenges) in Triton
-- [How GPUs work](https://www.youtube.com/watch?v=OUzm06YaUsI)
+- [How Nvidia works](https://www.aleksagordic.com/blog/matmul)
 
 ### Interview Prep 
+- [Books]: DDIA, System Design Xu, Design Patterns, Database Internals, TCP/IP Vol1
+- [ML Interview Book](https://huyenchip.com/ml-interviews-book/)
 - [ML SysDesign](https://www.youtube.com/playlist?list=PLlvnxKilk3aKx0oFua-HTtFf-d_inQ8Qn)
 - [Multithreading Interview](https://www.youtube.com/watch?v=GHYFTmeIgVw)
 - [Docker Bare Metals](https://btholt.github.io/complete-intro-to-containers/)
-- [Interview Questions](https://aman.ai/primers/ai/interview/#what-are-some-drawbacks-of-the-transformer)
-- [Devops](https://harkirat.classx.co.in/new-courses/16-complete-devops-cohort)
+- [ML Interview Questions](https://aman.ai/primers/ai/interview/)
 - [Kubernetes](https://www.youtube.com/watch?v=KeCe5PmlPDA)
 - [Git](https://www.youtube.com/watch?v=rH3zE7VlIMs)
 - [More git](https://git-scm.com/book/en/v2)
@@ -88,6 +90,7 @@ Action > Plan/Talk
 - [Backend From First Principles](https://www.youtube.com/playlist?list=PLui3EUkuMTPgZcV0QhQrOcwMPcBCcd_Q1)
   - [FastAPI](https://www.youtube.com/watch?v=k5abZLzsQc0) 
   - [Python Async](https://www.youtube.com/watch?app=desktop&v=oAkLSJNr5zY) + do [multi-threading](https://www.youtube.com/playlist?list=PLeo1K3hjS3uub3PRhdoCTY8BxMKSW7RjN)
+  - PostgreSQL (SQL) and Redis (cache), ORM (sqlalchemy), JWT, OAuth2, pytest, MLFLow, Airflow, Prometheus, Grafana
 
 ### Projects
 - [Pushups](https://github.com/Venuu07/AI-Pushup-Trainer)
@@ -106,7 +109,7 @@ Action > Plan/Talk
 - [Kafka in C](https://www.youtube.com/watch?v=cBqGHt1ALgo&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=16&t=388s)
 - Write your own [OS](https://github.com/cfenollosa/os-tutorial)
  - [Video](https://www.youtube.com/watch?v=1rnA6wpF0o4&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=7)
-- Write Git ([Adv Git]((https://www.boot.dev/courses/learn-git-2?promo=PRIME) [Git Internals](https://www.youtube.com/watch?v=aolI_Rz0ZqY&list=PLJf-Umv9fV2NHRcJ2KG4ufr3lgyvqDLha&index=37))
+- Write Git ([Adv Git](https://www.boot.dev/courses/learn-git-2?promo=PRIME), [Git Internals](https://www.youtube.com/watch?v=aolI_Rz0ZqY&list=PLJf-Umv9fV2NHRcJ2KG4ufr3lgyvqDLha&index=37))
 - [AI Chatbot](https://www.youtube.com/watch?v=KyQKTJhSIak&list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC&index=30&t=43513s)
 - HTTP Server scratch
 - [Text Editor](https://austinhenley.com/blog/challengingprojects.html)
@@ -120,6 +123,7 @@ Action > Plan/Talk
 - [Flash Attention in Triton](https://www.youtube.com/watch?v=zy8ChVd_oTM)
 - MiniTorch
 
+
 ### Research Papers Implement
 - Stable Diffusion Paper
 - [Turing Paper](https://www.youtube.com/watch?v=Xj62KxHfYlY&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=7&t=327s)
@@ -128,21 +132,8 @@ Action > Plan/Talk
 - [BERT](https://arxiv.org/pdf/1810.04805) + BPE Tokenizer
 - [Word2Vec](https://towardsdatascience.com/word2vec-research-paper-explained-205cb7eecc30/)
 - Yolo Architecture v10
-- [Attention](https://www.deeplearning.ai/short-courses/attention-in-transformers-concepts-and-code-in-pytorch/)
-   - [Attention 2](https://www.youtube.com/watch?v=YAgjfMR9R_M)
-   - [Attention Paper Explained](https://www.youtube.com/watch?v=XowwKOAWYoQ&t=954s)
-      - [Implement](https://github.com/retrogtx/attention-is-all-you-need?tab=readme-ov-file)
-      - [Implement2](https://medium.com/@martin.p.dittgen/reproducing-the-attention-is-all-you-need-paper-from-scratch-d2fb40bb25d4)
-   - [Attention 3](https://www.youtube.com/watch?v=OyFJWRnt_AY)
-   - [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
-   - [Attention 4](https://www.youtube.com/watch?v=ISNdQcPhsts&t=7266s)
-   - [Attention 5](https://www.youtube.com/watch?v=bCz4OMemCcA)
-   - [Attention 6](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention)
-   - [StatQuest Attention](https://www.deeplearning.ai/short-courses/attention-in-transformers-concepts-and-code-in-pytorch/)
-   - [Annotated Attention](https://nlp.seas.harvard.edu/annotated-transformer/)
-   - [Annotated Transformer/Illustrated](https://jalammar.github.io/illustrated-transformer/)
-- [A Neural Probabilistic Language Model](
-https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
+- [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
+- [A Neural Probabilistic Language Model](https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
 - [More Papers](https://github.com/InterviewReady/ai-engineering-resources)
 - Variational Encoder Paper (MNIST) -> DO KL Divergence first
 - [Illya Papers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)
@@ -155,11 +146,11 @@ https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
 - [How to ask Questions](http://www.catb.org/~esr/faqs/smart-questions.html)
 - [Grug Blog](https://grugbrain.dev/)
 - [Hutter Prize](http://prize.hutter1.net/)
-- Youtube: Speed Run Striver + NC150
 - [Distilled AI](https://aman.ai/primers/ai/)
 - [Low Level](https://github.com/gurugio/lowlevelprogramming-university)
 - [Motivation](https://lelouch.dev/blog/you-are-probably-not-dumb/)
 - [NN Recipe by Karpathy](https://karpathy.github.io/2019/04/25/recipe/)
+- [LLM101 Course Syllabus](https://github.com/karpathy/LLM101n)
 
 ---
 
@@ -170,9 +161,44 @@ https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
 - [Evolution](https://www.youtube.com/playlist?list=PL6299F3195349CCDA)
 - [Justice](https://www.youtube.com/playlist?list=PL30C13C91CFFEFEA6)
 - [Psych](https://www.youtube.com/playlist?list=PLh9mgdi4rNeyViG2ar68jkgEi4y6doNZy)
-- [Get into Physics]
-- [LLM101 Course Syllabus](https://github.com/karpathy/LLM101n)
 
+### Reading List
+**Technical**
+- Elements of Computer Systems
+- [Alice's Adventures in Differentiable Wonderland](https://arxiv.org/pdf/2404.17625)
+- Building a mathematical mind
+- An Infinitely Large Napkin
+- Math for ML (reference)
+- Matrix Algebra for Engineers
+- The Annotated Turing
+- OS: Three Easy Pieces
+- [The Little Book about OS](https://littleosbook.github.io/)
+- C++ Concurrency In Action
+- Crafting Interpreters
+- Clean Code
+- Code by Charles Petzold
+- Programming Pearls 
+- [What every programmer should know about Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf)
+- [Journey To Stack](https://manybutfinite.com/post/journey-to-the-stack/)
+- [Programming Models](https://tommynguyen.dev/2022/learn-programming-models-not-programming-languages)
+- [GenAI Handbook](https://genai-handbook.github.io/)
+- Accidental CTO (Dukaan)
 
-
-
+**Non-Tech**
+- Anthony Bourdain "Kitchen Confidential"
+- Atlas Shrugged
+- Infinite Jest
+- Belljar
+- Three Body Problem
+- Shall we tell the president
+- The Traveling Cat Chronicles
+- NightBitch
+- Myth of Sisyphus
+- Boy Parts
+- Razor's Edge
+- Trick Mirror
+- Woman Destroyed
+- [Harry Potter & Methods of Rationality](https://hpmor.com/chapter/3)
+- [Singularity](https://web.archive.org/web/20070613184827/http://yudkowsky.net/singularity.html)
+- [Unqualified Reservations](https://www.unqualified-reservations.org/2009/01/gentle-introduction-to-unqualified/)
+- [Prime Intellect](https://ia903205.us.archive.org/11/items/prime_intellect/prime_intellect.pdf)
