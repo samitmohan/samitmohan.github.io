@@ -190,6 +190,7 @@ categories: goals
 - Infinite Jest
 - Belljar
 - Three Body Problem
+- Elephant in the brain
 - Shall we tell the president
 - The Traveling Cat Chronicles
 - NightBitch
