@@ -7,7 +7,7 @@ categories: goals
 
 ### Deep Learning
 **Core**
-- [Books]: [DL with Python](https://deeplearningwithpython.io/chapters/chapter01_what-is-deep-learning/), Hands on ML, Grokking DL, d2l.ai, Understanding DL, DL Bible (Ian), StatQuest, ISL
+- Books: [DL with Python](https://deeplearningwithpython.io/chapters/chapter01_what-is-deep-learning/), Hands on ML, Grokking DL, d2l.ai, Understanding DL, DL Bible (Ian), StatQuest, ISL
 - [CS231n](https://www.youtube.com/playlist?list=PLoROMvodv4rOmsNzYBMe0gJY2XS8AQg16)
 - [Deep Learning Math](https://www.youtube.com/playlist?list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9)
 - [Pytorch Internals](https://blog.ezyang.com/2019/05/pytorch-internals/)
@@ -34,7 +34,7 @@ categories: goals
 - [Problem Solving : deepml, tensortonic](https://www.deep-ml.com/)
 
 **AI & LLMs**
-- [Books]: AI Engineering, Building LLMs Book
+- Books: AI Engineering, Building LLMs Book
 - [CMU LLMs](https://llmsystem.github.io/llmsystem2025spring/)
 - [Visualisation](https://bbycroft.net/llm)
 - Gaurav Sen AI Engineering
@@ -50,7 +50,7 @@ categories: goals
 - [RL](https://www.youtube.com/watch?v=2pWv7GOvuf0) + RL book
 
 ### CUDA
-- [Books]: Programming Massively Parallel Processors
+- Books: Programming Massively Parallel Processors
 - [Learn CUDA](https://github.com/gau-nernst/learn-cuda)
 - [FCC Cuda](https://www.youtube.com/watch?v=86FAWCzIe_4&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=8&t=25228s)
 - [GPUs](https://jax-ml.github.io/scaling-book/gpus/)
@@ -59,7 +59,7 @@ categories: goals
 - [How Nvidia works](https://www.aleksagordic.com/blog/matmul)
 
 ### Interview Prep 
-- [Books]: DDIA, System Design Xu, Design Patterns, Database Internals, TCP/IP Vol1
+- Books: DDIA, System Design Xu, Design Patterns, Database Internals, TCP/IP Vol1
 - [ML Interview Book](https://huyenchip.com/ml-interviews-book/)
 - [ML SysDesign](https://www.youtube.com/playlist?list=PLlvnxKilk3aKx0oFua-HTtFf-d_inQ8Qn)
 - [Multithreading Interview](https://www.youtube.com/watch?v=GHYFTmeIgVw)
@@ -142,6 +142,7 @@ categories: goals
 ### Blogs
 - [Arpit Bhayani Blog](https://arpitbhayani.me/blogs)
 - [Engineering Blog](https://www.seangoedecke.com/popular/)
+- [CNeuralNets](https://cneuralnets.netlify.app/mlblogs)
 - [CNN Explainer](https://poloclub.github.io/cnn-explainer/)
 - [How to ask Questions](http://www.catb.org/~esr/faqs/smart-questions.html)
 - [Grug Blog](https://grugbrain.dev/)

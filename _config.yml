@@ -3,7 +3,7 @@ author:
   "machine learning engineer"
 email: "samitmohan@gmail.com"
 description: a home for poorly researched ideas that I find myself repeating a lot anyway
-baseurl: "" 
+baseurl: ""
 url: "https://samitmohan.github.io"
 github_username: samitmohan
 twitter_username: samitmohan
@@ -12,3 +12,7 @@ future: true
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+
+markdown: kramdown
+kramdown:
+  math_engine: katex
