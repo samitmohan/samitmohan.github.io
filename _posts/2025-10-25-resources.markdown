@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "resources"
+title:  "Resources"
 date:   2025-10-25 14:06:04 +0530
 categories: goals
 ---
