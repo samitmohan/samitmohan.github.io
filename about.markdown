@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-building real time AI pipelines, innate passion for intelligent systems, i live for this shit.
+building real time AI pipelines, innate passion for intelligent systems.
 
 
 [github](https://github.com/samitmohan).
