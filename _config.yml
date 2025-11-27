@@ -8,7 +8,9 @@ url: "https://samitmohan.github.io"
 theme: minima
 future: true
 
+
 markdown: kramdown
+highlighter: rouge
 kramdown:
   math_engine: mathjax
   syntax_highlighter_opts:
