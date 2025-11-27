@@ -3,7 +3,7 @@ YOLO
 
 ---
 layout: post
-title: "YOLOv1: Understanding Object Detection"
+title: "Understanding Object Detection"
 date: 2025-11-21
 ---
 
