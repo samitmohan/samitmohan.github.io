@@ -46,6 +46,7 @@ categories: goals
 
 **Misc**
 - [Vision](https://www.youtube.com/playlist?list=PLb49csYFtO2HAdNGChGzohFJGnJnXBOqd)
+- [Modern ODN](https://www.youtube.com/playlist?list=PL1HdfW5-F8AQlPZCJBq2gNjERTDEAl8v3)
 - [NLP](https://www.youtube.com/playlist?list=PL8PYTP1V4I8D0UkqW2fEhgLrnlDW9QK7z)
 - [RL](https://www.youtube.com/watch?v=2pWv7GOvuf0) + RL book
 
@@ -93,6 +94,7 @@ categories: goals
   - PostgreSQL (SQL) and Redis (cache), ORM (sqlalchemy), JWT, OAuth2, pytest, MLFLow, Airflow, Prometheus, Grafana
 
 ### Projects
+- [LLM Council](https://github.com/karpathy/llm-council)
 - [Pushups](https://github.com/Venuu07/AI-Pushup-Trainer)
 - [Llama 3](https://pub.towardsai.net/build-your-own-llama-3-architecture-from-scratch-using-pytorch-2ce1ecaa901c)
 - [nanochat](https://github.com/karpathy/nanochat)
