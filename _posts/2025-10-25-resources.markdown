@@ -6,33 +6,39 @@ categories: goals
 ---
 
 ### Deep Learning
-- Books: [DL with Python](https://deeplearningwithpython.io/chapters/chapter01_what-is-deep-learning/), Grokking DL, d2l.ai, Understanding DL, StatQuest, ISL, Programming Massively Parallel Processors
+- Books
+  - [DL with Python](https://deeplearningwithpython.io/chapters/chapter01_what-is-deep-learning/), 
+  - Understanding DL
+  - [d2l.ai](https://d2l.ai/chapter_introduction/index.html)
+  - StatQuest Neural Networks + ISL
+  - Programming Massively Parallel Processors
+  - AI Engineering
+  - Building LLMs
 - [CS231n](https://www.youtube.com/playlist?list=PLoROMvodv4rOmsNzYBMe0gJY2XS8AQg16)
 - [Deep Learning Math](https://www.youtube.com/playlist?list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9)
-- [Pytorch Internals](https://blog.ezyang.com/2019/05/pytorch-internals/)
 - [Karpathy](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)
-- [Fullstack ML](https://fullstackdeeplearning.com/course/2022/lecture-5-deployment/)
-- [CS336 Language Modeling](https://stanford-cs336.github.io/spring2025/)
-- [CS109 Intro to Prob](https://www.youtube.com/playlist?list=PLoROMvodv4rOpr_A7B9SriE_iZmkanvUg)
-- [CS224N NLP](https://www.youtube.com/playlist?list=PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4)
+- [Deployment ML](https://fullstackdeeplearning.com/course/2022/lecture-5-deployment/)
+- [DL Primer](https://mlsysbook.ai/contents/core/dl_primer/dl_primer.html)
+- [DL Production](https://mlsysbook.ai/contents/core/ml_systems/ml_systems.html)
 - [Zero to LLM Recap](https://www.youtube.com/watch?v=QpZoqU6hemA)
-- [d2l.ai](https://d2l.ai/chapter_introduction/index.html)
-- [Playlist for ML/DL](https://www.youtube.com/playlist?list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC)
-- [Problem Solving : deepml, tensortonic](https://www.deep-ml.com/)
-- Books: AI Engineering, Building LLMs Book
-- [CMU LLMs](https://llmsystem.github.io/llmsystem2025spring/)
 - [AI Engg Playlist](https://www.youtube.com/playlist?list=PL3tZ_eA1QJswSQrpDveVkIH-wElOmsxQT)
 - [Building LLMS Book Lectures](https://www.youtube.com/playlist?list=PLPTV0NXA_ZSgsLAr8YCgCwhPIJNNtexWu) + Book
 - [What is ChatGPT doing](https://www.youtube.com/watch?v=flXrLGPY3SU)
+- [CS336 Language Modeling](https://stanford-cs336.github.io/spring2025/)
+
+- [CS109 Intro to Prob](https://www.youtube.com/playlist?list=PLoROMvodv4rOpr_A7B9SriE_iZmkanvUg)
+- [CS224N NLP](https://www.youtube.com/playlist?list=PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4)
+- [Playlist for ML/DL](https://www.youtube.com/playlist?list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC)
+- [Problem Solving](https://www.deep-ml.com/)
 - [Vision](https://www.youtube.com/playlist?list=PLb49csYFtO2HAdNGChGzohFJGnJnXBOqd)
 - [Modern ODN](https://www.youtube.com/playlist?list=PL1HdfW5-F8AQlPZCJBq2gNjERTDEAl8v3)
 - [RL](https://www.youtube.com/watch?v=2pWv7GOvuf0) + RL book
 - [Learn CUDA](https://github.com/gau-nernst/learn-cuda)
 - [FCC Cuda](https://www.youtube.com/watch?v=86FAWCzIe_4&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=8&t=25228s)
 - [GPUs](https://jax-ml.github.io/scaling-book/gpus/)
-- [Glossary](https://modal.com/gpu-glossary/device-software/memory-hierarchy)
 - [LeetGPU](https://leetgpu.com/challenges) in Triton
-- [How Nvidia works](https://www.aleksagordic.com/blog/matmul)
+- [How Nvidia Works](https://www.aleksagordic.com/blog/matmul)
+- [Glossary](https://modal.com/gpu-glossary/device-software/memory-hierarchy)
 
 ### Interview Prep 
 - Books: DDIA, System Design Xu, Design Patterns, Database Internals, TCP/IP Vol1
@@ -66,7 +72,7 @@ categories: goals
   - [LLAMA explained](https://www.youtube.com/watch?v=Mn_9W1nCFLo)
 - [mini-numpy](https://github.com/smolorg/smolar)
 - [Agent](https://github.com/ghuntley/how-to-build-a-coding-agent)
-- [Single RAG]
+- Single RAG
 - [LLM from Scratch](https://www.youtube.com/watch?v=p3sij8QzONQ&list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC&index=36&t=349s)
 - [GPT 1.0 Paper](https://github.com/akshat0123/GPT-1) 
 - Transformers from Scratch + GPT 2 Implement
@@ -102,6 +108,7 @@ categories: goals
 - Resnet blog
 - Stable Diffusion Paper
 - LLAMA3
+- How Modern LLMs work blog
 - [Turing Paper](https://www.youtube.com/watch?v=Xj62KxHfYlY&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=7&t=327s)
 - [Neural Networks are Decision Trees](https://arxiv.org/pdf/2210.05189)
 - [What happens when you press www.google.com](https://github.com/alex/what-happens-when)
