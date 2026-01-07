@@ -5,13 +5,13 @@ date:   2025-10-25 14:06:04 +0530
 categories: tech
 ---
 
-*How to write more pythonic (god i hate this word) code*
+> How to write more pythonic (god i hate this word) code
 
 Random things I've learnt over the years which transform Python from "it works" to "it's beautiful"
 
 ---
 
-### Function Magic: *args and **kwargs: Use them to your advantage
+## Function Magic: *args and **kwargs: Use them to your advantage
 
 One of Python's most powerful features is its flexible argument handling. Instead of creating multiple function overloads, embrace `*args` and `**kwargs`.
 
@@ -377,6 +377,7 @@ list(hm.values())  # [2, 1]
 ```
 
 ### Binary Search with Bisect
+
 When to use Bisect? Searching in sorted arrays or maintaing sorted collections.
 
 ```python
@@ -443,6 +444,7 @@ def calculate_total_price( items: List[Dict[str, float]], discount_rate: float) 
 ### Keep It Simple
 
 Please don't write code like this:
+
 ```python
 def fib(x):
     if x <= 1: 
@@ -452,6 +454,7 @@ def fib(x):
 ```
 
 when you can write it like this:
+
 ```python
 def fib(x):
     return x if x <= 1 else fib(x - 1) + fib(x - 2)
@@ -552,8 +555,8 @@ pip freeze > requirements.txt
 uv add requests
 uv sync
 ```
-[uv Documentation](https://github.com/astral-sh/uv) 
 
+- [uv Documentation](https://github.com/astral-sh/uv)
 
 ### Performance Insights: Under the Hood
 
@@ -585,7 +588,7 @@ dis.dis(compile("[28, 's', 'a', 'm']", "", "eval"))
 
 ## Conclusion
 
-Remember the Zen of Python:
+Zen of Python:
 
 ```python
 >>> import this

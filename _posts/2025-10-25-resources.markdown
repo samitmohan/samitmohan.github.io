@@ -1,11 +1,12 @@
 ---
 layout: post
-title:  "2026"
+title:  "Resources"
 date:   2025-06-28 14:06:04 +0530
 categories: goals
 ---
 
-### Deep Learning
+## Deep Learning
+
 - One [DL](https://www.deep-ml.com/) Problem a day
 - Books
   - Hands on LLMs
@@ -31,7 +32,7 @@ categories: goals
   - [Glossary](https://modal.com/gpu-glossary/device-software/memory-hierarchy)
   - [Alice's Adventures in Differentiable Wonderland](https://arxiv.org/pdf/2404.17625)
   - Code by Charles Petzold
-  - Programming Pearls 
+  - Programming Pearls
 
 - Videos  
   - [AI Engg Playlist](https://www.youtube.com/playlist?list=PL3tZ_eA1QJswSQrpDveVkIH-wElOmsxQT)
@@ -48,7 +49,8 @@ categories: goals
   - [ML Design Patterns](https://www.youtube.com/watch?v=DBfZ7hqgZFs&list=PLJf-Umv9fV2O3RyomJhiri_dRcrtgifvC&index=4) 
   - [Multithreading Interview](https://www.youtube.com/watch?v=GHYFTmeIgVw)
 
-### Interview Prep 
+### Interview Prep
+
 - [Docker Bare Metals](https://btholt.github.io/complete-intro-to-containers/)
 - [Kubernetes](https://www.youtube.com/watch?v=KeCe5PmlPDA)
 - OS Three Easy Pieces
@@ -58,12 +60,13 @@ categories: goals
   - [Python Async](https://www.youtube.com/watch?app=desktop&v=oAkLSJNr5zY) + do [multi-threading](https://www.youtube.com/playlist?list=PLeo1K3hjS3uub3PRhdoCTY8BxMKSW7RjN) 
 - [Git](https://www.youtube.com/watch?v=rH3zE7VlIMs) and [Git+](https://git-scm.com/book/en/v2)
 - [Resources for dsa, hld, lld](https://bento.me/jagrit) 
- - [TCP/IP for Programmers](https://www.youtube.com/watch?v=0OztKsGTqos&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=2)
- - [From TCP To HTTP](https://www.youtube.com/watch?v=FknTw9bJsXM&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=19&t=1155s)
+  - [TCP/IP for Programmers](https://www.youtube.com/watch?v=0OztKsGTqos&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=2)
+  - [From TCP To HTTP](https://www.youtube.com/watch?v=FknTw9bJsXM&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=19&t=1155s)
 - [Gaurav Sen System Design LLD + HLD](https://interviewready.io/) 
 - [Striver Sheet](https://takeuforward.org/uncategorized/strivers-sde-sheet-challenge)
 
 ### Projects
+
 - [LLM Council](https://github.com/karpathy/llm-council)
 - Cooking Project
 - [Llama 3](https://pub.towardsai.net/build-your-own-llama-3-architecture-from-scratch-using-pytorch-2ce1ecaa901c) + LLama2 implement
@@ -104,25 +107,23 @@ categories: goals
 - [Illya Papers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)
 
 ## Blogs to write
-- Scaling Laws
+
 - How modern LLMs work
-- Math for DL + DL primer 
-- PyTorch Primer
-- How Resnets changed the game
 - How to write your own PyTorch (matmul is just conv)
 - How does GPU work (CUDA + Triton)
-- Writing your own GPT (Karpathy videos summary)
-- Programming Pearls re-read
-- Flash Attention + Quantisation
+- Code by Charles Petzold review
 - VIT Vs CNN for Img
 - Hutter Prize (AI is just compression)
 - LLD + HLD + DDIA + MLSys
 - All backend you need for ML
 - Learning MLOps + SysDesign
-- Learning new language (scala) + Writing your own OS
+- Learning new language (scala)
+- Writing your own OS
+
 ---
 
 ### Reading List
+
 - [What every programmer should know about Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf)
 - [Journey To Stack](https://manybutfinite.com/post/journey-to-the-stack/)
 - [Programming Models](https://tommynguyen.dev/2022/learn-programming-models-not-programming-languages)
@@ -138,6 +139,7 @@ categories: goals
 - [Prime Intellect](https://ia903205.us.archive.org/11/items/prime_intellect/prime_intellect.pdf)
 
 ### Videos
+
 - [Finance](https://www.youtube.com/watch?v=OubpEqql6SE)
 - [LA by Gilbert Strang](https://www.youtube.com/watch?v=lUUte2o2Sn8)
 - [Human Biology](https://www.youtube.com/playlist?list=PL848F2368C90DDC3D)
