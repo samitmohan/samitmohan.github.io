@@ -18,6 +18,7 @@ permalink: /projects/
 - **[ml algorithms](https://github.com/samitmohan/ML)** — documentation of ml algorithms from scratch
 - **[mini-numpy](https://github.com/samitmohan/mini-numpy)** — weekend project to learn how numpy works
 - **[mini-gpt](https://github.com/samitmohan/minigpt)** — my own chat gippity
+- **[mini-code](https://github.com/samitmohan/minicode)** - claude code implementation cuz anthropic sucks
 
 
 
