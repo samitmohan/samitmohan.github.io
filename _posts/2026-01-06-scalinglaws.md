@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Scaling Laws"
+title:  "scaling laws"
 date:   2026-01-06 14:06:04 +0530
 categories: tech
 ---

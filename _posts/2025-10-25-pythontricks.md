@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Some Python Tricks"
+title:  "some python tricks"
 date:   2025-10-25 14:06:04 +0530
 categories: tech
 ---
