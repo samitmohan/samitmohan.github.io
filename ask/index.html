@@ -233,6 +233,14 @@ permalink: /ask/
 </head>
 <body>
   <div class="container">
+
+    <div style="margin-bottom: 2rem; padding: 1.5rem; border: 2px solid #222; border-radius: 8px; background: #fff; box-shadow: 6px 6px 0px rgba(0,0,0,0.1);">
+    <h3 style="margin-top: 0;">Have a question?</h3>
+    <p>Search through my blog posts and get AI-powered answers about this website; it will automatically detect local LLM if it's running in localhost cuz I don't have money for this shit (yet) Or you can use search RAG without LLMs, which also works well</p>
+    <a href="/ask/" style="display: inline-block; background: #222; color: #fff; padding: 10px 20px; text-decoration: none; font-weight: bold; border-radius: 4px; transition: background 0.2s;">
+    </a>
+    </div>
+
     <h1>ask</h1>
     <p class="subtitle">
       Query the blog engine at <strong>samitmohan.github.io</strong>
@@ -388,7 +396,11 @@ permalink: /ask/
         chunks.forEach(c => {
             const title = c.metadata.post_title || "Untitled";
             const section = c.metadata.section;
-            const url = c.metadata.url || "#";
+            let url = c.metadata.url || "#";
+
+            // Fix URL format: /YYYY-MM-DD-slug.html -> /tech/YYYY/MM/DD/slug.html
+            url = url.replace(/(^|\/)(\d{4})-(\d{2})-(\d{2})-(.+)\.html$/, "$1tech/$2/$3/$4/$5.html");
+
             const text = c.text;
             
             html += `
