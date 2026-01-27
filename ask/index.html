@@ -1,0 +1,63 @@
+<!-- ask/index.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Ask Samit — Docs Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", Arial; margin: 2rem; }
+    .container { max-width: 800px; margin: auto; }
+    textarea { width: 100%; height: 100px; font-size: 14px; padding: 8px; }
+    button { padding: 8px 16px; margin-top: 8px; }
+    pre { background:#f6f8fa;padding:12px;border-radius:6px;overflow:auto; }
+    .meta { color: #666; font-size: 14px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ask Samit</h1>
+    <p>Ask questions about posts on samitmohan.github.io</p>
+
+    <textarea id="query" placeholder="Ask: Why is softmax used in MNIST?"></textarea><br>
+    <button id="ask">Ask</button>
+
+    <h3>Answer</h3>
+    <div id="answer">No answer yet</div>
+
+    <h4>Sources</h4>
+    <div id="sources"></div>
+  </div>
+
+  <script>
+    const BACKEND = "http://0.0.0.0:8000"; // e.g. https://rag.example.com or http://123.123.123.123:8000
+    document.getElementById("ask").onclick = async () => {
+      const query = document.getElementById("query").value;
+      if (!query) return alert("Please type a question.");
+
+      document.getElementById("answer").textContent = "Thinking...";
+      document.getElementById("sources").textContent = "";
+
+      try {
+        const resp = await fetch(BACKEND + "/query", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ query, top_k: 3 })
+        });
+        const j = await resp.json();
+        document.getElementById("answer").innerHTML = j.answer || "No answer";
+        const sources = j.citations || [];
+        const srcNode = document.getElementById("sources");
+        srcNode.innerHTML = "";
+        sources.forEach(s => {
+          const el = document.createElement("div");
+          el.innerHTML = `<strong>${s.chunk_id}</strong> — ${s.type} ${s.section ? ` (section: ${s.section})` : ""}`;
+          srcNode.appendChild(el);
+        });
+      } catch (err) {
+        document.getElementById("answer").textContent = "Error: " + String(err);
+      }
+    };
+  </script>
+</body>
+</html>

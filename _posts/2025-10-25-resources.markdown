@@ -109,9 +109,9 @@ categories: goals
 ## Blogs to write
 
 - How modern LLMs work
-- How to write your own PyTorch (matmul is just conv)
 - How does GPU work (CUDA + Triton)
 - Code by Charles Petzold review
+- Programming Pearls
 - VIT Vs CNN for Img
 - Hutter Prize (AI is just compression)
 - LLD + HLD + DDIA + MLSys

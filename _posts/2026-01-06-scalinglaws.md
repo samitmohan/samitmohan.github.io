@@ -22,7 +22,7 @@ SL: simple predictive laws / rules for behaviour of language model performance.
 - OLD: Tune hyper-parameters on big models
 - NEW: Tune on small models -> extrapolate to large ones
 
-Scaling Laws Paper says valdation and test loss decreases as parameter and number of layers increases along with compute increase.
+Scaling Laws Paper says validation and test loss decreases as parameter and number of layers increases along with compute increase.
 
 **IDEA:** Do all experimentatioons on small model with less compute -> Nail the big model in one-go.
 
@@ -56,17 +56,17 @@ How does data composition affect model performance (not just size) -> data compo
 Another question to look for:
 
 - We have finite data, how does repeating examples affect scaling?
-        - Upto 4 epoochs repeating data is almost as good as new but after that it rapidly diminishing returns.
+        - Upto 4 epochs repeating data is almost as good as new but after that it rapidly diminishing returns.
 - Given that repeated data is less valuable -> data selection should adapt to scale.
 - **Repeat high quality data OR include new data (trade-off)**
 
 ### How can we design a huge LM? What to pick?
 
-- **Architecture:** LSTM vs Transformer (Trans loss decreases as we increase parameters (MOE is the only thing better than vanilla transofrmer))
+- **Architecture:** LSTM vs Transformer (Transformer loss decreases as we increase parameters (MOE is the only thing better than vanilla transformer))
 - **Optimiser:** Adam is much better than SGD as we increase epochs (adaptive learning rate (basically takes steps automatically instead of a fixed size))
 - **Depth:** layers >=6 is good, 1 vs 2 layers make huge difference after that we have plateud.
 - **Batch Size:** batch size increase -> gradient steps increase (past certain point -> diminishing returns (bias dominates instead of learning deeper features)
-        - Critical BatchSize: minimum number of steps for target loss (compute increase -> steps can stay the same (BS fixed))
+  - Critical BatchSize: minimum number of steps for target loss (compute increase -> steps can stay the same (BS fixed))
 
 ### Side note
 
