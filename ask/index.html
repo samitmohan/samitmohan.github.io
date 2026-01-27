@@ -2,11 +2,11 @@
 <!doctype html>
 <html lang="en">
 <head>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
-
   <meta charset="utf-8" />
   <title>ask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
 
   <!-- Markdown renderer -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -16,6 +16,7 @@
       --accent: #ff3e00;
       --bg: #fafafa;
       --border: #222;
+      --card-bg: #fff;
     }
 
     body {
@@ -28,9 +29,9 @@
     }
 
     .container {
-      max-width: 700px;
+      max-width: 740px;
       margin: 2rem auto;
-      background: white;
+      background: var(--card-bg);
       padding: 2.5rem;
       border: 3px solid var(--border);
       box-shadow: 12px 12px 0px rgba(0,0,0,0.1);
@@ -51,6 +52,10 @@
       padding-bottom: 1rem;
     }
 
+    .input-group {
+      position: relative;
+    }
+
     textarea {
       width: 100%;
       min-height: 120px;
@@ -61,6 +66,7 @@
       box-sizing: border-box;
       outline: none;
       transition: all 0.2s;
+      background: #fff;
     }
 
     textarea:focus {
@@ -73,6 +79,8 @@
       justify-content: space-between;
       align-items: center;
       margin-top: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
     button {
@@ -85,6 +93,7 @@
       border: none;
       cursor: pointer;
       transition: transform 0.1s;
+      flex-grow: 1;
     }
 
     button:hover {
@@ -105,11 +114,16 @@
       box-shadow: none;
     }
 
-    .status-area {
-      margin-top: 3rem;
+    .options {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #555;
     }
 
-    .label {
+    /* Output Sections */
+    .status-label {
       font-size: 0.75rem;
       font-weight: bold;
       text-transform: uppercase;
@@ -117,7 +131,7 @@
       color: white;
       padding: 2px 6px;
       display: inline-block;
-      margin-bottom: 1rem;
+      margin: 2rem 0 1rem 0;
     }
 
     #answer {
@@ -125,72 +139,69 @@
       font-size: 17px;
       line-height: 1.7;
     }
-
+    
     #answer h1, #answer h2, #answer h3 {
       font-family: "JetBrains Mono", monospace;
       margin-top: 1.5rem;
       border-left: 4px solid var(--accent);
       padding-left: 10px;
     }
+    #answer h2:first-child { display: none; }
 
-    /* Fixed the messy header rendering from screenshot */
-    #answer h2:first-child {
-       display: none; 
-    }
-
-    pre {
-      background: #111;
-      color: #eee;
+    /* Results / Chunks Styling */
+    .result-card {
+      border: 1px solid #ddd;
       padding: 1rem;
-      overflow-x: auto;
+      margin-bottom: 1rem;
       border-radius: 4px;
+      background: #fdfdfd;
     }
-
-    code {
-      font-family: "JetBrains Mono", monospace;
+    .result-meta {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    .result-meta a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .result-text {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      color: #333;
+    }
+    .result-text code {
       background: #eee;
-      padding: 2px 5px;
-      font-size: 0.9em;
+      padding: 2px 4px;
     }
 
-    pre code {
-      background: none;
-      padding: 0;
-    }
-
-    .sources-section {
-      margin-top: 3rem;
-      padding-top: 1rem;
-      border-top: 2px dashed #ccc;
-    }
-
+    /* Source List for AI Answer */
     .sources-list {
       font-size: 13px;
       color: #555;
+      border-top: 2px dashed #ccc;
+      padding-top: 1rem;
+      margin-top: 2rem;
     }
-
     .source-item {
-      margin-bottom: 8px;
-      padding-left: 15px;
-      position: relative;
+      margin-bottom: 6px;
     }
-
-    .source-item::before {
-      content: "↳";
-      position: absolute;
-      left: 0;
+    .source-item a {
+      color: var(--border);
+      text-decoration: none;
+      font-weight: bold;
+      border-bottom: 1px dotted #999;
+    }
+    .source-item a:hover {
       color: var(--accent);
     }
 
-    .hint {
-      font-size: 11px;
-      color: #999;
-    }
-
-    @media (max-width: 600px) {
-      .container { padding: 1.5rem; margin: 0; border: none; }
-      h1 { font-size: 1.8rem; }
-    }
+    .hint { font-size: 11px; color: #999; }
+    
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -206,143 +217,200 @@
     ></textarea>
 
     <div class="controls">
-      <div class="hint">
-        CMD + ENTER to submit
-      </div>
-      <button id="ask">RUN_QUERY</button>
+      <div class="hint">CMD + ENTER</div>
+      <button id="ask">SEARCH_BLOG</button>
+    </div>
+    
+    <div class="options">
+      <label>
+        <input type="checkbox" id="use-local-llm"> 
+        Generate Answer with Local AI
+      </label>
+      <span id="local-status" style="font-size: 10px; color: #999;">(Checking...)</span>
     </div>
 
-    <div class="status-area">
-      <div class="label">Response</div>
-      <div id="answer">Waiting for input...</div>
+    <!-- Output Area -->
+    <div id="output-area">
+        <!-- Content will be injected here -->
     </div>
 
-    <div class="sources-section">
-      <div class="label" style="background: #666;">Citations</div>
-      <div id="sources" class="sources-list"></div>
-    </div>
   </div>
 
   <script>
-    // Public Retrieval API (could be localhost or your public URL)
-    const RETRIEVAL_BACKEND =
-      location.hostname === "localhost"
-        ? "http://localhost:8000"
+    // Configuration
+    const RETRIEVAL_BACKEND = 
+      location.hostname === "localhost" 
+        ? "http://localhost:8000" 
         : "https://starsmerchant-language-drug-statistical.trycloudflare.com";
-    
-    // Local Generation API (Always localhost)
+        
     const GENERATION_BACKEND = "http://localhost:8000";
 
+    // DOM Elements
     const askBtn = document.getElementById("ask");
     const queryBox = document.getElementById("query");
-    const answerDiv = document.getElementById("answer");
-    const sourcesDiv = document.getElementById("sources");
+    const outputArea = document.getElementById("output-area");
+    const useLocalLlmCheckbox = document.getElementById("use-local-llm");
+    const localStatusSpan = document.getElementById("local-status");
 
-    // Configure marked to handle line breaks better
-    marked.setOptions({
-      breaks: true,
-      gfm: true
-    });
+    // Init Marked
+    marked.setOptions({ breaks: true, gfm: true });
 
+    // 1. Auto-detect Local Backend
+    async function checkLocalBackend() {
+        try {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 1000);
+            
+            await fetch(`${GENERATION_BACKEND}/status`, { signal: controller.signal });
+            clearTimeout(id);
+            
+            // Available
+            localStatusSpan.textContent = "● Online";
+            localStatusSpan.style.color = "green";
+            useLocalLlmCheckbox.checked = true; // Auto-enable if found
+            askBtn.textContent = "RUN_QUERY";
+        } catch (e) {
+            // Unavailable
+            localStatusSpan.textContent = "○ Offline";
+            useLocalLlmCheckbox.checked = false;
+            useLocalLlmCheckbox.disabled = true;
+            askBtn.textContent = "SEARCH_ONLY";
+        }
+    }
+    
+    // Run check on load
+    checkLocalBackend();
+
+    // 2. Main Interaction
     async function askQuestion() {
       const query = queryBox.value.trim();
       if (!query) return;
 
-      askBtn.disabled = true;
-      askBtn.textContent = "searching...";
-      answerDiv.style.opacity = "0.5";
-      answerDiv.textContent = "Retrieving relevant posts...";
-      sourcesDiv.innerHTML = "";
+      const useAI = useLocalLlmCheckbox.checked;
 
-            try {
-              // Step 1: Retrieve (Public)
-              const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
+      askBtn.disabled = true;
+      askBtn.textContent = useAI ? "THINKING..." : "SEARCHING...";
+      outputArea.style.opacity = "0.5";
+      outputArea.innerHTML = ""; // clear previous
+
+      try {
+        // --- STEP 1: RETRIEVE ---
+        const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, top_k: 5 })
+        });
+        
+        const data = await resp.json();
+        const chunks = data.chunks || [];
+        
+        outputArea.style.opacity = "1";
+
+        if (chunks.length === 0) {
+            outputArea.innerHTML = `<div style="margin-top:2rem;"><em>No matches found in blog.</em></div>`;
+            return;
+        }
+
+        // --- STEP 2: GENERATE OR DISPLAY ---
+        
+        if (useAI) {
+            // Mode A: AI Generation
+            renderAIWaitingState();
+            
+            const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query, top_k: 5 })
-              });
-      
-              const data = await resp.json();
-              const chunks = data.chunks || [];
-              
-              // Handle no results
-              if (chunks.length === 0) {
-                  answerDiv.innerHTML = "<em>I haven't written about this yet.</em>";
-                  answerDiv.style.opacity = "1";
-                  askBtn.disabled = false;
-                  askBtn.textContent = "RUN_QUERY";
-                  return;
-              }
-      
-              // Render sources with deduplication                sourcesDiv.innerHTML = "";
-                const seen = new Set();
-                const uniqueChunks = [];
-        
-                chunks.forEach(c => {
-                  const key = `${c.metadata.post_title}|${c.metadata.section}`;
-                  if (!seen.has(key)) {
-                    seen.add(key);
-                    uniqueChunks.push(c);
-                  }
-                });
-        
-                uniqueChunks.forEach(c => {
-                  const item = document.createElement("div");
-                  item.className = "source-item";
-                  
-                  const cleanId = c.metadata.post_title; 
-                  const section = c.metadata.section ? ` <span style="color:#999">[${c.metadata.section}]</span>` : "";
-                  const type = c.metadata.type || "text";
-                  
-                  item.innerHTML = `<strong>${cleanId}</strong>${section} — <em>${type}</em>`;
-                  sourcesDiv.appendChild(item);
-                });
-                
-                // Step 2: Generate (Local Only)
-                const isLocal = location.hostname === "localhost";
-                
-                if (isLocal) {
-                    askBtn.textContent = "thinking...";
-                    answerDiv.textContent = "Analyzing content...";
-                    
-                    const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ query, chunks })
-                    });
-                    
-                    const genData = await genResp.json();
-                    answerDiv.style.opacity = "1";
-                    answerDiv.innerHTML = marked.parse(genData.answer);
-                    
-                } else {
-                    // Public view: Just show sources text
-                    answerDiv.style.opacity = "1";
-                    answerDiv.innerHTML = `
-                        <p><strong>I found ${uniqueChunks.length} relevant excerpts from my blog.</strong></p>
-                        <p>can't run LLM here i ain't rich (yet). </p>
-                    `;
-                    askBtn.textContent = "RUN_QUERY";
-                }
+                body: JSON.stringify({ query, chunks })
+            });
+            const genData = await genResp.json();
+            
+            renderAIResponse(genData.answer, chunks);
+            
+        } else {
+            // Mode B: Search Results (Public View)
+            renderSearchResults(chunks);
+        }
+
       } catch (err) {
-        answerDiv.style.opacity = "1";
-        answerDiv.innerHTML = `<span style="color:red">!! ERROR: ${err.message}</span>`;
+        outputArea.style.opacity = "1";
+        outputArea.innerHTML = `<div style="color:red; margin-top:1rem;">Error: ${err.message}</div>`;
       } finally {
         askBtn.disabled = false;
-        if (askBtn.textContent === "thinking...") {
-             askBtn.textContent = "RUN_QUERY";
-        }
+        askBtn.textContent = useLocalLlmCheckbox.checked ? "RUN_QUERY" : "SEARCH_ONLY";
       }
     }
 
-    askBtn.onclick = askQuestion;
+    // --- Renderers ---
 
+    function renderSearchResults(chunks) {
+        let html = `<div class="status-label">Search Results (${chunks.length})</div>`;
+        
+        chunks.forEach(c => {
+            const title = c.metadata.post_title || "Untitled";
+            const section = c.metadata.section;
+            const url = c.metadata.url || "#";
+            const text = c.text;
+            
+            html += `
+            <div class="result-card">
+                <div class="result-meta">
+                    <a href="${url}" target="_blank">${title}</a> 
+                    ${section ? `› ${section}` : ""}
+                </div>
+                <div class="result-text">${text}</div>
+            </div>`;
+        });
+        
+        outputArea.innerHTML = html;
+    }
+
+    function renderAIWaitingState() {
+        outputArea.innerHTML = `<div style="margin-top:2rem;">Generating answer from ${document.querySelectorAll('.result-card').length || 5} sources...</div>`;
+    }
+
+    function renderAIResponse(answerText, chunks) {
+        // Render Answer
+        let html = `<div class="status-label">AI Answer</div>`;
+        html += `<div id="answer">${marked.parse(answerText)}</div>`;
+        
+        // Render Unique Citations
+        html += `<div class="sources-list"><div style="font-weight:bold; margin-bottom:0.5rem;">Sources used:</div>`;
+        
+        const seen = new Set();
+        chunks.forEach(c => {
+            const key = `${c.metadata.post_title}:${c.metadata.section}`;
+            if(!seen.has(key)) {
+                seen.add(key);
+                const title = c.metadata.post_title;
+                const section = c.metadata.section;
+                const url = c.metadata.url || "#";
+                
+                html += `
+                <div class="source-item">
+                    <a href="${url}" target="_blank">${title}</a> 
+                    ${section ? `<span style="color:#777"> [${section}]</span>` : ""}
+                </div>`;
+            }
+        });
+        
+        html += `</div>`;
+        outputArea.innerHTML = html;
+    }
+
+    // Events
+    askBtn.onclick = askQuestion;
     queryBox.addEventListener("keydown", e => {
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         askQuestion();
       }
     });
+    
+    // Check local availability when checkbox is clicked manually
+    useLocalLlmCheckbox.addEventListener("change", () => {
+        askBtn.textContent = useLocalLlmCheckbox.checked ? "RUN_QUERY" : "SEARCH_ONLY";
+    });
+
   </script>
 </body>
 </html>
