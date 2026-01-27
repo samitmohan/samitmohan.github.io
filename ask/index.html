@@ -2,6 +2,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+
   <meta charset="utf-8" />
   <title>ask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -193,7 +195,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Ask Samit</h1>
+    <h1>ask</h1>
     <p class="subtitle">
       Query the blog engine at <strong>samitmohan.github.io</strong>
     </p>
@@ -247,7 +249,7 @@
       if (!query) return;
 
       askBtn.disabled = true;
-      askBtn.textContent = "SEARCHING...";
+      askBtn.textContent = "searching...";
       answerDiv.style.opacity = "0.5";
       answerDiv.textContent = "Retrieving relevant posts...";
       sourcesDiv.innerHTML = "";
@@ -300,7 +302,7 @@
                 const isLocal = location.hostname === "localhost";
                 
                 if (isLocal) {
-                    askBtn.textContent = "THINKING...";
+                    askBtn.textContent = "thinking...";
                     answerDiv.textContent = "Analyzing content...";
                     
                     const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
@@ -318,8 +320,7 @@
                     answerDiv.style.opacity = "1";
                     answerDiv.innerHTML = `
                         <p><strong>I found ${uniqueChunks.length} relevant excerpts from my blog.</strong></p>
-                        <p>This public demo runs retrieval only to keep costs low. 
-                        Below are the exact sources I would use to answer this question.</p>
+                        <p>can't run LLM here i ain't rich (yet). </p>
                     `;
                     askBtn.textContent = "RUN_QUERY";
                 }
@@ -328,7 +329,7 @@
         answerDiv.innerHTML = `<span style="color:red">!! ERROR: ${err.message}</span>`;
       } finally {
         askBtn.disabled = false;
-        if (askBtn.textContent === "THINKING...") {
+        if (askBtn.textContent === "thinking...") {
              askBtn.textContent = "RUN_QUERY";
         }
       }
