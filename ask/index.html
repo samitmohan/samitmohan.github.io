@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Ask Samit</title>
+  <title>ask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Markdown renderer -->
@@ -252,67 +252,77 @@
       answerDiv.textContent = "Retrieving relevant posts...";
       sourcesDiv.innerHTML = "";
 
-      try {
-        // Step 1: Retrieve (Public)
-        const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, top_k: 5 })
-        });
-
-        const data = await resp.json();
-        const chunks = data.chunks || [];
-        
-        // Render sources immediately
-        if (chunks.length === 0) {
-            answerDiv.innerHTML = "<em>I haven't written about this yet.</em>";
-            answerDiv.style.opacity = "1";
-            askBtn.disabled = false;
-            askBtn.textContent = "RUN_QUERY";
-            return;
-        }
-        
-        sourcesDiv.innerHTML = "";
-        chunks.forEach(c => {
-          const item = document.createElement("div");
-          item.className = "source-item";
-          
-          const cleanId = c.id.split('_')[0]; 
-          const section = c.metadata.section ? ` <span style="color:#999">[${c.metadata.section}]</span>` : "";
-          const type = c.metadata.type || "text";
-          
-          item.innerHTML = `<strong>${cleanId}</strong>${section} — <em>${type}</em>`;
-          sourcesDiv.appendChild(item);
-        });
-        
-        // Step 2: Generate (Local Only)
-        const isLocal = location.hostname === "localhost";
-        
-        if (isLocal) {
-            askBtn.textContent = "THINKING...";
-            answerDiv.textContent = "Analyzing content...";
-            
-            const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
+            try {
+              // Step 1: Retrieve (Public)
+              const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query, chunks })
-            });
-            
-            const genData = await genResp.json();
-            answerDiv.style.opacity = "1";
-            answerDiv.innerHTML = marked.parse(genData.answer);
-            
-        } else {
-            // Public view: Just show sources text
-            answerDiv.style.opacity = "1";
-            answerDiv.innerHTML = `
-                <p><strong>I've found ${chunks.length} relevant excerpts from my blog.</strong></p>
-                <p>Since this is the public demo, I don't run a GPU here to save costs.
-                But you can see the exact sources I would use to answer this below.</p>
-            `;
-            askBtn.textContent = "RUN_QUERY";
-        }
-
+                body: JSON.stringify({ query, top_k: 5 })
+              });
+      
+              const data = await resp.json();
+              const chunks = data.chunks || [];
+              
+              // Handle no results
+              if (chunks.length === 0) {
+                  answerDiv.innerHTML = "<em>I haven't written about this yet.</em>";
+                  answerDiv.style.opacity = "1";
+                  askBtn.disabled = false;
+                  askBtn.textContent = "RUN_QUERY";
+                  return;
+              }
+      
+              // Render sources with deduplication                sourcesDiv.innerHTML = "";
+                const seen = new Set();
+                const uniqueChunks = [];
+        
+                chunks.forEach(c => {
+                  const key = `${c.metadata.post_title}|${c.metadata.section}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueChunks.push(c);
+                  }
+                });
+        
+                uniqueChunks.forEach(c => {
+                  const item = document.createElement("div");
+                  item.className = "source-item";
+                  
+                  const cleanId = c.metadata.post_title; 
+                  const section = c.metadata.section ? ` <span style="color:#999">[${c.metadata.section}]</span>` : "";
+                  const type = c.metadata.type || "text";
+                  
+                  item.innerHTML = `<strong>${cleanId}</strong>${section} — <em>${type}</em>`;
+                  sourcesDiv.appendChild(item);
+                });
+                
+                // Step 2: Generate (Local Only)
+                const isLocal = location.hostname === "localhost";
+                
+                if (isLocal) {
+                    askBtn.textContent = "THINKING...";
+                    answerDiv.textContent = "Analyzing content...";
+                    
+                    const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query, chunks })
+                    });
+                    
+                    const genData = await genResp.json();
+                    answerDiv.style.opacity = "1";
+                    answerDiv.innerHTML = marked.parse(genData.answer);
+                    
+                } else {
+                    // Public view: Just show sources text
+                    answerDiv.style.opacity = "1";
+                    answerDiv.innerHTML = `
+                        <p><strong>I found ${uniqueChunks.length} relevant excerpts from my blog.</strong></p>
+                        <p>This public demo runs retrieval only to keep costs low. 
+                        Below are the exact sources I would use to answer this question.</p>
+                    `;
+                    askBtn.textContent = "RUN_QUERY";
+                }
       } catch (err) {
         answerDiv.style.opacity = "1";
         answerDiv.innerHTML = `<span style="color:red">!! ERROR: ${err.message}</span>`;
