@@ -263,11 +263,6 @@ permalink: /ask/
 
   <script>
     // Configuration
-    const RETRIEVAL_BACKEND = 
-      location.hostname === "localhost" 
-        ? "http://localhost:8000" 
-        : "https://breakfast-rebel-destiny-roller.trycloudflare.com";
-        
     const GENERATION_BACKEND = "http://localhost:8000";
 
     // DOM Elements
@@ -277,6 +272,7 @@ permalink: /ask/
 
     let currentChunks = [];
     let isLocalAvailable = false;
+    let searchIndex = [];
 
     // Init Marked
     marked.setOptions({ breaks: true, gfm: true });
@@ -295,9 +291,21 @@ permalink: /ask/
     }
     checkLocalBackend();
 
-    // 2. Main Search
+    // 2. Load Search Index
+    async function loadSearchIndex() {
+        if (searchIndex.length > 0) return;
+        try {
+            const resp = await fetch('/search.json');
+            searchIndex = await resp.json();
+        } catch (e) {
+            console.error("Failed to load search index", e);
+        }
+    }
+    loadSearchIndex();
+
+    // 3. Client-Side Search
     async function performSearch() {
-      const query = queryBox.value.trim();
+      const query = queryBox.value.trim().toLowerCase();
       if (!query) return;
 
       askBtn.disabled = true;
@@ -306,27 +314,40 @@ permalink: /ask/
       outputArea.innerHTML = ""; 
 
       try {
-        const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, top_k: 5 })
+        await loadSearchIndex(); // Ensure index is loaded
+
+        // Simple keyword search
+        const results = searchIndex.filter(post => {
+            const title = post.title ? post.title.toLowerCase() : "";
+            const content = post.content ? post.content.toLowerCase() : "";
+            return title.includes(query) || content.includes(query);
         });
-        
-        const data = await resp.json();
-        const rawChunks = data.chunks || [];
-        
-        // DEDUPLICATION LOGIC
-        // Keep only the first occurrence of (post_title + section)
-        const seen = new Set();
-        currentChunks = [];
-        
-        rawChunks.forEach(c => {
-            const key = `${c.metadata.post_title}:${c.metadata.section}`;
-            if (!seen.has(key)) {
-                seen.add(key);
-                currentChunks.push(c);
+
+        // Map to "chunks" structure
+        currentChunks = results.map(post => {
+            // Create a snippet around the match
+            const content = post.content || "";
+            const lowerContent = content.toLowerCase();
+            const idx = lowerContent.indexOf(query);
+            
+            let snippet = "";
+            if (idx !== -1) {
+                const start = Math.max(0, idx - 100);
+                const end = Math.min(content.length, idx + 300);
+                snippet = (start > 0 ? "..." : "") + content.substring(start, end) + (end < content.length ? "..." : "");
+            } else {
+                snippet = content.substring(0, 300) + "...";
             }
-        });
+
+            return {
+                metadata: {
+                    post_title: post.title,
+                    url: post.url,
+                    section: "Blog Post"
+                },
+                text: snippet
+            };
+        }).slice(0, 10); // Limit to top 10 matches
         
         outputArea.style.opacity = "1";
 
