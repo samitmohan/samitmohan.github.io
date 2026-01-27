@@ -251,7 +251,7 @@
         const resp = await fetch(`${BACKEND}/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, top_k: 3 })
+          body: JSON.stringify({ query, top_k: 5 })
         });
 
         const data = await resp.json();
