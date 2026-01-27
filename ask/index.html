@@ -222,10 +222,14 @@
   </div>
 
   <script>
-    const BACKEND =
+    // Public Retrieval API (could be localhost or your public URL)
+    const RETRIEVAL_BACKEND =
       location.hostname === "localhost"
         ? "http://localhost:8000"
         : "https://starsmerchant-language-drug-statistical.trycloudflare.com";
+    
+    // Local Generation API (Always localhost)
+    const GENERATION_BACKEND = "http://localhost:8000";
 
     const askBtn = document.getElementById("ask");
     const queryBox = document.getElementById("query");
@@ -243,52 +247,80 @@
       if (!query) return;
 
       askBtn.disabled = true;
-      askBtn.textContent = "EXECUTING...";
+      askBtn.textContent = "SEARCHING...";
       answerDiv.style.opacity = "0.5";
+      answerDiv.textContent = "Retrieving relevant posts...";
       sourcesDiv.innerHTML = "";
 
       try {
-        const resp = await fetch(`${BACKEND}/query`, {
+        // Step 1: Retrieve (Public)
+        const resp = await fetch(`${RETRIEVAL_BACKEND}/retrieve`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query, top_k: 5 })
         });
 
         const data = await resp.json();
-
-        answerDiv.style.opacity = "1";
+        const chunks = data.chunks || [];
         
-        if (!data.answer || data.answer.includes("I don't know")) {
-          answerDiv.innerHTML = "<em>Zero matches found in the blog index.</em>";
-          return;
-        }
-
-        // Render markdown answer
-        answerDiv.innerHTML = marked.parse(data.answer);
-
-        // Render sources
-        const citations = data.citations || [];
-        if (citations.length === 0) {
-            sourcesDiv.innerHTML = "No specific chunks cited.";
+        // Render sources immediately
+        if (chunks.length === 0) {
+            answerDiv.innerHTML = "<em>I haven't written about this yet.</em>";
+            answerDiv.style.opacity = "1";
+            askBtn.disabled = false;
+            askBtn.textContent = "RUN_QUERY";
+            return;
         }
         
-        citations.forEach(c => {
+        sourcesDiv.innerHTML = "";
+        chunks.forEach(c => {
           const item = document.createElement("div");
           item.className = "source-item";
           
-          const cleanId = c.chunk_id.split('_')[0]; // Simplify name
-          const section = c.section ? ` <span style="color:#999">[${c.section}]</span>` : "";
+          const cleanId = c.id.split('_')[0]; 
+          const section = c.metadata.section ? ` <span style="color:#999">[${c.metadata.section}]</span>` : "";
+          const type = c.metadata.type || "text";
           
-          item.innerHTML = `<strong>${cleanId}</strong>${section} — <em>${c.type}</em>`;
+          item.innerHTML = `<strong>${cleanId}</strong>${section} — <em>${type}</em>`;
           sourcesDiv.appendChild(item);
         });
+        
+        // Step 2: Generate (Local Only)
+        const isLocal = location.hostname === "localhost";
+        
+        if (isLocal) {
+            askBtn.textContent = "THINKING...";
+            answerDiv.textContent = "Analyzing content...";
+            
+            const genResp = await fetch(`${GENERATION_BACKEND}/generate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query, chunks })
+            });
+            
+            const genData = await genResp.json();
+            answerDiv.style.opacity = "1";
+            answerDiv.innerHTML = marked.parse(genData.answer);
+            
+        } else {
+            // Public view: Just show sources text
+            answerDiv.style.opacity = "1";
+            answerDiv.innerHTML = `
+                <p><strong>I've found ${chunks.length} relevant excerpts from my blog.</strong></p>
+                <p>Since this is the public demo, I don't run a GPU here to save costs.
+                But you can see the exact sources I would use to answer this below.</p>
+            `;
+            askBtn.textContent = "RUN_QUERY";
+        }
 
       } catch (err) {
         answerDiv.style.opacity = "1";
         answerDiv.innerHTML = `<span style="color:red">!! ERROR: ${err.message}</span>`;
       } finally {
         askBtn.disabled = false;
-        askBtn.textContent = "RUN_QUERY";
+        if (askBtn.textContent === "THINKING...") {
+             askBtn.textContent = "RUN_QUERY";
+        }
       }
     }
 
