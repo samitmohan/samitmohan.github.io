@@ -1,6 +1,3 @@
----
-layout: null
----
 <!doctype html>
 <html lang="en">
 <head>
@@ -319,7 +316,9 @@ layout: null
   </div>
 
   <script>
-    const API_BASE = "http://localhost:8000";
+    // Hardcoded to production backend for consistency
+    const API_BASE = "https://rag-for-blogs.onrender.com";
+    
     let isBackendReady = false;
 
     const dom = {
@@ -391,7 +390,13 @@ layout: null
         }
 
       } catch (e) {
-        dom.sources.innerHTML = `<div style="grid-column: 1/-1; color:#ea4335;">System Error: ${e.message}</div>`;
+        let msg = `System Error: ${e.message}`;
+        if (e.message.includes("Failed to fetch")) {
+            msg = `<strong>Connection Failed:</strong> The Search Engine is offline.<br>
+            Please start the backend server:<br>
+            <code>uvicorn backend.app:app --host 0.0.0.0 --port 8000</code>`;
+        }
+        dom.sources.innerHTML = `<div style="grid-column: 1/-1; color:#ea4335; text-align:center;">${msg}</div>`;
       }
     }
 
