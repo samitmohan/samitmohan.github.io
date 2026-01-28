@@ -28,7 +28,7 @@ in no particular order,
 - writing on a whiteboard
 - bangalore weather
 - watching people i care about achieve goals and overcome their biggest insecurities
-- standing in a bookstore, staring 
+- standing in a bookstore, staring
 - ap bhavan ashoka road 110001
 - pecos mg road 560001
 - writing things down
