@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Gemini RAG</title>
+  <title>ask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+  
+  <!-- Markdown & Syntax Highlighting -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
   <style>
     :root {
       --bg: #ffffff;
@@ -14,6 +19,7 @@
       --gray: #5f6368;
       --light-gray: #f1f3f4;
       --border: #dfe1e5;
+      --code-bg: #282c34; /* Atom One Dark bg */
     }
 
     body {
@@ -59,7 +65,7 @@
     /* Search Bar */
     .search-box-wrapper {
       width: 100%;
-      max-width: 584px;
+      max-width: 650px;
       position: relative;
     }
 
@@ -70,7 +76,7 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 10px 15px;
+      padding: 12px 20px;
       box-shadow: 0 1px 6px rgba(32,33,36,.28);
       transition: all 0.2s;
     }
@@ -107,6 +113,7 @@
       display: none;
       margin-top: 30px;
       animation: fadeIn 0.5s;
+      padding-bottom: 50px;
     }
 
     .container.has-results #results-area {
@@ -119,14 +126,15 @@
       padding: 24px;
       border-radius: 12px;
       margin-bottom: 30px;
-      box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-      border-left: 5px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      border-top: 4px solid var(--accent);
+      position: relative;
     }
 
     .ai-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       margin-bottom: 15px;
       font-weight: 600;
       color: var(--accent);
@@ -138,16 +146,61 @@
     .ai-content {
       line-height: 1.6;
       font-size: 16px;
+      color: #373737;
     }
 
-    .ai-content h1, .ai-content h2 { font-size: 1.2rem; margin-top: 1.5rem; }
-    .ai-content code { background: #eee; padding: 2px 5px; border-radius: 4px; font-family: "Menlo", monospace; font-size: 0.9em; }
-    .ai-content pre { background: #222; color: #fff; padding: 15px; border-radius: 8px; overflow-x: auto; }
+    .ai-content h1, .ai-content h2, .ai-content h3 { 
+      font-size: 1.1rem; 
+      margin-top: 1.5rem; 
+      margin-bottom: 0.5rem;
+      color: #202124;
+    }
+
+    /* Code Blocks - Fixed */
+    .ai-content pre {
+      background: var(--code-bg) !important;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 15px 0;
+      color: #abb2bf;
+    }
+    
+    .ai-content code {
+      font-family: "JetBrains Mono", "Menlo", "Consolas", monospace;
+      font-size: 0.9em;
+    }
+    
+    .ai-content p > code {
+      background: rgba(27,31,35,0.05);
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #d63384; /* Highlight inline code */
+    }
 
     /* Sources */
+    .section-title {
+      font-size: 14px;
+      color: var(--gray);
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+
     .sources-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 15px;
       margin-top: 10px;
     }
@@ -155,49 +208,70 @@
     .source-card {
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 16px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
       text-decoration: none;
       color: inherit;
       display: block;
+      background: #fff;
     }
 
     .source-card:hover {
-      background: var(--light-gray);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-color: #ccc;
+      transform: translateY(-1px);
     }
 
     .source-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       color: var(--accent);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .source-snippet {
-      font-size: 12px;
-      color: var(--gray);
+      font-size: 13px;
+      color: #4d5156;
+      line-height: 1.5;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+    
+    .source-meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #70757a;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
+    /* Status & Utility */
     .status-indicator {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 15px;
+      right: 20px;
       font-size: 12px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       color: var(--gray);
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
-    .dot.online { background: #34a853; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ea4335; box-shadow: 0 0 0 2px rgba(234,67,53,0.2); }
+    .dot.online { background: #34a853; box-shadow: 0 0 0 2px rgba(52,168,83,0.2); }
+    
+    .pulse { animation: pulse-opacity 1.5s infinite; }
+    @keyframes pulse-opacity {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
     
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -209,39 +283,39 @@
 
   <div class="status-indicator" id="status-ind">
     <div class="dot" id="status-dot"></div>
-    <span id="status-text">Checking Backend...</span>
+    <span id="status-text">connecting...</span>
   </div>
 
   <div class="container" id="main-container">
-    <h1>samitgpt</h1>
+    <h1>ask</h1>
     
     <div class="search-box-wrapper">
       <div class="search-box">
-        <span style="font-size: 20px; margin-right: 10px;">🔍</span>
-        <input type="text" id="query-input" placeholder="Ask anything about my blog..." autofocus>
+        <span style="font-size: 20px; margin-right: 15px; color: var(--gray);">🔍</span>
+        <input type="text" id="query-input" placeholder="e.g why is softmax used in LLMS?" autofocus>
         <button class="icon-btn" onclick="performSearch()">➜</button>
       </div>
     </div>
 
     <div id="results-area">
+      
       <!-- AI Answer -->
       <div id="ai-section" style="display:none;">
         <div class="ai-answer">
           <div class="ai-header">
-            <span>what i found:</span>
+            <span id="ai-status-label">thoughts</span>
           </div>
           <div class="ai-content" id="ai-content"></div>
         </div>
       </div>
 
       <!-- Sources -->
-      <h3 style="color:var(--gray); font-size:14px; margin-bottom:15px; text-transform:uppercase;">Source Chunks</h3>
+      <div class="section-title">Retrieved Context</div>
       <div class="sources-grid" id="sources-list"></div>
     </div>
   </div>
 
   <script>
-    // Configuration
     const API_BASE = "http://localhost:8000";
     let isBackendReady = false;
 
@@ -252,9 +326,16 @@
       sources: document.getElementById('sources-list'),
       aiSection: document.getElementById('ai-section'),
       aiContent: document.getElementById('ai-content'),
+      aiHeader: document.getElementById('ai-status-label'),
       statusDot: document.getElementById('status-dot'),
       statusText: document.getElementById('status-text')
     };
+
+    // Initialize Marked
+    marked.setOptions({
+        gfm: true,
+        breaks: true
+    });
 
     // 1. Health Check
     async function checkHealth() {
@@ -270,63 +351,70 @@
       } catch (e) {
         isBackendReady = false;
         dom.statusDot.classList.remove('online');
-        dom.statusText.textContent = "LLM Offline (Ensure local LLM uvicorn is running)";
+        dom.statusText.textContent = "LLM Disconnected";
       }
     }
     checkHealth();
     setInterval(checkHealth, 5000);
 
-    // 2. Search & Generate
+    // 2. Main Search Logic
     async function performSearch() {
       const query = dom.input.value.trim();
       if (!query) return;
 
       // UI Transition
       dom.container.classList.add('has-results');
-      dom.sources.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#888;">Searching...</div>';
+      dom.sources.innerHTML = '<div style="grid-column: 1/-1; color:#888;">searching knowledge base...</div>';
       dom.aiSection.style.display = 'none';
 
       try {
-        // Step A: Retrieve
+        // Step A: Retrieve (RAG Search)
         const res = await fetch(`${API_BASE}/retrieve`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, top_k: 6 })
+          body: JSON.stringify({ query, top_k: 3 })
         });
         
+        if (!res.ok) throw new Error("Retrieval Service Failed");
+
         const data = await res.json();
         const chunks = data.chunks || [];
 
         renderSources(chunks);
 
-        // Step B: Generate (if backend is ready)
-        if (isBackendReady && chunks.length > 0) {
-          generateAnswer(query, chunks);
+        // Step B: Generate Answer (Only if chunks exist)
+        if (chunks.length > 0) {
+            generateAnswer(query, chunks);
         }
 
       } catch (e) {
-        dom.sources.innerHTML = `<div style="color:red">Error: ${e.message}. Is the backend running at port 8000?</div>`;
+        dom.sources.innerHTML = `<div style="grid-column: 1/-1; color:#ea4335;">System Error: ${e.message}</div>`;
       }
     }
 
     function renderSources(chunks) {
       if (chunks.length === 0) {
-        dom.sources.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">No relevant content found.</div>';
+        dom.sources.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#666; font-style:italic; padding: 20px;">dawg i dont know that kinda info i aint no snitch</div>';
         return;
       }
 
       dom.sources.innerHTML = chunks.map(c => `
         <a href="${c.metadata.url || '#'}" target="_blank" class="source-card">
-          <div class="source-title">${c.metadata.post_title || 'Untitled'}</div>
+          <div class="source-title">${c.metadata.post_title || 'Untitled Document'}</div>
           <div class="source-snippet">${c.text}</div>
-          <div style="font-size:10px; color:#aaa; margin-top:5px;">${c.metadata.section || 'General'}</div>
+          <div class="source-meta">
+             <span>📌 ${c.metadata.section || 'General'}</span>
+             <span>• ${(c.metadata.score || 0).toFixed(2)} match</span>
+          </div>
         </a>
       `).join('');
     }
 
     async function generateAnswer(query, chunks) {
+      // Show loading state
       dom.aiSection.style.display = 'block';
-      dom.aiContent.innerHTML = '<span style="color:#666; animation: pulse 1s infinite;">Thinking...</span>';
+      dom.aiHeader.textContent = "workin...";
+      dom.aiContent.innerHTML = '<span class="pulse">Synthesizing answer from sources...</span>';
 
       try {
         const res = await fetch(`${API_BASE}/generate`, {
@@ -334,12 +422,27 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query, chunks })
         });
+        
+        // Handle "LLM Offline" gracefully
+        if (!res.ok) {
+            throw new Error("LLM generation unavailable (please start Ollama / local model on your device localhost for this)");
+        }
+
         const data = await res.json();
         
+        dom.aiHeader.textContent = "thoughts";
         dom.aiContent.innerHTML = marked.parse(data.answer);
+        
+        // Apply syntax highlighting
+        hljs.highlightAll();
 
       } catch (e) {
-        dom.aiContent.innerHTML = `<span style="color:red">Generation failed: ${e.message}</span>`;
+        console.warn("Generation failed:", e);
+        // Fallback UI: Hide AI section or show "Offline" badge
+        // Option A: Just hide it -> dom.aiSection.style.display = 'none';
+        // Option B: Show friendly message
+        dom.aiHeader.textContent = "⚠️ AI Offline";
+        dom.aiContent.innerHTML = `<span style="color:#5f6368; font-style:italic;">LLM generation is currently unavailable. Viewing search results only.</span>`;
       }
     }
 
