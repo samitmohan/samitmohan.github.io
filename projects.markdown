@@ -164,10 +164,10 @@ permalink: /projects/
 
   <div class="project-card">
     <div class="project-title">
-      <a href="https://github.com/samitmohan/mini-numpy">mini-numpy</a>
+      <a href="https://github.com/samitmohan/rag-for-blogs>personal-rag</a>
     </div>
     <div class="project-description">
-      weekend project to learn how numpy works
+      single day project to make my blogs better (also watched a stanford videos the night prior and got excited)
     </div>
   </div>
 
@@ -185,7 +185,7 @@ permalink: /projects/
       <a href="https://github.com/samitmohan/minicode">mini-code</a>
     </div>
     <div class="project-description">
-      claude code implementation cuz anthropic sucks
+      claude code implementation cuz anthropic is evil
     </div>
   </div>
 
