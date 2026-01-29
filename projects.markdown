@@ -164,7 +164,7 @@ permalink: /projects/
 
   <div class="project-card">
     <div class="project-title">
-      <a href="https://github.com/samitmohan/rag-for-blogs>personal-rag</a>
+      <a href="https://github.com/samitmohan/rag-for-blogs">personal-rag</a>
     </div>
     <div class="project-description">
       single day project to make my blogs better (also watched a stanford videos the night prior and got excited)
