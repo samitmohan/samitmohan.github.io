@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "first failure of 2026"
+title:  "first failure of 2026: solving 100+ deep learning questions"
 date:   2026-01-30 14:06:04 +0530
 categories: fun
 ---
@@ -10,8 +10,6 @@ categories: fun
 Solve 1 DeepML problem every single day. No excuses.
 
 ![res](/assets/images/failure/res.png)
-
-## The Reality
 
 Made it 20+ days. Went to bombay for concert and lost my streak...
 
@@ -31,7 +29,7 @@ DeepML is solid, but:
 ## What's Next
 
 Dropping the rigid streak mentality. New approach:
-- **Papers → Implementation** (the real learning happens here)
+- **Papers → Implementation** 
 - **TensorTonic** for practice — better platform, built by someone I know.
 - **CUDA** Reading CUDA for Deep Learning one chapter / week — because GPUs go brrrr
 
