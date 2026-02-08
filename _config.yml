@@ -7,6 +7,12 @@ url: "https://samitmohan.github.io"
 
 theme: minima
 future: true
+show_excerpts: false
+
+header_pages:
+  - about.markdown
+  - projects.markdown
+  - search.html
 
 
 markdown: kramdown

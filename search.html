@@ -1,0 +1,41 @@
+---
+layout: page
+title: Find
+permalink: /search/
+---
+
+<style>
+#search-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+#results-container {
+  list-style: none;
+  padding: 0;
+}
+#results-container li {
+  margin-bottom: 1em;
+}
+</style>
+
+<div class="search-page">
+  <input type="text" id="search-input" placeholder="Type to search posts...">
+  <ul id="results-container"></ul>
+</div>
+
+<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script>
+<script>
+  window.simpleJekyllSearch = new SimpleJekyllSearch({
+    searchInput: document.getElementById('search-input'),
+    resultsContainer: document.getElementById('results-container'),
+    json: '/search.json',
+    searchResultTemplate: '<li><a href="{url}">{title}</a> <small>({date})</small></li>',
+    noResultsText: 'No results found',
+    limit: 10,
+    fuzzy: false
+  })
+</script>
