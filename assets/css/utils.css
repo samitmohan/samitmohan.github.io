@@ -1,0 +1,50 @@
+/* Copy Code Button */
+.code-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -30px; /* Pull button into the code block area */
+  position: relative;
+  z-index: 10;
+  padding-right: 10px;
+  padding-top: 10px;
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: #fff;
+  color: #000;
+  border-color: #bbb;
+}
+
+.copy-btn.copied {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+/* Heading Anchors */
+.anchor-link {
+  text-decoration: none;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.8em;
+  color: #a0a0a0;
+  user-select: none;
+}
+
+h2:hover .anchor-link,
+h3:hover .anchor-link,
+h4:hover .anchor-link {
+  opacity: 1;
+}
