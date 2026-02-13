@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "karpathy's-microgpt"
-date:   2026-13-02 14:06:04 +0530
+title: "Karpathy’s MicroGPT"
+date: 2026-02-13 14:06:04 +0530
 categories: tech
 ---
 
