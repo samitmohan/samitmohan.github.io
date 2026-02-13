@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Karpathy’s MicroGPT"
+title: "karpathy’s MicroGPT"
 date: 2026-02-13 14:06:04 +0530
 categories: tech
 ---
@@ -9,62 +9,53 @@ Explaining the algorithm behind Transformers; the reason why your job will be go
 
 ---
 
-## 1. The Autograd Engine: `Value` Class
+## 1. The Autograd Engine: `Value` vs. `torch.Tensor`
 
-At the heart of the script is the `Value` class, a scalar-based automatic differentiation engine. 
+At the heart of MicroGPT is the `Value` class, a scalar-based automatic differentiation engine.
 
-```python
-class Value:
-    def __init__(self, data, _children=(), local_grads = ()):
-        self.data = data
-        self.grad = 0
-        self._children = _children
-        self.local_grads = local_grads
-```
+| Feature | MicroGPT (`Value`) | PyTorch (`torch.Tensor`) |
+| :--- | :--- | :--- |
+| **Granularity** | **Scalar-based**. Every single number is an object. | **Tensor-based**. Operates on n-dimensional arrays. |
+| **Backprop** | Manual topological sort and chain rule. | Highly optimized C++/CUDA kernels for DAG traversal. |
+| **Visibility** | You can see every gradient flow through every node. | Hidden behind the `loss.backward()` black box. |
 
-Every operation (addition, multiplication, etc.) creates a new `Value` object that remembers its "parents" (`_children`) and its "local gradient" (the derivative of the operation). When `backward()` is called, it performs a topological sort and applies the **chain rule** to propagate gradients from the loss back to every single parameter in the model.
+In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we initialize a list of 100 individual `Value` objects. This makes the **Chain Rule** visceral: calling `backward()` literally traverses the history of every addition and multiplication.
 
-## 2. The Transformer Architecture
+## 2. Wiring vs. Modules
 
-The model follows the GPT-2/LLaMA style architecture:
+MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehensions to implement the math.
 
--   **Embeddings**: Token embeddings (`wte`) and Position embeddings (`wpe`) are added together.
--   **RMSNorm**: A modern variation of LayerNorm that normalizes the activations based on their root mean square.
--   **Multi-Head Attention (MHA)**: This is where the magic happens. 
-    -   It computes **Queries (Q)**, **Keys (K)**, and **Values (V)** for each head.
-    -   **Attention Scores** are calculated by the dot product of Q and K, divided by the square root of the head dimension.
-    -   **Causal Masking** is implicit in this implementation because it appends new keys/values to a cache during the sequence.
--   **MLP (Feed-Forward)**: A simple two-layer linear network with a ReLU activation in between.
--   **Residual Connections**: `x = x_attention + x_residual` ensures that gradients can flow easily through deep networks.
+- **Linear Layers**: Instead of `nn.Linear(16, 16)`, MicroGPT uses:
+  `[sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]`
+- **Activation**: Instead of `nn.ReLU()`, it's a manual `max(0, x)` wrapper inside the `Value` class.
+- **Normalisation**: `rmsnorm(x)` is a custom function calculating the root mean square of a list of scalars manually.
 
-## 3. The Training Loop
-The script trains on a list of names to predict the next character.
+## 3. The "Secret" Sequential Training (KV Cache)
 
-```python
-for pos_id in range(n):
-    logits = gpt(token_id, pos_id, keys, values)
-    probs = softmax(logits)
-    loss_target = -probs[target_id].log() # Cross-Entropy Loss
-    losses.append(loss_target)
-```
+This is the most significant departure from standard PyTorch training.
 
-It uses the **Adam Optimizer**, implemented manually. Adam tracks the first and second moments of the gradients to adaptively change the learning rate for each parameter, ensuring faster and more stable convergence than simple SGD.
+- **PyTorch Way**: We train on sequences in **parallel**. We pass a batch of `[Batch, Seq_Len]` and use a **Causal Mask** (a triangular matrix of $-\infty$) to hide future tokens.
+- **MicroGPT Way**: It processes tokens **one by one** (`for pos_id in range(n)`). It appends keys and values to a list (a **KV Cache**) as it goes.
 
-## 4. Inference and Sampling
-After training, the model generates new names by sampling from the output distribution:
+**Why?** Implementing a 2D causal mask and matrix multiplication using scalar `Value` objects would be catastrophically slow. By using a KV cache during training, Karpathy makes "causality" (not looking ahead) implicit and the code much easier to read.
 
-```python
-probs = softmax([l / temperature for l in logits])
-token_id = random.choices(range(vocab_size), weights=[p.data for p in probs])[0]
-```
+## 4. Adam from Scratch
 
-The **Temperature** parameter controls creativity: lower temperature makes the model more confident (picking only the most likely characters), while higher temperature introduces more randomness.
+In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
+
+1. `m`: The first moment (momentum).
+2. `v`: The second moment (uncentered variance).
+3. `m_hat` / `v_hat`: Bias correction for the early steps of training.
+
+It then updates `param.data` directly. This proves that Adam is just an adaptive learning rate that scales every single weight update based on its own history.
 
 ## Conclusion
 
-`microgpt.py` is a masterclass in minimalism. It proves that the "intelligence" of large language models isn't magic—it's just a massive DAG of additions and multiplications, meticulously tracked by calculus.
+MicroGPT proves that "intelligence" isn't a complex architectural mystery—it's just a massive Directed Acyclic Graph (DAG) of basic arithmetic, meticulously tracked by calculus. While PyTorch gives us **Speed**, MicroGPT gives us **Clarity**.
 
-## Code:
+---
+
+## The Code (200 Lines)
 
 ```python
 import os 
@@ -169,21 +160,25 @@ print(f"Number of parameters: {len(params)}")
 
 # model architecture -> GPT2
 
+# Linear layer used for forward pass
 def linear(x, w):
     return [sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]
 
+# Convert logits between 0-1
 def softmax(logits):
     max_logit = max(l.data for l in logits)
     exp_logits = [(logit - max_logit).exp() for logit in logits] # subtract max logit for numerical stability
     sum_exp_logits = sum(exp_logits)
     return [exp_logit / sum_exp_logits for exp_logit in exp_logits]
 
+# Normalisation layer used in the transformer blocks (Linear layer + RMSNorm)
 def rmsnorm(x):
     eps = 1e-8
     mean_square = sum(xi**2 for xi in x) / len(x)
     root_mean_square = (mean_square + eps)**0.5
     return [xi / root_mean_square for xi in x]
 
+# Decoder-only transformer architecture
 def gpt(token_id, pos_id, keys, values):
     token_embedding = state_dict['wte'][token_id] # get the token embedding for the input token ID
     position_embedding = state_dict['wpe'][pos_id] # get the position embedding for the input position ID
@@ -226,14 +221,15 @@ learning_rate, beta1, beta2, eps_adam = 0.01, 0.85, 0.99, 1e-8
 m = [0.0] * len(params) # initialize the first moment vector for Adam
 v = [0.0] * len(params) # initialize the second moment vector for Adam
 
-num_steps = 20 # training steps
+# Training loop
+num_steps = 20 
 for step in range(num_steps):
     # forward pass
-    # take a document from the dataset and convert it to a list of token IDs (add BOS token at the beginning)
     total_loss = Value(0.0)
 
     batch_size = 8
     for b in range(batch_size):
+        # take a document from the dataset and convert it to a list of token IDs (add BOS token at the beginning)
         doc = docs[(step * batch_size + b) % len(docs)]
         tokens = [BOS] + [chars.index(c) for c in doc] + [BOS]
         n = min(block_size, len(tokens) - 1)
@@ -247,14 +243,12 @@ for step in range(num_steps):
             logits = gpt(token_id, pos_id, keys, values)
             probs = softmax(logits)
             losses.append(-probs[target_id].log())
-
         total_loss += sum(losses) / n
 
     loss = total_loss / batch_size
-    # backward pass
-    loss.backward() # compute the gradients of the loss with respect to all parameters in the computational
+    loss.backward() # compute the gradients of the loss with respect to all parameters in the computational (backward pass)
 
-    # update the parameters using Adam
+    # update the parameters using Adam (optimiser.step())
     learning_rate_target = learning_rate * (1 - step / num_steps) # linearly decay the learning rate to zero over the course of training
     for i, param in enumerate(params):
         m[i] = beta1 * m[i] + (1 - beta1) * param.grad # update the first moment vector for the current parameter
@@ -266,7 +260,7 @@ for step in range(num_steps):
 
     print(f"Step {step + 1}/{num_steps}, Loss: {loss.data:.4f}")
 
-# inference
+# inference (no_grad())
 temperature = 0.5 # control creativity of generated text
 print("\nGenerated names:")
 for _ in range(10):
