@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Demystifying Karpathy's microgpt.py"
+title: "karpathy's-microgpt"
 date:   2026-13-02 14:06:04 +0530
 categories: tech
 ---
