@@ -51,7 +51,8 @@ It then updates `param.data` directly. This proves that Adam is just an adaptive
 
 ## Conclusion
 
-MicroGPT proves that "intelligence" isn't a complex architectural mystery—it's just a massive Directed Acyclic Graph (DAG) of basic arithmetic, meticulously tracked by calculus. While PyTorch gives us **Speed**, MicroGPT gives us **Clarity**.
+Turns out Karpathy has written a blog on explaining MicroGPT himself; hence no point of this. I am still attaching this here since the code is mine; and just a little over 200 lines; but easier to read. I am planning to add more stuff to this; explaining everything from basics. This is my favourite interview question to ask. You can check out his blog [here](https://karpathy.github.io/2026/02/12/microgpt/)
+
 
 ---
 
