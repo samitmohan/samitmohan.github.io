@@ -7,11 +7,21 @@ categories: tech
 
 Explaining the algorithm behind Transformers; the reason why your job will be gone; in 200 lines.
 
----
+> **Note:** Andrej Karpathy recently published a [brilliant breakdown](https://karpathy.github.io/2026/02/12/microgpt/) of MicroGPT. This post is intended as a technical companion—a deep dive into the "gears" for those who want to see exactly how the scalar math translates to the emergent intelligence of an LLM.
+
+## 0. The Interviewer’s Perspective
+
+MicroGPT is my favorite interview question. When I ask a candidate to "implement a Transformer from scratch," I'm not looking for `import torch`. I'm looking for:
+1. **The DAG intuition**: Do they understand that `backward()` is just a reverse topological sort?
+2. **Causality at the scalar level**: Can they explain why we process tokens sequentially in this implementation instead of using a 2D mask?
+3. **The Softmax stability trick**: Do they know why we subtract `max(logits)`? (Hint: it's not just "best practice," it's the difference between `inf` and a result).
 
 ## 1. The Autograd Engine: `Value` vs. `torch.Tensor`
 
 At the heart of MicroGPT is the `Value` class, a scalar-based automatic differentiation engine.
+
+![Backpropagation Mechanics](/assets/images/math/backprop.png)
+*Figure 1: The Chain Rule in action. Every node in MicroGPT tracks its children and its contribution to the final loss.*
 
 | Feature | MicroGPT (`Value`) | PyTorch (`torch.Tensor`) |
 | :--- | :--- | :--- |
@@ -21,9 +31,15 @@ At the heart of MicroGPT is the `Value` class, a scalar-based automatic differen
 
 In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we initialize a list of 100 individual `Value` objects. This makes the **Chain Rule** visceral: calling `backward()` literally traverses the history of every addition and multiplication.
 
+### The Basics: What is a Gradient?
+If you've forgotten your multivariable calculus: a gradient is just a "nudge." If a weight has a gradient of `0.5`, it means that if we increase that weight by a tiny amount, the loss will increase by half that amount. Our goal is to nudge every weight in the *opposite* direction of its gradient to minimize the loss.
+
 ## 2. Wiring vs. Modules
 
 MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehensions to implement the math.
+
+![Embeddings](/assets/images/math/embeddings.png)
+*Figure 2: Turning discrete tokens into high-dimensional vectors.*
 
 - **Linear Layers**: Instead of `nn.Linear(16, 16)`, MicroGPT uses:
   `[sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]`
@@ -31,6 +47,9 @@ MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehension
 - **Normalisation**: `rmsnorm(x)` is a custom function calculating the root mean square of a list of scalars manually.
 
 ## 3. The "Secret" Sequential Training (KV Cache)
+
+![Attention Mechanism](/assets/images/math/how_attention_works.png)
+*Figure 3: How queries, keys, and values interact to create context.*
 
 This is the most significant departure from standard PyTorch training.
 
@@ -41,6 +60,9 @@ This is the most significant departure from standard PyTorch training.
 
 ## 4. Adam from Scratch
 
+![Adam Optimizer](/assets/images/math/adam.png)
+*Figure 4: Adam uses momentum and variance to navigate the loss landscape.*
+
 In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
 1. `m`: The first moment (momentum).
@@ -49,10 +71,46 @@ In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
 It then updates `param.data` directly. This proves that Adam is just an adaptive learning rate that scales every single weight update based on its own history.
 
+## 5. The Gradient Journey: A Scalar Walkthrough
+
+![Gradients](/assets/images/math/gradients.png)
+
+When we call `loss.backward()`, we are executing a "Chain Reaction" of local derivatives. 
+
+Imagine the very last operation: `loss = total_loss / batch_size`.
+- The `loss.grad` is seeded at `1.0`.
+- This flows back to `total_loss.grad` as `1.0 / batch_size`.
+- If `total_loss = loss1 + loss2`, then both `loss1.grad` and `loss2.grad` inherit `total_loss.grad` (because the derivative of `x+y` w.r.t `x` is `1`).
+
+This continues until we reach the **Token Embeddings**. In MicroGPT, we can literally print `state_dict['wte'][10][5].grad` to see how much the 5th dimension of the 10th token's embedding contributed to the error of a specific name like "Andre-j".
+
+## 6. Numerical Stability: The `max_logit` Trick
+
+![Safe Softmax](/assets/images/ai/safesoftmax.png)
+
+In the `softmax` function, you'll see:
+`max_logit = max(l.data for l in logits)`
+`exp_logits = [(logit - max_logit).exp() for logit in logits]`
+
+**Why?**
+The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
+
+## 7. The Tensor Bridge: Scaling to Production
+
+You might wonder: "If we can write a GPT in 200 lines of Python, why is PyTorch so huge?"
+
+The answer is **Vectorization** and **Kernel Fusion**. 
+In MicroGPT, calculating a dot product involves a Python `for` loop, which is slow. In production, we use NVIDIA's CUDA or OpenAI's Triton to launch thousands of threads that compute these products in parallel. 
+
+When you see `torch.matmul(A, B)`, the engine isn't just looping; it's using "Tiling" to move chunks of data into the GPU's fast SRAM (Static Random-Access Memory), computing the result, and moving it back. MicroGPT is the *logic*; PyTorch is the *plumbing*.
+
 ## Conclusion
 
-Turns out Karpathy has written a blog on explaining MicroGPT himself; hence no point of this. I am still attaching this here since the code is mine; and just a little over 200 lines; but easier to read. I am planning to add more stuff to this; explaining everything from basics. This is my favourite interview question to ask. You can check out his blog [here](https://karpathy.github.io/2026/02/12/microgpt/)
+While Karpathy's own breakdown is the definitive source, I hope this deep dive into the scalar mechanics, the interview perspective, and the "Tensor Bridge" has given you a more visceral understanding of how LLMs actually work. 
 
+The code below is my own implementation—clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you don't just know how to *use* a Transformer; you know how to *build* one.
+
+Check out Andrej's original blog [here](https://karpathy.github.io/2026/02/12/microgpt/) for the high-level context.
 
 ---
 
