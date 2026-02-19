@@ -1,9 +1,67 @@
 ---
 layout: post
-title: "karpathy’s MicroGPT"
+title: "favourite interview questions"
 date: 2026-02-13 14:06:04 +0530
 categories: tech
 ---
+
+These are some of my favourite questions to ask in interviews and I wish we move forward and have these questions in interview rounds instead of cramming algorithmic questions and deriving kadane's algorithm in 30 minutes, pretending we have never seen it before.
+
+Fluency in computers is what gets you hired. Do you get excited when you see these questions? That's passion.
+
+6 questions
+
+## Question 1 (covers computers in general)
+
+> What is 13 in binary? What is the speed of light? What is merge sort complexity?
+
+If you don't say 1101; 3 * 10^8; O(nlogn) in under 10 seconds; what the hell were you doing in college?
+
+## Question 2 (covers dsa)
+
+> Whats the complexity of matrix multiplication; Write matrix multiplication; How can you optimise it?
+
+First you check if they can even be multiplied. Then you create an output array to store the results. Then you run a triple loop
+
+```python
+
+import numpy as np
+def matrixmul(a, b):
+    m, n1 = len(a), len(a[0])
+    n2, p = len(b), len(b[0])
+    if n1 != n2: return -1
+    # else do matrix mul
+    c = [[0 for _ in range(p)] for _ in range(m)]
+    for i in range(m):
+        for j in range(p):
+            for k in range(n1):
+                c[i][j] += a[i][k] * b[k][j]
+    return c
+
+def matrixmulNumpy(a, b):
+    a, b = np.array(a), np.array(b)
+    if a.shape[1] != b.shape[0]: return -1
+    return (a @ b).tolist()
+    # return np.matmul(A,B).tolist()
+```
+
+
+
+## Question 3 (covers math)
+
+Pi question
+
+## Question 4 (covers fundamentals / networking + computer org)
+
+> what happens when you enter www.google.com and press enter?
+
+## Question 5 (covers modern ml)
+
+MicroGPT from scratch
+
+## Question 6 (covers GPU + os)
+
+How does CUDA work? Flash attention
 
 Explaining the algorithm behind Transformers; the reason why your job will be gone; in 200 lines.
 
@@ -12,6 +70,7 @@ Explaining the algorithm behind Transformers; the reason why your job will be go
 ## 0. The Interviewer’s Perspective
 
 MicroGPT is my favorite interview question. When I ask a candidate to "implement a Transformer from scratch," I'm not looking for `import torch`. I'm looking for:
+
 1. **The DAG intuition**: Do they understand that `backward()` is just a reverse topological sort?
 2. **Causality at the scalar level**: Can they explain why we process tokens sequentially in this implementation instead of using a 2D mask?
 3. **The Softmax stability trick**: Do they know why we subtract `max(logits)`? (Hint: it's not just "best practice," it's the difference between `inf` and a result).
@@ -29,9 +88,10 @@ At the heart of MicroGPT is the `Value` class, a scalar-based automatic differen
 | **Backprop** | Manual topological sort and chain rule. | Highly optimized C++/CUDA kernels for DAG traversal. |
 | **Visibility** | You can see every gradient flow through every node. | Hidden behind the `loss.backward()` black box. |
 
-In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we initialize a list of 100 individual `Value` objects. This makes the **Chain Rule** visceral: calling `backward()` literally traverses the history of every addition and multiplication.
+In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we  initialize a list of 100 individual `Value` objects. This makes the **Chain Rule** visceral: calling `backward()` literally traverses the history of every addition and multiplication.
 
 ### The Basics: What is a Gradient?
+
 If you've forgotten your multivariable calculus: a gradient is just a "nudge." If a weight has a gradient of `0.5`, it means that if we increase that weight by a tiny amount, the loss will increase by half that amount. Our goal is to nudge every weight in the *opposite* direction of its gradient to minimize the loss.
 
 ## 2. Wiring vs. Modules
@@ -78,6 +138,7 @@ It then updates `param.data` directly. This proves that Adam is just an adaptive
 When we call `loss.backward()`, we are executing a "Chain Reaction" of local derivatives. 
 
 Imagine the very last operation: `loss = total_loss / batch_size`.
+
 - The `loss.grad` is seeded at `1.0`.
 - This flows back to `total_loss.grad` as `1.0 / batch_size`.
 - If `total_loss = loss1 + loss2`, then both `loss1.grad` and `loss2.grad` inherit `total_loss.grad` (because the derivative of `x+y` w.r.t `x` is `1`).
