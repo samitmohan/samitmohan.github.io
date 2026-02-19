@@ -3,7 +3,10 @@ layout: post
 title:  "resources"
 date:   2025-06-28 14:06:04 +0530
 categories: goals
+tokens: "~0.5k"
 ---
+
+Some of the resources I've collected for learning AI. 2026
 
 ## Deep Learning
 

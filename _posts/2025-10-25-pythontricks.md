@@ -3,9 +3,10 @@ layout: post
 title:  "some python tricks"
 date:   2025-10-25 14:06:04 +0530
 categories: tech
+tokens: "~3.5k"
 ---
 
-> How to write more pythonic (god i hate this word) code
+How to write more pythonic (god i hate this word) code
 
 Random things I've learnt over the years which transform Python from "it works" to "it's beautiful"
 

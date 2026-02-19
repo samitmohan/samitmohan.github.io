@@ -3,6 +3,7 @@ layout: post
 title:  "things i like"
 date:   2025-01-01 14:06:04 +0530
 categories: fun
+tokens: "~150"
 ---
 in no particular order,
 
