@@ -10,14 +10,12 @@ future: true
 show_excerpts: false
 
 header_pages:
-  - about.markdown
   - projects.markdown
-  - archive.md
   - search.html
 
-twitter_username: samit_mohan # Placeholder
+twitter_username: samitmohan # Placeholder
 github_username: samitmohan
-linkedin_username: samit-mohan # Placeholder
+linkedin_username: samitmohan # Placeholder
 
 
 markdown: kramdown
