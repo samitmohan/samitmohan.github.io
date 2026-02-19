@@ -9,7 +9,7 @@ layout: home
       Hii; I’m Samit, 23, I work as a computer vision engineer; building real time AI pipelines for India traffic. I have an innate passion for LLM architecture and ML systems. 
     </p>
     <p>
-       <a href="https://www.tensortonic.com/">tensortonic</a> and <a href="https://aiengg.dev/">aiengg.dev</a>;
+       Building <a href="https://www.tensortonic.com/">tensortonic</a> and <a href="https://aiengg.dev/">aiengg.dev</a>;
        I also write blogs on <a href="https://interviewready.io/blog">interviewready</a>.
     </p>
     <p>
