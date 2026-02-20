@@ -50,6 +50,8 @@ hr {
   align-items: flex-start;
   gap: 30px;
   margin-bottom: 30px;
+
+  max-width: 750px;   /* match your readable text width */
 }
 
 .profile-image {
