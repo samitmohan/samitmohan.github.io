@@ -3,14 +3,19 @@ layout: post
 title: "favourite interview questions"
 date: 2026-02-13 14:06:04 +0530
 categories: tech
-tokens: "~1.2k"
+tokens: "~6.5k"
 ---
 
 These are some of my favourite questions to ask in interviews and I wish we move forward and have these questions in interview rounds instead of cramming algorithmic questions and deriving kadane's algorithm in 30 minutes, pretending we have never seen it before.
 
 Fluency in computers is what gets you hired. Do you get excited when you see these questions? That's passion.
 
-6 questions
+1. Computers in general - binary, speed of light, complexity
+2. DSA - matrix multiplication and how to optimise it
+3. Math - estimating Pi with Monte Carlo
+4. Networking - what happens when you type google.com
+5. Modern ML - GPT from scratch in 200 lines
+6. GPU + OS - CUDA and Flash Attention
 
 ## Question 1 (covers computers in general)
 
@@ -46,27 +51,147 @@ def matrixmulNumpy(a, b):
     # return np.matmul(A,B).tolist()
 ```
 
+How do you optimise it? Three levels.
 
+**Strassen's algorithm** - Instead of 8 recursive multiplications on sub-matrices, Strassen does it in 7. Drops O(n^3) to O(n^2.807). The constant factor is huge though, so in practice you switch to Strassen for large matrices and fall back to naive for small ones.
+
+**Cache-aware blocking** - Modern CPUs have cache hierarchies (L1, L2, L3). The naive i-j-k loop gets cache misses on every access to `b` because you're jumping across rows. Tile the multiplication into blocks that fit in L1 cache. Doesn't change big-O but the wall-clock difference is massive.
+
+**Let Fortran do it** - When you write `a @ b` in numpy, you're not running Python. You're calling BLAS (Basic Linear Algebra Subprograms) - Fortran routines hand-optimised for decades with SIMD instructions, cache blocking, and loop unrolling. This is why numpy is fast. Python is just the steering wheel.
+
+```python
+import numpy as np
+import time
+
+n = 500
+a, b = np.random.rand(n, n), np.random.rand(n, n)
+
+start = time.time()
+c = a @ b
+print(f"numpy (BLAS) {n}x{n}: {time.time() - start:.4f}s")
+
+# now try the naive python triple loop with n=500 and go make yourself a coffee
+```
 
 ## Question 3 (covers math)
 
-Pi question
+> Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
+
+Draw a unit square. Now draw a quarter circle of radius 1 inside it, center at the origin.
+
+Area of the square = 1. Area of the quarter circle = Pi * r^2 / 4 = Pi/4.
+
+Now throw random darts at the square. Each dart lands at a random point (x, y) where both x and y come from your uniform random function. If x^2 + y^2 <= 1, the dart landed inside the quarter circle. The fraction of darts inside converges to the ratio of areas: Pi/4.
+
+So Pi = 4 * (inside / total). That's it. Monte Carlo simulation - using randomness to solve a deterministic problem.
+
+```python
+import random
+
+def estimate_pi(n):
+    inside = 0
+    for _ in range(n):
+        x, y = random.random(), random.random()
+        if x**2 + y**2 <= 1:
+            inside += 1
+    return 4 * inside / n
+
+# more darts = better estimate
+for n in [100, 1_000, 10_000, 100_000, 1_000_000]:
+    print(f"n={n:>10,} -> pi = {estimate_pi(n):.6f}")
+```
+
+The beauty of this question: it tests geometry, probability, and coding in one shot. The candidate who derives this from first principles - not recites it from memory - actually understands what area means.
 
 ## Question 4 (covers fundamentals / networking + computer org)
 
-> what happens when you enter www.google.com and press enter?
+> What happens when you enter www.google.com and press enter?
+
+This is THE networking question. Every layer of the stack lights up. If you can walk through this end to end without hesitating, you understand how the internet actually works.
+
+**DNS Resolution** - Browser needs an IP address. "www.google.com" means nothing to the network. It checks: browser cache -> OS cache -> router cache. If all miss: recursive DNS resolver asks root nameserver -> ".com" TLD nameserver -> Google's authoritative nameserver. You get back something like 142.250.80.4.
+
+**TCP Handshake** - Three packets to establish a reliable connection. SYN, SYN-ACK, ACK. Both sides agree they can talk before any data flows. This is why TCP is "reliable" - there's a contract.
+
+**TLS Handshake** - Because HTTPS. Client sends supported cipher suites, server sends its certificate (signed by a CA), they do a Diffie-Hellman key exchange to agree on a shared secret. Everything after this is encrypted with symmetric keys derived from that secret.
+
+**HTTP Request** - `GET / HTTP/2` with headers: cookies, user-agent, accept-encoding, etc.
+
+**Server Side** - Google's load balancer routes your request to one of thousands of servers. Server generates the HTML response for the search homepage.
+
+**Browser Rendering** - Parse HTML into a DOM tree. Parse CSS into CSSOM. Merge them into a render tree. Compute layout (geometry of every element). Paint pixels. Composite layers for GPU acceleration.
+
+Under 200ms for the whole thing on a good connection. Most of that is network latency, not computation.
+
+You can see every step in code:
+
+```python
+import socket
+import ssl
+
+# step 1: DNS
+ip = socket.getaddrinfo('www.google.com', 443)[0][4][0]
+print(f"DNS: www.google.com -> {ip}")
+
+# step 2: TCP + TLS
+sock = socket.create_connection(('www.google.com', 443))
+context = ssl.create_default_context()
+ssock = context.wrap_socket(sock, server_hostname='www.google.com')
+print(f"TLS: {ssock.version()}")
+
+# step 3: raw HTTP request
+ssock.sendall(b'GET / HTTP/1.1\r\nHost: www.google.com\r\nConnection: close\r\n\r\n')
+response = ssock.recv(512).decode()
+print(response[:200])
+ssock.close()
+```
+
+Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
 
 ## Question 5 (covers modern ml)
 
-MicroGPT from scratch
+> Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
+
+This is the big one. Can you write a Transformer in 200 lines of pure Python? No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math: scalar autograd, attention, softmax, Adam. If you can do this, you don't just know how to *use* a Transformer - you know how to *build* one.
 
 ## Question 6 (covers GPU + os)
 
-How does CUDA work? Flash attention
+> How does CUDA work? What is Flash Attention?
 
-Explaining the algorithm behind Transformers; the reason why your job will be gone; in 200 lines.
+CUDA is NVIDIA's model for programming GPUs. A GPU has thousands of cores - each one dumber than a CPU core, but there are thousands of them running in parallel. CUDA lets you write "kernels": functions that execute across all those cores simultaneously. When PyTorch does `torch.matmul(A, B)`, a CUDA kernel tiles the matrices, loads chunks into fast SRAM, computes, writes back to global memory. That's the gap between MicroGPT (Python for loops) and production (thousands of parallel threads).
 
-> **Note:** Andrej Karpathy recently published a [brilliant breakdown](https://karpathy.github.io/2026/02/12/microgpt/) of MicroGPT. This post is intended as a technical companion—a deep dive into the "gears" for those who want to see exactly how the scalar math translates to the emergent intelligence of an LLM.
+Flash Attention is the insight that standard attention is memory-bound, not compute-bound. Naive attention computes the full N x N attention matrix, writes it to slow HBM, reads it back. Flash Attention never materializes the full matrix. It processes attention in tiles - loading chunks of Q, K, V into SRAM and using the online softmax trick (keeping running max and sum statistics) to compute exact attention without the N x N memory hit. Same math. Way less memory. Faster in practice because you avoid the memory bottleneck entirely.
+
+The difference between CPU and GPU in one example:
+
+```python
+# CPU: one thread loops over everything sequentially
+for i in range(N):
+    for j in range(N):
+        for k in range(N):
+            C[i][j] += A[i][k] * B[k][j]
+```
+
+```c
+// GPU (CUDA): thousands of threads, each computes ONE element
+__global__ void matmul(float* A, float* B, float* C, int N) {
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    float sum = 0;
+    for (int k = 0; k < N; k++)
+        sum += A[i*N + k] * B[k*N + j];
+    C[i*N + j] = sum;
+}
+// launched with <<<grid, block>>> - one thread per output element
+```
+
+Same triple loop. The CPU does N^2 iterations of the outer two loops sequentially. The GPU launches N^2 threads and does them all at once. That's the entire idea.
+
+---
+
+Questions 5 and 6 deserve more than a one-liner. The rest of this post is the answer: building a GPT from scratch and understanding what makes it fast on a GPU. Explaining the algorithm behind Transformers - the reason why your job will be gone - in 200 lines.
+
+> **Note:** Andrej Karpathy recently published a [brilliant breakdown](https://karpathy.github.io/2026/02/12/microgpt/) of MicroGPT. What follows is a technical companion - a deep dive into the scalar math that makes it all work.
 
 ## 0. The Interviewer’s Perspective
 
@@ -179,7 +304,6 @@ Check out Andrej's original blog [here](https://karpathy.github.io/2026/02/12/mi
 ## The Code (200 Lines)
 
 ```python
-import os 
 import math
 import random
 import urllib.request
@@ -387,7 +511,7 @@ print("\nGenerated names:")
 for _ in range(10):
     keys, values = [[] for _ in range(n_layer)], [[] for _ in range(n_layer)] # reset the list of key and value vectors for each transformer block
     token_id = BOS # start with the BOS token
-    generated_name = 'har'
+    generated_name = ''
     for pos_id in range(block_size):
         logits = gpt(token_id, pos_id, keys, values)
         probs = softmax([l / temperature for l in logits])
