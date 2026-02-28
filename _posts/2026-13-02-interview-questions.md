@@ -193,7 +193,7 @@ Questions 5 and 6 deserve more than a one-liner. The rest of this post is the an
 
 > **Note:** Andrej Karpathy recently published a [brilliant breakdown](https://karpathy.github.io/2026/02/12/microgpt/) of MicroGPT. What follows is a technical companion - a deep dive into the scalar math that makes it all work.
 
-## 0. The Interviewer’s Perspective
+## The Interviewer’s Perspective
 
 MicroGPT is my favorite interview question. When I ask a candidate to "implement a Transformer from scratch," I'm not looking for `import torch`. I'm looking for:
 
@@ -201,12 +201,12 @@ MicroGPT is my favorite interview question. When I ask a candidate to "implement
 2. **Causality at the scalar level**: Can they explain why we process tokens sequentially in this implementation instead of using a 2D mask?
 3. **The Softmax stability trick**: Do they know why we subtract `max(logits)`? (Hint: it's not just "best practice," it's the difference between `inf` and a result).
 
-## 1. The Autograd Engine: `Value` vs. `torch.Tensor`
+## The Autograd Engine: `Value` vs. `torch.Tensor`
 
 At the heart of MicroGPT is the `Value` class, a scalar-based automatic differentiation engine.
 
 ![Backpropagation Mechanics](/assets/images/math/backprop.png)
-*Figure 1: The Chain Rule in action. Every node in MicroGPT tracks its children and its contribution to the final loss.*
+*The Chain Rule in action. Every node in MicroGPT tracks its children and its contribution to the final loss.*
 
 | Feature | MicroGPT (`Value`) | PyTorch (`torch.Tensor`) |
 | :--- | :--- | :--- |
@@ -220,22 +220,22 @@ In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT,
 
 If you've forgotten your multivariable calculus: a gradient is just a "nudge." If a weight has a gradient of `0.5`, it means that if we increase that weight by a tiny amount, the loss will increase by half that amount. Our goal is to nudge every weight in the *opposite* direction of its gradient to minimize the loss.
 
-## 2. Wiring vs. Modules
+## Wiring vs. Modules
 
 MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehensions to implement the math.
 
 ![Embeddings](/assets/images/math/embeddings.png)
-*Figure 2: Turning discrete tokens into high-dimensional vectors.*
+*Turning discrete tokens into high-dimensional vectors.*
 
 - **Linear Layers**: Instead of `nn.Linear(16, 16)`, MicroGPT uses:
   `[sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]`
 - **Activation**: Instead of `nn.ReLU()`, it's a manual `max(0, x)` wrapper inside the `Value` class.
 - **Normalisation**: `rmsnorm(x)` is a custom function calculating the root mean square of a list of scalars manually.
 
-## 3. The "Secret" Sequential Training (KV Cache)
+## Sequential Training and the KV Cache
 
 ![Attention Mechanism](/assets/images/math/how_attention_works.png)
-*Figure 3: How queries, keys, and values interact to create context.*
+*How queries, keys, and values interact to create context.*
 
 This is the most significant departure from standard PyTorch training.
 
@@ -244,10 +244,10 @@ This is the most significant departure from standard PyTorch training.
 
 **Why?** Implementing a 2D causal mask and matrix multiplication using scalar `Value` objects would be catastrophically slow. By using a KV cache during training, Karpathy makes "causality" (not looking ahead) implicit and the code much easier to read.
 
-## 4. Adam from Scratch
+## Adam from Scratch
 
 ![Adam Optimizer](/assets/images/math/adam.png)
-*Figure 4: Adam uses momentum and variance to navigate the loss landscape.*
+*Adam uses momentum and variance to navigate the loss landscape.*
 
 In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
@@ -257,7 +257,7 @@ In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
 It then updates `param.data` directly. This proves that Adam is just an adaptive learning rate that scales every single weight update based on its own history.
 
-## 5. The Gradient Journey: A Scalar Walkthrough
+## The Gradient Journey
 
 ![Gradients](/assets/images/math/gradients.png)
 
@@ -271,7 +271,7 @@ Imagine the very last operation: `loss = total_loss / batch_size`.
 
 This continues until we reach the **Token Embeddings**. In MicroGPT, we can literally print `state_dict['wte'][10][5].grad` to see how much the 5th dimension of the 10th token's embedding contributed to the error of a specific name like "Andre-j".
 
-## 6. Numerical Stability: The `max_logit` Trick
+## Numerical Stability: The `max_logit` Trick
 
 ![Safe Softmax](/assets/images/ai/safesoftmax.png)
 
@@ -282,7 +282,7 @@ In the `softmax` function, you'll see:
 **Why?**
 The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
 
-## 7. The Tensor Bridge: Scaling to Production
+## Scaling to Production
 
 You might wonder: "If we can write a GPT in 200 lines of Python, why is PyTorch so huge?"
 
