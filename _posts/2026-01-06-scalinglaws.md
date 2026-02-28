@@ -23,7 +23,7 @@ SL: simple predictive laws / rules for behaviour of language model performance.
 
 Scaling Laws Paper says validation and test loss decreases as parameter and number of layers increases along with compute increase.
 
-**IDEA:** Do all experimentatioons on small model with less compute -> Nail the big model in one-go.
+**IDEA:** Do all experimentations on small model with less compute -> Nail the big model in one-go.
 
 > Scaling laws are very natural thing to think about for data -> as we increase size of data/model -> we expect certain behaviour out of the model.
 
@@ -63,7 +63,7 @@ Another question to look for:
 
 - **Architecture:** LSTM vs Transformer (Transformer loss decreases as we increase parameters (MOE is the only thing better than vanilla transformer))
 - **Optimiser:** Adam is much better than SGD as we increase epochs (adaptive learning rate (basically takes steps automatically instead of a fixed size))
-- **Depth:** layers >=6 is good, 1 vs 2 layers make huge difference after that we have plateud.
+- **Depth:** layers >=6 is good, 1 vs 2 layers make huge difference after that we have plateaued.
 - **Batch Size:** batch size increase -> gradient steps increase (past certain point -> diminishing returns (bias dominates instead of learning deeper features)
   - Critical BatchSize: minimum number of steps for target loss (compute increase -> steps can stay the same (BS fixed))
 

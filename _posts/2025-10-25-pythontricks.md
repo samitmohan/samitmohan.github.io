@@ -153,7 +153,7 @@ The `map()` function is great for transforming data efficiently. It's lazy (memo
 ### More math stuff
 
 ```python
-from itertools import permutations
+from itertools import permutations, combinations
 from collections import Counter
 
 # Quick permutations
@@ -379,7 +379,7 @@ list(hm.values())  # [2, 1]
 
 ### Binary Search with Bisect
 
-When to use Bisect? Searching in sorted arrays or maintaing sorted collections.
+When to use Bisect? Searching in sorted arrays or maintaining sorted collections.
 
 ```python
 import bisect
@@ -491,6 +491,8 @@ with open("data.txt", "w") as file:
 ### The Walrus Operator: Assignment in Expressions
 
 ```python
+import os
+
 # ✅ Assign and use in one expression
 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 if (length := len(data)) > 10:
