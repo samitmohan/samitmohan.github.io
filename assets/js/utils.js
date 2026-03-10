@@ -1,20 +1,35 @@
 // --- 0. Theme Toggle (runs immediately, before DOMContentLoaded) ---
 (function() {
-  var saved = localStorage.getItem('theme');
+  var saved = null;
+  try {
+    saved = localStorage.getItem('theme');
+  } catch (e) {
+    // localStorage unavailable (e.g. private browsing) - fall back to null
+  }
   if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.body.classList.add('dark-mode');
+    document.documentElement.classList.add('dark-mode');
   }
 })();
 
 document.addEventListener("DOMContentLoaded", function() {
 
+  // Sync dark-mode class to body as well (for any third-party CSS targeting body)
+  if (document.documentElement.classList.contains('dark-mode')) {
+    document.body.classList.add('dark-mode');
+  }
+
   // Theme toggle button
   var toggle = document.getElementById('theme-toggle');
   if (toggle) {
     toggle.addEventListener('click', function() {
+      document.documentElement.classList.toggle('dark-mode');
       document.body.classList.toggle('dark-mode');
-      var isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      var isDark = document.documentElement.classList.contains('dark-mode');
+      try {
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      } catch (e) {
+        // localStorage unavailable (e.g. private browsing) - silently ignore
+      }
     });
   }
 
@@ -35,17 +50,37 @@ document.addEventListener("DOMContentLoaded", function() {
     button.addEventListener('click', function() {
       var code = block.querySelector('code').innerText;
 
-      navigator.clipboard.writeText(code).then(function() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(onCopySuccess).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+
+      function onCopySuccess() {
         button.textContent = 'Copied!';
         button.classList.add('copied');
-
         setTimeout(function() {
           button.textContent = 'Copy';
           button.classList.remove('copied');
         }, 2000);
-      }).catch(function(err) {
-        console.error('Failed to copy: ', err);
-      });
+      }
+
+      function fallbackCopy() {
+        var textarea = document.createElement('textarea');
+        textarea.value = code;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          onCopySuccess();
+        } catch (e) {
+          button.textContent = 'Failed';
+          setTimeout(function() { button.textContent = 'Copy'; }, 2000);
+        }
+        document.body.removeChild(textarea);
+      }
     });
   });
 
@@ -59,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
       anchor.href = '#' + heading.id;
       anchor.textContent = '#';
       anchor.title = "Link to this section";
+      anchor.setAttribute('aria-label', 'Link to ' + heading.textContent.trim());
 
       heading.appendChild(anchor);
     }
@@ -82,13 +118,14 @@ document.addEventListener("DOMContentLoaded", function() {
       // Desktop TOC (sidebar)
       var tocWrapper = document.createElement('nav');
       tocWrapper.className = 'toc-wrapper';
+      tocWrapper.setAttribute('aria-label', 'Table of contents');
       tocWrapper.innerHTML = '<div class="toc-title">On this page</div><ul class="toc-list">' + tocHtml + '</ul>';
       document.body.appendChild(tocWrapper);
 
       // Mobile TOC (collapsible, inserted before post content)
       var tocMobile = document.createElement('div');
       tocMobile.className = 'toc-mobile';
-      tocMobile.innerHTML = '<button class="toc-mobile-toggle">Table of Contents</button>' +
+      tocMobile.innerHTML = '<button class="toc-mobile-toggle" aria-expanded="false">Table of Contents</button>' +
         '<div class="toc-mobile-content"><ul class="toc-list">' + tocHtml + '</ul></div>';
       postContent.insertBefore(tocMobile, postContent.firstChild);
 
@@ -96,60 +133,88 @@ document.addEventListener("DOMContentLoaded", function() {
       var mobileToggle = tocMobile.querySelector('.toc-mobile-toggle');
       var mobileContent = tocMobile.querySelector('.toc-mobile-content');
       mobileToggle.addEventListener('click', function() {
-        mobileToggle.classList.toggle('open');
+        var isOpen = mobileToggle.classList.toggle('open');
         mobileContent.classList.toggle('open');
+        mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       });
 
-      // Active section highlighting on scroll
+      // Active section highlighting on scroll (throttled with rAF)
       var tocLinks = tocWrapper.querySelectorAll('.toc-list a');
-      var headingOffsets = [];
+      var scrollTicking = false;
 
-      function updateHeadingOffsets() {
-        headingOffsets = [];
+      function getHeadingOffsets() {
+        var offsets = [];
         tocHeadings.forEach(function(h) {
-          headingOffsets.push({ id: h.id, top: h.offsetTop });
+          offsets.push({ id: h.id, top: h.getBoundingClientRect().top + window.scrollY });
         });
+        return offsets;
       }
 
-      updateHeadingOffsets();
-      window.addEventListener('resize', updateHeadingOffsets);
+      var headingOffsets = getHeadingOffsets();
+      window.addEventListener('resize', function() {
+        headingOffsets = getHeadingOffsets();
+      });
 
       window.addEventListener('scroll', function() {
-        var scrollPos = window.scrollY + 120;
-        var activeId = '';
+        if (!scrollTicking) {
+          requestAnimationFrame(function() {
+            var scrollPos = window.scrollY + 120;
+            var activeId = '';
 
-        for (var i = headingOffsets.length - 1; i >= 0; i--) {
-          if (scrollPos >= headingOffsets[i].top) {
-            activeId = headingOffsets[i].id;
-            break;
-          }
+            for (var i = headingOffsets.length - 1; i >= 0; i--) {
+              if (scrollPos >= headingOffsets[i].top) {
+                activeId = headingOffsets[i].id;
+                break;
+              }
+            }
+
+            tocLinks.forEach(function(link) {
+              if (link.getAttribute('href') === '#' + activeId) {
+                link.classList.add('active');
+              } else {
+                link.classList.remove('active');
+              }
+            });
+
+            scrollTicking = false;
+          });
+          scrollTicking = true;
         }
-
-        tocLinks.forEach(function(link) {
-          if (link.getAttribute('href') === '#' + activeId) {
-            link.classList.add('active');
-          } else {
-            link.classList.remove('active');
-          }
-        });
       });
     }
+
+    // --- 3b. Wrap tables for mobile scroll ---
+    var tables = postContent.querySelectorAll('table');
+    tables.forEach(function(table) {
+      if (!table.parentElement.classList.contains('table-wrapper')) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'table-wrapper';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      }
+    });
   }
 
-  // --- 4. Reading Progress Bar (removed) ---
-
-  // --- 5. Back to Top Button ---
+  // --- 4. Back to Top Button ---
   var backToTop = document.createElement('button');
   backToTop.className = 'back-to-top';
   backToTop.title = 'Back to top';
+  backToTop.setAttribute('aria-label', 'Scroll back to top');
   backToTop.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>';
   document.body.appendChild(backToTop);
 
+  var backToTopTicking = false;
   window.addEventListener('scroll', function() {
-    if (window.scrollY > 500) {
-      backToTop.classList.add('visible');
-    } else {
-      backToTop.classList.remove('visible');
+    if (!backToTopTicking) {
+      requestAnimationFrame(function() {
+        if (window.scrollY > 500) {
+          backToTop.classList.add('visible');
+        } else {
+          backToTop.classList.remove('visible');
+        }
+        backToTopTicking = false;
+      });
+      backToTopTicking = true;
     }
   });
 
@@ -157,7 +222,7 @@ document.addEventListener("DOMContentLoaded", function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // --- 6. Callout/Admonition Detection ---
+  // --- 5. Callout/Admonition Detection ---
   // Converts blockquotes starting with [!NOTE], [!TIP], [!WARNING] into styled callouts
   var blockquotes = document.querySelectorAll('.post-content blockquote');
   blockquotes.forEach(function(bq) {
@@ -172,33 +237,4 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // --- 7. Project Filter Buttons ---
-  var filterBar = document.querySelector('.project-filter-bar');
-  if (filterBar) {
-    var filterBtns = filterBar.querySelectorAll('.filter-btn');
-    var projectCards = document.querySelectorAll('.project-card');
-
-    filterBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var filter = btn.getAttribute('data-filter');
-
-        // Toggle active state
-        filterBtns.forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-
-        projectCards.forEach(function(card) {
-          if (filter === 'all') {
-            card.classList.remove('hidden');
-          } else {
-            var tag = card.getAttribute('data-tag');
-            if (tag === filter) {
-              card.classList.remove('hidden');
-            } else {
-              card.classList.add('hidden');
-            }
-          }
-        });
-      });
-    });
-  }
 });

@@ -1,10 +1,10 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
 class Broadcasting(Scene):
     def construct(self):
-        self.camera.background_color = "#1e1e2e"
+        self.camera.background_rgba = [0x1e/255, 0x1e/255, 0x2e/255, 1]
 
         # Data
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
@@ -153,7 +153,7 @@ class Broadcasting(Scene):
         )
         rule_text.next_to(error_text, DOWN, buff=0.3)
 
-        self.play(FadeIn(error_text, scale=1.2), run_time=0.4)
+        self.play(FadeIn(error_text), run_time=0.4)
         self.play(FadeIn(rule_text), run_time=0.3)
         self.wait(1.2)
 

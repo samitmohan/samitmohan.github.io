@@ -9,26 +9,23 @@ description: "Common machine learning interview questions and how to think about
 
 These are some of my favourite questions to ask in interviews and I wish we move forward and have these questions in interview rounds instead of cramming algorithmic questions and deriving kadane's algorithm in 30 minutes, pretending we have never seen it before.
 
-Fluency in computers is what gets you hired. Do you get excited when you see these questions? That's passion.
+---
 
-1. Computers in general - binary, speed of light, complexity
-2. DSA - matrix multiplication and how to optimise it
-3. Math - estimating Pi with Monte Carlo
-4. Networking - what happens when you type google.com
-5. Modern ML - GPT from scratch in 200 lines
-6. GPU + OS - CUDA and Flash Attention
+1. **DSA + Hardware**: Matrix multiplication and how to optimise it
+2. **Math + Probability**: Estimating Pi with Monte Carlo
+3. **Networking**: What happens when you type google.com
+4. **GPU + OS**: CUDA and Flash Attention
+5. **Modern ML**: Implement a GPT from scratch (autograd, attention, the works)
 
-## Question 1 (covers computers in general)
+---
 
-> What is 13 in binary? What is the speed of light? What is merge sort complexity?
+## Q: What is the complexity of matrix multiplication? Write it. How can you optimise it?
 
-If you don't say 1101; 3 * 10^8; O(nlogn) in under 10 seconds; what the hell were you doing in college?
+**Why this is asked:** This is a layered question. It starts with "do you know your Big-O" and escalates to "do you understand hardware." The interviewer wants to see if you can go from textbook to real-world.
 
-## Question 2 (covers dsa)
+**Answer:**
 
-> Whats the complexity of matrix multiplication; Write matrix multiplication; How can you optimise it?
-
-First you check if they can even be multiplied. Then you create an output array to store the results. Then you run a triple loop
+First you check if they can even be multiplied. Then you create an output array to store the results. Then you run a triple loop.
 
 ```python
 
@@ -74,9 +71,15 @@ print(f"numpy (BLAS) {n}x{n}: {time.time() - start:.4f}s")
 # now try the naive python triple loop with n=500 and go make yourself a coffee
 ```
 
-## Question 3 (covers math)
+**What separates good from great:** The candidate who mentions cache locality and BLAS without being prompted - that person has actually thought about why things are fast, not just what the algorithm is.
 
-> Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
+---
+
+## Q: Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
+
+**Why this is asked:** It tests geometry, probability, and coding in one shot. The interviewer wants to see if you can derive the solution from first principles, not recite it from memory.
+
+**Answer:**
 
 Draw a unit square. Now draw a quarter circle of radius 1 inside it, center at the origin.
 
@@ -102,13 +105,15 @@ for n in [100, 1_000, 10_000, 100_000, 1_000_000]:
     print(f"n={n:>10,} -> pi = {estimate_pi(n):.6f}")
 ```
 
-The beauty of this question: it tests geometry, probability, and coding in one shot. The candidate who derives this from first principles - not recites it from memory - actually understands what area means.
+**What separates good from great:** The candidate who derives this from the area ratio rather than saying "I've seen this before" actually understands what area means.
 
-## Question 4 (covers fundamentals / networking + computer org)
+---
 
-> What happens when you enter www.google.com and press enter?
+## Q: What happens when you enter www.google.com and press enter?
 
-This is THE networking question. Every layer of the stack lights up. If you can walk through this end to end without hesitating, you understand how the internet actually works.
+**Why this is asked:** This is THE networking question. Every layer of the stack lights up. If you can walk through this end to end without hesitating, you understand how the internet actually works.
+
+**Answer:**
 
 **DNS Resolution** - Browser needs an IP address. "www.google.com" means nothing to the network. It checks: browser cache -> OS cache -> router cache. If all miss: recursive DNS resolver asks root nameserver -> ".com" TLD nameserver -> Google's authoritative nameserver. You get back something like 142.250.80.4.
 
@@ -149,19 +154,15 @@ ssock.close()
 
 Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
 
+**What separates good from great:** The candidate who mentions TLS 1.3's reduced round trips, or that DNS is usually UDP but falls back to TCP for large responses - they've gone beyond the textbook answer.
+
 ---
 
-The first four questions test breadth: can you think across layers of abstraction, from hash tables to TCP sockets? The next two go deep. These are the questions where you prove you actually understand what's happening inside a transformer, not just how to call `model.generate()` and collect your paycheck.
+## Q: How does CUDA work? What is Flash Attention?
 
-## Question 5 (covers modern ml)
+**Why this is asked:** If you're building anything with GPUs you need to understand the memory hierarchy. This question separates people who call `.cuda()` from people who understand why it's fast.
 
-> Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
-
-This is the big one. Can you write a Transformer in 200 lines of pure Python? No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math: scalar autograd, attention, softmax, Adam. If you can do this, you don't just know how to *use* a Transformer - you know how to *build* one.
-
-## Question 6 (covers GPU + os)
-
-> How does CUDA work? What is Flash Attention?
+**Answer:**
 
 CUDA is NVIDIA's model for programming GPUs. A GPU has thousands of cores - each one dumber than a CPU core, but there are thousands of them running in parallel. CUDA lets you write "kernels": functions that execute across all those cores simultaneously. When PyTorch does `torch.matmul(A, B)`, a CUDA kernel tiles the matrices, loads chunks into fast SRAM, computes, writes back to global memory. That's the gap between MicroGPT (Python for loops) and production (thousands of parallel threads).
 
@@ -192,26 +193,41 @@ __global__ void matmul(float* A, float* B, float* C, int N) {
 
 Same triple loop. The CPU does N^2 iterations of the outer two loops sequentially. The GPU launches N^2 threads and does them all at once. That's the entire idea.
 
+**What separates good from great:** Mentioning that Flash Attention uses the online softmax trick to avoid materializing the full attention matrix - that shows you've read the paper, not just the blog post.
+
 ---
 
-Questions 5 and 6 deserve more than a one-liner. The rest of this post is the answer: building a GPT from scratch and understanding what makes it fast on a GPU. Explaining the algorithm behind Transformers - the reason why your job will be gone - in 200 lines.
+---
 
-> **Note:** Andrej Karpathy recently published a [brilliant breakdown](https://karpathy.github.io/2026/02/12/microgpt/) of MicroGPT. What follows is a technical companion - a deep dive into the scalar math that makes it all work.
+The first four questions test breadth: can you think across layers of abstraction, from cache hierarchies to TCP sockets to GPU memory? The last one goes deep.
 
-## The Interviewer’s Perspective
+---
 
-MicroGPT is my favorite interview question. When I ask a candidate to "implement a Transformer from scratch," I'm not looking for `import torch`. I'm looking for:
+## Q: Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
 
-1. **The DAG intuition**: Do they understand that `backward()` is just a reverse topological sort?
-2. **Causality at the scalar level**: Can they explain why we process tokens sequentially in this implementation instead of using a 2D mask?
-3. **The Softmax stability trick**: Do they know why we subtract `max(logits)`? (Hint: it's not just "best practice," it's the difference between `inf` and a result).
+**Why this is asked:** This is the ultimate "do you actually understand transformers" question. Anyone can call `model.generate()`. Very few people can write the scalar autograd, attention mechanism, softmax, and Adam optimizer from raw Python. If you can, you don't just know how to *use* a Transformer - you know how to *build* one. The interviewer wants you at the whiteboard for 30 minutes. Every section below is something you should be able to explain cold. This is my own chat gippity - the whole thing, scalar by scalar.
 
-## The Autograd Engine: `Value` vs. `torch.Tensor`
+**Answer:**
 
-At the heart of MicroGPT is the `Value` class, a scalar-based automatic differentiation engine.
+Yes, you can. 200 lines. No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math. But before the code, let me walk through the ideas that make it work.
 
-![Backpropagation Mechanics](/assets/images/math/backprop.png)
-*The Chain Rule in action. Every node in MicroGPT tracks its children and its contribution to the final loss.*
+### Autograd: Why It Matters
+
+Autograd - automatic differentiation - is the engine that makes neural networks trainable. The core idea: every mathematical operation you perform during the forward pass gets recorded in a computational graph. When you're done and you have a loss value, you walk that graph backwards to compute how much each parameter contributed to the error. That's backpropagation, and it's nothing more than the chain rule applied systematically.
+
+In PyTorch, this is hidden behind `loss.backward()`. You never see the graph. You never see the gradients flowing. MicroGPT rips that abstraction away by implementing autograd at the scalar level.
+
+### The Value Class: Building the Computational Graph
+
+The `Value` class is the foundation of everything. Each `Value` wraps a single floating-point number and tracks three things:
+
+1. **`data`** - the actual number (used in the forward pass)
+2. **`grad`** - the derivative of the final loss with respect to this number (filled in during the backward pass)
+3. **`_children` and `local_grads`** - pointers to the inputs that created this value, along with the local derivative of this operation with respect to each input
+
+Every time you do `a + b` or `a * b` where `a` and `b` are `Value` objects, a new `Value` is created that remembers its parents and the local gradients. Addition: the local gradient with respect to both inputs is `1.0` (because d(a+b)/da = 1 and d(a+b)/db = 1). Multiplication: the local gradient with respect to `a` is `b.data` and vice versa (because d(a*b)/da = b).
+
+This builds a DAG - a directed acyclic graph - where every node is a scalar and every edge represents a mathematical dependency.
 
 | Feature | MicroGPT (`Value`) | PyTorch (`torch.Tensor`) |
 | :--- | :--- | :--- |
@@ -219,28 +235,41 @@ At the heart of MicroGPT is the `Value` class, a scalar-based automatic differen
 | **Backprop** | Manual topological sort and chain rule. | Highly optimized C++/CUDA kernels for DAG traversal. |
 | **Visibility** | You can see every gradient flow through every node. | Hidden behind the `loss.backward()` black box. |
 
-In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we  initialize a list of 100 individual `Value` objects. This makes the **Chain Rule** visceral: calling `backward()` literally traverses the history of every addition and multiplication.
+In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we initialize a list of 100 individual `Value` objects. This makes the chain rule visceral: calling `backward()` literally traverses the history of every addition and multiplication.
 
-### The Basics: What is a Gradient?
+### The Chain Rule and DAG Traversal
+
+Here is the key insight. If you have a chain of operations like `loss = f(g(h(w)))`, then:
+
+```
+d(loss)/d(w) = d(loss)/d(f) * d(f)/d(g) * d(g)/d(h) * d(h)/d(w)
+```
+
+Each factor in that product is a "local gradient" - the derivative of one operation with respect to its immediate input. The chain rule says: to get the gradient of the loss with respect to any parameter, multiply all the local gradients along the path from that parameter to the loss.
+
+But in a real network, the graph is not a simple chain. It's a DAG with fan-out (one value feeds into multiple operations) and fan-in (one operation takes multiple inputs). So `backward()` does two things:
+
+1. **Topological sort** - it orders every node so that a node always comes after all the nodes that depend on it. This is done with a simple recursive DFS.
+2. **Reverse traversal** - starting from the loss (whose gradient is seeded at 1.0, because d(loss)/d(loss) = 1), it walks backwards through the sorted list. For each node, it pushes `local_grad * node.grad` into each child's `.grad` field.
+
+The `+=` is critical. When a value feeds into multiple downstream operations, its gradient accumulates contributions from all of them. This handles the fan-out case correctly: if `w` is used in both `a = w * 3` and `b = w * 5`, then `d(loss)/d(w) = d(loss)/d(a) * 3 + d(loss)/d(b) * 5`.
+
+That's the entire backward pass. No magic. Just: sort the graph, walk it backwards, multiply and accumulate local gradients.
+
+#### What is a Gradient, Practically?
 
 If you've forgotten your multivariable calculus: a gradient is just a "nudge." If a weight has a gradient of `0.5`, it means that if we increase that weight by a tiny amount, the loss will increase by half that amount. Our goal is to nudge every weight in the *opposite* direction of its gradient to minimize the loss.
 
-## Wiring vs. Modules
+### Wiring vs. Modules
 
 MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehensions to implement the math.
-
-![Embeddings](/assets/images/math/embeddings.png)
-*Turning discrete tokens into high-dimensional vectors.*
 
 - **Linear Layers**: Instead of `nn.Linear(16, 16)`, MicroGPT uses:
   `[sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]`
 - **Activation**: Instead of `nn.ReLU()`, it's a manual `max(0, x)` wrapper inside the `Value` class.
 - **Normalisation**: `rmsnorm(x)` is a custom function calculating the root mean square of a list of scalars manually.
 
-## Sequential Training and the KV Cache
-
-![Attention Mechanism](/assets/images/math/how_attention_works.png)
-*How queries, keys, and values interact to create context.*
+### Sequential Training and the KV Cache
 
 This is the most significant departure from standard PyTorch training.
 
@@ -249,10 +278,7 @@ This is the most significant departure from standard PyTorch training.
 
 **Why?** Implementing a 2D causal mask and matrix multiplication using scalar `Value` objects would be catastrophically slow. By using a KV cache during training, Karpathy makes "causality" (not looking ahead) implicit and the code much easier to read.
 
-## Adam from Scratch
-
-![Adam Optimizer](/assets/images/math/adam.png)
-*Adam uses momentum and variance to navigate the loss landscape.*
+### Adam from Scratch
 
 In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
@@ -262,11 +288,9 @@ In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
 It then updates `param.data` directly. This proves that Adam is just an adaptive learning rate that scales every single weight update based on its own history.
 
-## The Gradient Journey
+### The Gradient Journey
 
-![Gradients](/assets/images/math/gradients.png)
-
-When we call `loss.backward()`, we are executing a "Chain Reaction" of local derivatives. 
+When we call `loss.backward()`, we are executing a chain reaction of local derivatives.
 
 Imagine the very last operation: `loss = total_loss / batch_size`.
 
@@ -276,9 +300,7 @@ Imagine the very last operation: `loss = total_loss / batch_size`.
 
 This continues until we reach the **Token Embeddings**. In MicroGPT, we can literally print `state_dict['wte'][10][5].grad` to see how much the 5th dimension of the 10th token's embedding contributed to the error of a specific name like "Andre-j".
 
-## Numerical Stability: The `max_logit` Trick
-
-![Safe Softmax](/assets/images/ai/safesoftmax.png)
+### Numerical Stability: The `max_logit` Trick
 
 In the `softmax` function, you'll see:
 `max_logit = max(l.data for l in logits)`
@@ -287,26 +309,20 @@ In the `softmax` function, you'll see:
 **Why?**
 The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
 
-## Scaling to Production
+### Scaling to Production
 
 You might wonder: "If we can write a GPT in 200 lines of Python, why is PyTorch so huge?"
 
-The answer is **Vectorization** and **Kernel Fusion**. 
-In MicroGPT, calculating a dot product involves a Python `for` loop, which is slow. In production, we use NVIDIA's CUDA or OpenAI's Triton to launch thousands of threads that compute these products in parallel. 
+The answer is **Vectorization** and **Kernel Fusion**.
+In MicroGPT, calculating a dot product involves a Python `for` loop, which is slow. In production, we use NVIDIA's CUDA or OpenAI's Triton to launch thousands of threads that compute these products in parallel.
 
 When you see `torch.matmul(A, B)`, the engine isn't just looping; it's using "Tiling" to move chunks of data into the GPU's fast SRAM (Static Random-Access Memory), computing the result, and moving it back. MicroGPT is the *logic*; PyTorch is the *plumbing*.
 
-## Conclusion
-
-While Karpathy's own breakdown is the definitive source, I hope this deep dive into the scalar mechanics and the interview perspective has given you a more visceral understanding of how LLMs actually work. 
+### The Code (200 Lines)
 
 The code below is my own implementation, clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you don't just know how to *use* a Transformer; you know how to *build* one.
 
 Check out Andrej's original blog [here](https://karpathy.github.io/2026/02/12/microgpt/) for the high-level context.
-
----
-
-## The Code (200 Lines)
 
 ```python
 import math
@@ -342,23 +358,23 @@ class Value:
     def __add__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + other.data, _children=(self, other))
-        out.local_grads = (1.0, 1.0) 
+        out.local_grads = (1.0, 1.0)
         return out
 
     def __mul__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, _children=(self, other))
-        out.local_grads = (other.data, self.data) 
+        out.local_grads = (other.data, self.data)
         return out
 
     def __pow__(self, other):
         assert isinstance(other, (int, float)), "only supporting int/float powers for now"
         return Value(self.data**other, (self,), (other * self.data**(other-1),))
-    
+
     def log(self): return Value(math.log(self.data + 1e-10), (self,), (1/(self.data + 1e-10),))
     def exp(self): return Value(math.exp(self.data), (self,), (math.exp(self.data),))
     def relu(self): return Value(max(0, self.data), (self,), (float(self.data > 0),))
-    
+
     def __neg__(self): return self * -1
     def __radd__(self, other): return self + other
     def __sub__(self, other): return self + (-other)
@@ -368,26 +384,26 @@ class Value:
     def __rtruediv__(self, other): return other * self**-1
     def __lt__(self, other): return self.data < (other.data if isinstance(other, Value) else other)
     def __gt__(self, other): return self.data > (other.data if isinstance(other, Value) else other)
-    
+
     def backward(self):
         topological_graph = []
         visited = set()
         def build_top(v):
-            if v not in visited: 
+            if v not in visited:
                 visited.add(v)
                 for child in v._children:
                     build_top(child)
                 topological_graph.append(v)
-        
+
         build_top(self)
         self.grad = 1 # seed the gradient of the output node with 1.0 (dL/dL = 1)
         for v in reversed(topological_graph):
             for child, local_grad in zip(v._children, v.local_grads):
-                child.grad += local_grad * v.grad 
+                child.grad += local_grad * v.grad
 
 
 # Initialise the parameters of the model
-n_embed = 16 
+n_embed = 16
 n_head = 4
 n_layer = 1
 block_size = 16 # maximum context length for predictions
@@ -472,7 +488,7 @@ m = [0.0] * len(params) # initialize the first moment vector for Adam
 v = [0.0] * len(params) # initialize the second moment vector for Adam
 
 # Training loop
-num_steps = 20 
+num_steps = 20
 for step in range(num_steps):
     # forward pass
     total_loss = Value(0.0)
@@ -528,3 +544,21 @@ for _ in range(10):
         generated_name += chars[token_id] # append the generated character to the name
     print(generated_name)
 ```
+
+**What separates good from great:** Walking through the backward pass and explaining every gradient, not just writing the forward pass and hand-waving about "autograd handles it." If you can explain why `child.grad += local_grad * v.grad` uses `+=` instead of `=`, you understand how fan-out works in the computational graph. That's the kind of detail that tells me you actually built this, not just read about it.
+
+---
+
+## Why these five
+
+Each question targets a different failure mode I see in interviews:
+
+| Question | What it catches |
+|:---|:---|
+| Matrix multiplication | Knows algorithms but never thinks about hardware |
+| Monte Carlo Pi | Can code but can't derive anything from first principles |
+| What happens when you type google.com | Uses the internet daily but has no idea how it works |
+| CUDA + Flash Attention | Calls `.cuda()` but doesn't know what the GPU is actually doing |
+| GPT from scratch | Uses transformers but can't explain the backward pass |
+
+The common thread: each one asks you to go exactly one level deeper than your job requires. That's where understanding lives.

@@ -7,7 +7,7 @@ tokens: "~3.5k"
 description: "Python tricks and patterns that make code cleaner - generators, decorators, context managers, and more."
 ---
 
-How to write more pythonic (god i hate this word) code
+How to write more pythonic (god I hate this word) code
 
 Random things I've learnt over the years which transform Python from "it works" to "it's beautiful"
 
@@ -332,7 +332,7 @@ class Pizza:
 area = Pizza.circle_area(5)
 ```
 
-[More on Object Oriented Programming in Python](tab:https://github.com/samitmohan/interviews/tree/master/PythonLanguageSpecific/OOPs)
+[More on Object Oriented Programming in Python](https://github.com/samitmohan/interviews/tree/master/PythonLanguageSpecific/OOPs)
 
 ### Dictionary Merging: The Modern Way
 

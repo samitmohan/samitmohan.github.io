@@ -1,4 +1,4 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
@@ -10,7 +10,7 @@ class NonMaxSuppression(Scene):
     """
 
     def construct(self):
-        self.camera.background_color = WHITE
+        self.camera.background_rgba = [1, 1, 1, 1]
 
         title = Text("Non-Maximum Suppression (NMS)", font_size=32, color=BLACK, weight=BOLD)
         title.to_edge(UP, buff=0.3)
@@ -57,7 +57,7 @@ class NonMaxSuppression(Scene):
         all_labels = VGroup(*conf_labels)
 
         self.play(
-            *[Create(b) for b in box_mobs],
+            *[ShowCreation(b) for b in box_mobs],
             *[Write(l) for l in conf_labels],
             run_time=1,
         )
@@ -188,7 +188,7 @@ class NonMaxSuppression(Scene):
         )
         result.to_edge(DOWN, buff=0.4)
         result_box = SurroundingRectangle(result, color=GREEN_D, buff=0.15,
-                                           corner_radius=0.1, stroke_width=2)
+                                           stroke_width=2)
 
         # Mark kept boxes with a checkmark
         for idx in kept_indices:
@@ -196,5 +196,5 @@ class NonMaxSuppression(Scene):
             check.next_to(box_mobs[idx], DOWN, buff=0.05)
             self.play(Write(check), run_time=0.15)
 
-        self.play(Write(result), Create(result_box), run_time=0.5)
+        self.play(Write(result), ShowCreation(result_box), run_time=0.5)
         self.wait(1)

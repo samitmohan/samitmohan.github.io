@@ -1,18 +1,18 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
 class ScalingCurves(Scene):
     def construct(self):
         # White/light background
-        self.camera.background_color = "#f5f5f5"
+        self.camera.background_rgba = [0xf5/255, 0xf5/255, 0xf5/255, 1]
 
         # Create axes (log-log style)
         axes = Axes(
             x_range=[0, 6, 1],
             y_range=[0, 5, 1],
-            x_length=8,
-            y_length=5,
+            width=8,
+            height=5,
             axis_config={
                 "color": "#333333",
                 "stroke_width": 2,
@@ -38,7 +38,7 @@ class ScalingCurves(Scene):
             x_ticks.add(tick, label)
 
         self.play(
-            Create(axes),
+            ShowCreation(axes),
             Write(x_label),
             Write(y_label),
             FadeIn(x_ticks),
@@ -58,19 +58,19 @@ class ScalingCurves(Scene):
         def green_func(x):
             return 4.5 * np.exp(-0.45 * x) + 0.3
 
-        red_curve = axes.plot(
+        red_curve = axes.get_graph(
             red_func,
             x_range=[0.3, 5.8],
             color=RED,
             stroke_width=3,
         )
-        blue_curve = axes.plot(
+        blue_curve = axes.get_graph(
             blue_func,
             x_range=[0.3, 5.8],
             color=BLUE,
             stroke_width=3,
         )
-        green_curve = axes.plot(
+        green_curve = axes.get_graph(
             green_func,
             x_range=[0.3, 5.8],
             color=GREEN_D,
@@ -89,9 +89,9 @@ class ScalingCurves(Scene):
         ).next_to(axes.c2p(5.8, green_func(5.8)), RIGHT, buff=0.15)
 
         # Animate curves one by one
-        self.play(Create(red_curve), FadeIn(red_label), run_time=1.5)
-        self.play(Create(blue_curve), FadeIn(blue_label), run_time=1.5)
-        self.play(Create(green_curve), FadeIn(green_label), run_time=1.5)
+        self.play(ShowCreation(red_curve), FadeIn(red_label), run_time=1.5)
+        self.play(ShowCreation(blue_curve), FadeIn(blue_label), run_time=1.5)
+        self.play(ShowCreation(green_curve), FadeIn(green_label), run_time=1.5)
 
         # Add labeled dots
         gpt3_x = 4.0
@@ -121,7 +121,7 @@ class ScalingCurves(Scene):
             Write(gpt3_label),
             FadeIn(chinchilla_dot),
             Write(chinchilla_label),
-            Create(connector),
+            ShowCreation(connector),
             run_time=1.5,
         )
 

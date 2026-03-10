@@ -1,3 +1,8 @@
+<!-- Prevent FOUC: apply dark mode before any rendering -->
+<script>
+(function(){var s=localStorage.getItem('theme');if(s==='dark'||(!s&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark-mode')})();
+</script>
+
 <!-- Favicon -->
 <link rel="icon" href="/assets/images/icon.svg" type="image/svg+xml">
 

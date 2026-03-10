@@ -1,4 +1,4 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
@@ -10,7 +10,7 @@ class Backpropagation(Scene):
     """
 
     def construct(self):
-        self.camera.background_color = WHITE
+        self.camera.background_rgba = [1, 1, 1, 1]
 
         title = Text("Backpropagation", font_size=36, color=BLACK)
         title.to_edge(UP, buff=0.3)
@@ -80,9 +80,9 @@ class Backpropagation(Scene):
                 param_labels.add(pl)
 
         self.play(
-            *[Create(n) for n in nodes],
+            *[ShowCreation(n) for n in nodes],
             *[Write(l) for l in labels],
-            *[Create(e) for e in edges],
+            *[ShowCreation(e) for e in edges],
             *[Write(vl) for vl in var_labels],
             *[Write(pl) for pl in param_labels],
             run_time=1.5,
@@ -145,7 +145,7 @@ class Backpropagation(Scene):
                        stroke_width=3, max_tip_length_to_length_ratio=0.15)
             back_edges.add(be)
 
-        self.play(*[Create(be) for be in back_edges], run_time=0.5)
+        self.play(*[ShowCreation(be) for be in back_edges], run_time=0.5)
 
         # Gradients: dL/da = 2a = 14, dL/dz = dL/da * da/dz = 14*1 = 14, dL/dx = dL/dz * dz/dx = 14*3 = 42
         grad_labels = [

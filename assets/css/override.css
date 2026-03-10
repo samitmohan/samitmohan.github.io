@@ -20,7 +20,7 @@
   --text-blockquote: #444;
 
   --link: #0366d6;
-  --link-hover: #0366d6;
+  --link-hover: #024c9e;
   --link-visited: #0366d6;
 
   --border: #e1e4e8;
@@ -90,12 +90,9 @@
   /* Progress bar */
   --progress-bg: #0366d6;
 
-  /* Code lang badge */
-  --lang-badge-bg: rgba(0,0,0,0.06);
-  --lang-badge-color: #586069;
 }
 
-body.dark-mode {
+.dark-mode {
   --bg: #1a1a2e;
   --bg-secondary: #16213e;
   --bg-card: #16213e;
@@ -184,9 +181,6 @@ body.dark-mode {
   /* Progress bar */
   --progress-bg: #6db3f2;
 
-  /* Code lang badge */
-  --lang-badge-bg: rgba(255,255,255,0.08);
-  --lang-badge-color: #8b949e;
 }
 
 /* ========================================
@@ -307,15 +301,6 @@ img { opacity: var(--img-opacity); }
 /* ========================================
    Post list (homepage)
    ======================================== */
-.post-entry {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-light);
-}
-.post-entry:last-child { border-bottom: none; }
-.post-entry h3 { margin-bottom: 5px; }
-.post-entry h3 a { color: var(--link); text-decoration: none; }
-.post-entry h3 a:hover { text-decoration: underline; }
 .post-date { color: var(--text-muted); font-size: 0.9em; margin-bottom: 10px; }
 .post-summary { color: var(--text); line-height: 1.6; margin: 0; }
 
@@ -342,6 +327,8 @@ img { opacity: var(--img-opacity); }
 
 @media screen and (max-width: 600px) {
   .post-item .post-title { font-size: 1.4em; }
+  .post_navi { flex-wrap: wrap; }
+  .post_navi-item { width: 100%; padding: 0.5em 0; }
 }
 
 /* ========================================
@@ -420,12 +407,15 @@ pre code.hljs { padding: 0; background: transparent; }
 
 .post-content pre, .highlight {
   background-color: var(--bg-code) !important;
-  border: 1px solid var(--border-code) !important;
   border-radius: 8px !important;
   padding: 12px !important;
   margin-bottom: 1em !important;
   overflow-x: auto !important;
   position: relative;
+}
+
+.post-content pre {
+  border: 1px solid var(--border-code) !important;
 }
 
 .post-content pre code, .highlight code {
@@ -462,38 +452,6 @@ pre code.hljs { padding: 0; background: transparent; }
 /* ========================================
    Project cards
    ======================================== */
-.project-filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-  margin-top: 10px;
-}
-
-.filter-btn {
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 4px 14px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: lowercase;
-}
-
-.filter-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.filter-btn.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
 
 .project-grid {
   display: grid;
@@ -524,10 +482,6 @@ pre code.hljs { padding: 0; background: transparent; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.project-card.hidden {
-  display: none;
 }
 
 .project-card:hover {
@@ -586,22 +540,7 @@ pre code.hljs { padding: 0; background: transparent; }
   border-radius: 50%;
   margin-right: 6px;
   vertical-align: middle;
-  background-color: #3572A5;
-}
-
-.project-stars {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-left: 12px;
-}
-
-.project-stars svg {
-  width: 12px;
-  height: 12px;
-  fill: var(--text-muted);
+  background-color: var(--accent);
 }
 
 /* ========================================
@@ -624,8 +563,8 @@ pre code.hljs { padding: 0; background: transparent; }
 .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .icon-moon { display: none; }
 .icon-sun { display: block; }
-body.dark-mode .icon-moon { display: block; }
-body.dark-mode .icon-sun { display: none; }
+.dark-mode .icon-moon { display: block; }
+.dark-mode .icon-sun { display: none; }
 
 /* ========================================
    Blockquote & Callouts
@@ -675,16 +614,22 @@ blockquote.callout-warning {
 
 blockquote.callout-warning::before { content: "!"; font-weight: 700; color: #d29922; }
 
-body.dark-mode blockquote.callout-note { background-color: rgba(109, 179, 242, 0.08); }
-body.dark-mode blockquote.callout-tip { background-color: rgba(126, 231, 135, 0.08); }
-body.dark-mode blockquote.callout-warning { background-color: rgba(255, 166, 87, 0.08); }
-body.dark-mode blockquote.callout-note { border-left-color: #6db3f2; }
-body.dark-mode blockquote.callout-tip { border-left-color: #7ee787; }
-body.dark-mode blockquote.callout-warning { border-left-color: #ffa657; }
+.dark-mode blockquote.callout-note { background-color: rgba(109, 179, 242, 0.08); border-left-color: #6db3f2; }
+.dark-mode blockquote.callout-note::before { color: #6db3f2; }
+.dark-mode blockquote.callout-tip { background-color: rgba(126, 231, 135, 0.08); border-left-color: #7ee787; }
+.dark-mode blockquote.callout-tip::before { color: #7ee787; }
+.dark-mode blockquote.callout-warning { background-color: rgba(255, 166, 87, 0.08); border-left-color: #ffa657; }
+.dark-mode blockquote.callout-warning::before { color: #ffa657; }
 
 /* ========================================
    Tables
    ======================================== */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1em;
+}
+
 table {
   color: var(--text);
   width: 100%;
@@ -729,15 +674,15 @@ table td {
 .share-label { color: var(--text-muted); }
 #share-buttons { display: inline-block; vertical-align: middle; }
 #share-buttons:after { content: ""; display: block; clear: both; }
-#share-buttons > div { position: relative; text-align: center; height: 36px; width: 32px; float: left; }
-#share-buttons > div > svg { height: 16px; fill: var(--share-fill); margin-top: 10px; }
-#share-buttons > div:hover { cursor: pointer; }
-#share-buttons > div.twitter:hover > svg { fill: #55ACEE; }
-#share-buttons > div.linkedin:hover > svg { fill: #0077b5; }
-#share-buttons > div.mail:hover > svg { fill: #e74c3c; }
-#share-buttons > div.twitter > svg { height: 20px; margin-top: 8px; }
-#share-buttons > div.linkedin > svg { height: 19px; margin-top: 7px; }
-#share-buttons > div.mail > svg { height: 14px; margin-top: 11px; }
+#share-buttons > button { position: relative; text-align: center; height: 36px; width: 32px; float: left; background: none; border: none; padding: 0; }
+#share-buttons > button > svg { height: 16px; fill: var(--share-fill); margin-top: 10px; }
+#share-buttons > button:hover { cursor: pointer; }
+#share-buttons > button.twitter:hover > svg { fill: #55ACEE; }
+#share-buttons > button.linkedin:hover > svg { fill: #0077b5; }
+#share-buttons > button.mail:hover > svg { fill: #e74c3c; }
+#share-buttons > button.twitter > svg { height: 20px; margin-top: 8px; }
+#share-buttons > button.linkedin > svg { height: 19px; margin-top: 7px; }
+#share-buttons > button.mail > svg { height: 14px; margin-top: 11px; }
 
 /* ========================================
    Copy button (overrides utils.css)
@@ -760,7 +705,7 @@ table td {
   border-color: #28a745;
 }
 
-body.dark-mode .copy-btn.copied {
+.dark-mode .copy-btn.copied {
   background: #238636;
   border-color: #238636;
 }
@@ -941,21 +886,32 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { color: var
 }
 
 /* ========================================
-   RSS icon in nav
+   Utility classes
    ======================================== */
-.rss-link {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: var(--toggle-color);
-  transition: color 0.2s;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.rss-link:hover { color: #ee802f; }
-
-.rss-link svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
+/* ========================================
+   Focus styles (accessibility)
+   ======================================== */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
+
+/* Show anchor links on focus too, not just hover */
+h2 .anchor-link:focus-visible,
+h3 .anchor-link:focus-visible,
+h4 .anchor-link:focus-visible {
+  opacity: 1;
+}
+

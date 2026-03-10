@@ -1,4 +1,4 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
@@ -9,7 +9,7 @@ class ChainRule(Scene):
     """
 
     def construct(self):
-        self.camera.background_color = WHITE
+        self.camera.background_rgba = [1, 1, 1, 1]
 
         title = Text("The Chain Rule", font_size=40, color=BLACK, weight=BOLD)
         title.to_edge(UP, buff=0.4)
@@ -68,9 +68,9 @@ class ChainRule(Scene):
         diagram.shift(DOWN * 0.5)
 
         self.play(
-            *[Create(a) for a in arrows],
-            Create(g_box), Write(g_text),
-            Create(f_box), Write(f_text),
+            *[ShowCreation(a) for a in arrows],
+            ShowCreation(g_box), Write(g_text),
+            ShowCreation(f_box), Write(f_text),
             Write(x_label), Write(mid_label), Write(out_label),
             run_time=1,
         )
@@ -84,30 +84,20 @@ class ChainRule(Scene):
 
         # Derivative step by step
         deriv_steps = [
-            ("Step 1: Identify outer and inner", GREY_D),
-            ("  dh/dx = df/dg * dg/dx", BLACK),
-            ("", BLACK),
-            ("Step 2: Differentiate outer f(u)=u^2", RED_D),
-            ("  df/du = 2u = 2*g(x) = 2(3x+1)", RED_D),
-            ("", BLACK),
-            ("Step 3: Differentiate inner g(x)=3x+1", BLUE_D),
-            ("  dg/dx = 3", BLUE_D),
-            ("", BLACK),
-            ("Step 4: Multiply (Chain Rule!)", BLACK),
-            ("  dh/dx = 2(3x+1) * 3 = 6(3x+1)", BLACK),
+            ("Step 1: dh/dx = df/dg * dg/dx", GREY_D),
+            ("Step 2: df/du = 2u = 2(3x+1)", RED_D),
+            ("Step 3: dg/dx = 3", BLUE_D),
+            ("Step 4: dh/dx = 2(3x+1)*3 = 6(3x+1)", BLACK),
         ]
 
         step_mobs = VGroup()
         for text, color in deriv_steps:
-            if text:
-                t = Text(text, font_size=20, color=color)
-            else:
-                t = Text(" ", font_size=10)
+            t = Text(text, font_size=22, color=color)
             step_mobs.add(t)
 
-        step_mobs.arrange(DOWN, aligned_edge=LEFT, buff=0.08)
+        step_mobs.arrange(DOWN, aligned_edge=LEFT, buff=0.2)
         step_mobs.to_edge(LEFT, buff=0.5)
-        step_mobs.shift(DOWN * 1.8)
+        step_mobs.shift(DOWN * 1.5)
 
         for s in step_mobs:
             self.play(Write(s), run_time=0.25)
@@ -133,14 +123,14 @@ class ChainRule(Scene):
 
         # Surrounding box
         num_box = SurroundingRectangle(num_group, color=PURPLE_D, buff=0.2,
-                                        corner_radius=0.1, stroke_width=1.5)
+                                        stroke_width=1.5)
 
-        self.play(Write(num_title), Create(num_box), run_time=0.4)
+        self.play(Write(num_title), ShowCreation(num_box), run_time=0.4)
         for ns in num_steps:
             self.play(Write(ns), run_time=0.2)
 
         # Final highlight
         result_box = SurroundingRectangle(step_mobs[-1], color=GREEN_D, buff=0.1,
-                                           corner_radius=0.05, stroke_width=2)
-        self.play(Create(result_box), run_time=0.3)
+                                           stroke_width=2)
+        self.play(ShowCreation(result_box), run_time=0.3)
         self.wait(1)

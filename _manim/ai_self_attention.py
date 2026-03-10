@@ -1,9 +1,9 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 class SelfAttention(Scene):
     def construct(self):
-        self.camera.background_color = "#1a1a2e"
+        self.camera.background_rgba = [0x1a/255, 0x1a/255, 0x2e/255, 1]
 
         # --- Step 1: Show sentence tokens ---
         title = Text("Self-Attention", font_size=32, color=WHITE).to_edge(UP, buff=0.3)
@@ -35,7 +35,7 @@ class SelfAttention(Scene):
                     val_text = Text(f"{values[i,j]:.1f}", font_size=14, color=WHITE)
                     val_text.move_to(rect.get_center())
                     cells.add(VGroup(rect, val_text))
-            grid = cells.arrange_in_grid(rows=rows, cols=cols, buff=0.05)
+            grid = cells.arrange_in_grid(n_rows=rows, n_cols=cols, buff=0.05)
             label = Text(label_text, font_size=22, color=color, weight=BOLD)
             label.next_to(grid, UP, buff=0.15)
             return VGroup(label, grid).scale(scale)
@@ -80,7 +80,7 @@ class SelfAttention(Scene):
                     else:
                         intensity = 0.5
                     fill_color = interpolate_color(
-                        ManimColor("#1a1a2e"), ManimColor("#ff6b6b"), intensity
+                        "#1a1a2e", "#ff6b6b", intensity
                     )
                     rect = Rectangle(
                         width=0.7, height=0.4,
@@ -90,7 +90,7 @@ class SelfAttention(Scene):
                     val_text = Text(f"{values[i,j]:.2f}", font_size=13, color=WHITE)
                     val_text.move_to(rect.get_center())
                     cells.add(VGroup(rect, val_text))
-            grid = cells.arrange_in_grid(rows=rows, cols=cols, buff=0.05)
+            grid = cells.arrange_in_grid(n_rows=rows, n_cols=cols, buff=0.05)
             return grid.scale(scale)
 
         score_grid = make_heatmap(score_vals)
@@ -154,7 +154,7 @@ class SelfAttention(Scene):
                     val_text = Text(f"{values[i,j]:.2f}", font_size=13, color=WHITE)
                     val_text.move_to(rect.get_center())
                     cells.add(VGroup(rect, val_text))
-            grid = cells.arrange_in_grid(rows=rows, cols=cols, buff=0.05)
+            grid = cells.arrange_in_grid(n_rows=rows, n_cols=cols, buff=0.05)
             return grid.scale(scale)
 
         output_grid = make_output_grid(output_vals)

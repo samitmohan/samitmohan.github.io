@@ -5,19 +5,48 @@ permalink: /search/
 ---
 
 <div class="search-page">
+  <label for="search-input" class="visually-hidden">Search posts</label>
   <input type="text" id="search-input" class="search-input" placeholder="Type to search posts...">
-  <ul id="results-container" class="search-results"></ul>
+  <ul id="results-container" class="search-results" role="list" aria-live="polite"></ul>
 </div>
 
-<script src="https://unpkg.com/simple-jekyll-search@latest/dest/simple-jekyll-search.min.js"></script>
+<script src="https://unpkg.com/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js" defer></script>
 <script>
-  window.simpleJekyllSearch = new SimpleJekyllSearch({
-    searchInput: document.getElementById('search-input'),
-    resultsContainer: document.getElementById('results-container'),
-    json: '/search.json',
-    searchResultTemplate: '<li><a href="{url}">{title}</a> <small>({date})</small></li>',
-    noResultsText: 'No results found',
-    limit: 10,
-    fuzzy: false
-  })
+  function initSearch() {
+    window.simpleJekyllSearch = new SimpleJekyllSearch({
+      searchInput: document.getElementById('search-input'),
+      resultsContainer: document.getElementById('results-container'),
+      json: '/search.json',
+      searchResultTemplate: '<li><a href="{url}">{title}</a> <small>({date})</small></li>',
+      noResultsText: 'No results found',
+      limit: 10,
+      fuzzy: false
+    });
+  }
+
+  // The deferred script may not be loaded yet when this inline script runs.
+  // Wait for DOMContentLoaded (deferred scripts execute before this event),
+  // and retry briefly in case of unusual timing.
+  if (typeof SimpleJekyllSearch !== 'undefined') {
+    initSearch();
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof SimpleJekyllSearch !== 'undefined') {
+        initSearch();
+      } else {
+        // Retry with polling in case the deferred script is still loading
+        var attempts = 0;
+        var maxAttempts = 50;
+        var interval = setInterval(function() {
+          attempts++;
+          if (typeof SimpleJekyllSearch !== 'undefined') {
+            clearInterval(interval);
+            initSearch();
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+          }
+        }, 100);
+      }
+    });
+  }
 </script>

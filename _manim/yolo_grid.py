@@ -1,4 +1,4 @@
-from manim import *
+from manimlib import *
 import numpy as np
 
 
@@ -10,7 +10,7 @@ class YOLOGrid(Scene):
     """
 
     def construct(self):
-        self.camera.background_color = WHITE
+        self.camera.background_rgba = [1, 1, 1, 1]
 
         title = Text("YOLO: Grid-Based Detection", font_size=32, color=BLACK, weight=BOLD)
         title.to_edge(UP, buff=0.3)
@@ -27,7 +27,7 @@ class YOLOGrid(Scene):
         img_rect.move_to(LEFT * 1.5)
         img_corner = img_rect.get_corner(UL)
 
-        self.play(Create(img_rect), run_time=0.3)
+        self.play(ShowCreation(img_rect), run_time=0.3)
 
         # Draw the grid
         grid_lines = VGroup()
@@ -51,7 +51,7 @@ class YOLOGrid(Scene):
 
         grid_label = Text(f"{S}x{S} Grid", font_size=20, color=BLACK)
         grid_label.next_to(img_rect, DOWN, buff=0.2)
-        self.play(Create(grid_lines), Write(grid_label), run_time=1)
+        self.play(ShowCreation(grid_lines), Write(grid_label), run_time=1)
         self.wait(0.3)
 
         # -- Helper to get cell center --
@@ -64,7 +64,7 @@ class YOLOGrid(Scene):
         highlight = Square(side_length=cell_size, color=YELLOW, fill_color=YELLOW,
                            fill_opacity=0.4, stroke_width=1)
         highlight.move_to(cell_center(0, 0))
-        self.play(Create(highlight), run_time=0.2)
+        self.play(ShowCreation(highlight), run_time=0.2)
 
         # Quick sweep across a few cells
         sweep_cells = [(0, 1), (0, 2), (1, 0), (1, 1), (2, 2), (3, 3), (4, 4), (3, 4)]
@@ -101,7 +101,7 @@ class YOLOGrid(Scene):
         cell_label1 = Text("Cell (3,2)", font_size=14, color=GREEN_D)
         cell_label1.next_to(cell_highlight1, DOWN, buff=0.05)
 
-        self.play(Create(cell_highlight1), Write(cell_label1), run_time=0.3)
+        self.play(ShowCreation(cell_highlight1), Write(cell_label1), run_time=0.3)
 
         cc1 = cell_center(cell_r1, cell_c1)
         # Box 1: larger, higher confidence
@@ -124,8 +124,8 @@ class YOLOGrid(Scene):
         conf1_2 = Text("0.31", font_size=12, color=GREEN_C)
         conf1_2.next_to(box1_2, UR, buff=0.05)
 
-        self.play(Create(box1_1), Write(conf1_1), Write(class1_1), run_time=0.4)
-        self.play(Create(box1_2), Write(conf1_2), run_time=0.3)
+        self.play(ShowCreation(box1_1), Write(conf1_1), Write(class1_1), run_time=0.4)
+        self.play(ShowCreation(box1_2), Write(conf1_2), run_time=0.3)
         self.wait(0.3)
 
         # Object 2: "Car" around cell (4, 5)
@@ -136,7 +136,7 @@ class YOLOGrid(Scene):
         cell_label2 = Text("Cell (4,5)", font_size=14, color=BLUE_D)
         cell_label2.next_to(cell_highlight2, DOWN, buff=0.05)
 
-        self.play(Create(cell_highlight2), Write(cell_label2), run_time=0.3)
+        self.play(ShowCreation(cell_highlight2), Write(cell_label2), run_time=0.3)
 
         cc2 = cell_center(cell_r2, cell_c2)
         box2_1 = Rectangle(
@@ -157,8 +157,8 @@ class YOLOGrid(Scene):
         conf2_2 = Text("0.25", font_size=12, color=BLUE_C)
         conf2_2.next_to(box2_2, UR, buff=0.05)
 
-        self.play(Create(box2_1), Write(conf2_1), Write(class2_1), run_time=0.4)
-        self.play(Create(box2_2), Write(conf2_2), run_time=0.3)
+        self.play(ShowCreation(box2_1), Write(conf2_1), Write(class2_1), run_time=0.4)
+        self.play(ShowCreation(box2_2), Write(conf2_2), run_time=0.3)
 
         # -- Output tensor shape --
         output_text = Text(
@@ -167,6 +167,6 @@ class YOLOGrid(Scene):
         )
         output_text.to_edge(DOWN, buff=0.3)
         output_box = SurroundingRectangle(output_text, color=BLACK, buff=0.15,
-                                           corner_radius=0.1, stroke_width=1)
-        self.play(Write(output_text), Create(output_box), run_time=0.5)
+                                           stroke_width=1)
+        self.play(Write(output_text), ShowCreation(output_box), run_time=0.5)
         self.wait(1)

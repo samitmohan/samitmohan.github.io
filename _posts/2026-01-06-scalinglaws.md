@@ -15,9 +15,14 @@ What can LLMs do that classical ML can't? At scale, how do LLMs differ from trad
 
 ![sl](/assets/images/scaling_laws/scaling_laws.png)
 
+<video autoplay loop muted playsinline style="max-width:100%">
+  <source src="/assets/images/scaling/scaling_curves.mp4" type="video/mp4">
+</video>
+*Scaling parameters alone, data alone, or both (Chinchilla) - same compute, different loss.*
+
 SL: simple predictive laws / rules for behaviour of language model performance.
 
-*HOW WE TEST::*
+*HOW WE TEST:*
 
 - OLD: Tune hyper-parameters on big models
 - NEW: Tune on small models -> extrapolate to large ones
@@ -27,6 +32,16 @@ Scaling Laws Paper says validation and test loss decreases as parameter and numb
 **IDEA:** Do all experimentations on small model with less compute -> Nail the big model in one-go.
 
 > Scaling laws are very natural thing to think about for data -> as we increase size of data/model -> we expect certain behaviour out of the model.
+
+Kaplan et al. (2020) quantified this with three power law equations:
+
+$$L(N) \sim N^{-0.076}$$
+
+$$L(D) \sim D^{-0.095}$$
+
+$$L(C) \sim C^{-0.050}$$
+
+where *N* = number of parameters, *D* = dataset size (tokens), *C* = compute budget (FLOPs), and *L* = cross-entropy loss. Loss decreases as a power law as you add more parameters, data, or compute, but the small exponents mean you get diminishing returns: each 10x increase in any factor yields only a modest drop in loss.
 
 *Questions we should ask ourselves:*
 
@@ -45,18 +60,18 @@ Data Scaling Laws: formula that maps dataset size(n)
 
 Loss and 'n' is linear on a loglog plot
 
-![dl](/assets/images/scaling_laws/data_loss.png)
+![dl](/assets/images/scaling_laws/data_loss.png){: loading="lazy"}
 
 **Engineering Data Laws:**
 
 How does data composition affect model performance (not just size) -> data composition only affects offset not slope (You can do data select experiments on a much smaller model)
 
-![datacomposition](/assets/images/scaling_laws/dc.png)
+![datacomposition](/assets/images/scaling_laws/dc.png){: loading="lazy"}
 
 Another question to look for:
 
 - We have finite data, how does repeating examples affect scaling?
-        - Upto 4 epochs repeating data is almost as good as new but after that it rapidly diminishing returns.
+        - Up to 4 epochs repeating data is almost as good as new but after that it shows rapidly diminishing returns.
 - Given that repeated data is less valuable -> data selection should adapt to scale.
 - **Repeat high quality data OR include new data (trade-off)**
 
@@ -64,7 +79,7 @@ Another question to look for:
 
 - **Architecture:** LSTM vs Transformer (Transformer loss decreases as we increase parameters (MOE is the only thing better than vanilla transformer))
 - **Optimiser:** Adam is much better than SGD as we increase epochs (adaptive learning rate (basically takes steps automatically instead of a fixed size))
-- **Depth:** layers >=6 is good, 1 vs 2 layers make huge difference after that we have plateaued.
+- **Depth:** layers >=6 is good, 1 vs 2 layers make a huge difference; after that, performance plateaus.
 - **Batch Size:** batch size increase -> gradient steps increase (past certain point -> diminishing returns (bias dominates instead of learning deeper features)
   - Critical BatchSize: minimum number of steps for target loss (compute increase -> steps can stay the same (BS fixed))
 
@@ -161,4 +176,4 @@ But we are going out of data:
 - Running out of data (quality of data) -> ways to make data synthetic (deepmind alphago plays against itself and only has synthetic data) 
 - Reasoning model (o1) bridges this gap (chain of thought) -> longer o1 thinks better it performs (new paradigm for scaling llms -> reasoning (we need higher compute for this)- > current state of AI)
 - Invent new arch? Numerical stability of model should be there (none so far, transformer works only)
-![sl](/assets/images/scaling_laws/scaling_loss.png)
+![sl](/assets/images/scaling_laws/scaling_loss.png){: loading="lazy"}

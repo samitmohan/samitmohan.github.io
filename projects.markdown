@@ -134,7 +134,7 @@ permalink: /projects/
 
   <div class="project-card" data-tag="cv">
     <div class="project-card-header">
-      <div class="project-title"><a href="https://github.com/rishabhpreethan/Sign-Language-Interpretor">sign language interpretor</a></div>
+      <div class="project-title"><a href="https://github.com/rishabhpreethan/Sign-Language-Interpretor">sign language interpreter</a></div>
       <span class="project-tag tag-cv">cv</span>
     </div>
     <div class="project-description">Real-time sign language recognition using computer vision - helps bridge communication gaps for the hearing impaired.</div>

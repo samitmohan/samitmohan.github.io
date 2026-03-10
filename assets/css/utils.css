@@ -20,18 +20,6 @@
   transition: all 0.2s;
 }
 
-.copy-btn:hover {
-  background: #fff;
-  color: #000;
-  border-color: #bbb;
-}
-
-.copy-btn.copied {
-  background: #28a745;
-  color: white;
-  border-color: #28a745;
-}
-
 /* Heading Anchors */
 .anchor-link {
   text-decoration: none;
@@ -39,7 +27,7 @@
   opacity: 0;
   transition: opacity 0.2s;
   font-size: 0.8em;
-  color: #a0a0a0;
+  color: var(--anchor-color, #a0a0a0);
   user-select: none;
 }
 

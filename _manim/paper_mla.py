@@ -1,4 +1,4 @@
-from manim import *
+from manimlib import *
 
 
 class MLACompression(Scene):
@@ -10,7 +10,7 @@ class MLACompression(Scene):
     """
 
     def construct(self):
-        self.camera.background_color = "#1a1a2e"
+        self.camera.background_rgba = [0x1a/255, 0x1a/255, 0x2e/255, 1]
 
         # ── 1. Title ──
         title = Text("Multi-Head Latent Attention", font_size=32, color=WHITE)
