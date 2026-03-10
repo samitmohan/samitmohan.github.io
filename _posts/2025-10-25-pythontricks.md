@@ -4,6 +4,7 @@ title:  "some python tricks"
 date:   2025-10-25 14:06:04 +0530
 categories: tech
 tokens: "~3.5k"
+description: "Python tricks and patterns that make code cleaner - generators, decorators, context managers, and more."
 ---
 
 How to write more pythonic (god i hate this word) code
@@ -19,7 +20,7 @@ One of Python's most powerful features is its flexible argument handling. Instea
 Useful when you don't know how many arguments are going to be passed to your function at runtime.
 
 ```python
-# ✅ Pythonic: Handle variable arguments elegantly
+# Pythonic: Handle variable arguments elegantly
 def add(*args):
     return sum(args)
 
@@ -46,14 +47,14 @@ Helpful when you want to sort a sequence by some arbitrary computed key.
 Lambda functions shine in sorting and functional programming contexts:
 
 ```python
-# ✅ Elegant sorting with custom keys
+# Elegant sorting with custom keys
 tuples = [(1, "s"), (2, "a"), (3, "m"), (4, "i"), (5, "t")]
 
 # suppose I want to sort with respect to alphabets(1st val) in this-:
 sorted_tuples = sorted(tuples, key=lambda x: x[1])
 # Result: [(2, 'a'), (4, 'i'), (3, 'm'), (1, 's'), (5, 't')]
 
-# ✅ Replace switch statements with dictionaries
+# Replace switch statements with dictionaries
 def dispatch(operator, x, y):
     return {
         "add": lambda: x + y,
@@ -70,15 +71,18 @@ result = dispatch("mul", 2, 8)  # 16
 ```python
 numbers = [1, 2, 3, 4, 5]
 
-# ❌ Imperative style
+# Bad: Imperative style
 squared = []
 for num in numbers:
     squared.append(num ** 2)
 
-# ✅ Functional style
-squared = list(map(lambda n: n**2, numbers))
+# Good: List comprehension (more Pythonic)
+squared = [n**2 for n in numbers]
 
-# ✅ Filtering
+# Also fine: map + lambda
+# squared = list(map(lambda n: n**2, numbers))
+
+# Good: Filtering
 even_numbers = list(filter(lambda n: n % 2 == 0, numbers))
 ```
 
@@ -114,13 +118,13 @@ The `@lru_cache` decorator is like getting memoization for free:
 ```python
 from functools import lru_cache
 
-# ❌ Slow recursive Fibonacci
+# Bad: Slow recursive Fibonacci
 def fib_slow(n):
     if n <= 1:
         return n
     return fib_slow(n-1) + fib_slow(n-2)
 
-# ✅ Fast cached version
+# Good: Fast cached version
 @lru_cache(maxsize=None)
 def fib_fast(n):
     if n <= 1:
@@ -134,7 +138,7 @@ print(fib_fast(40))  # Runs instantly instead of taking forever
 
 ### First-Class Functions and Higher-Order Magic
 
-Python treats functions as first-class objects – you can pass them around like any other value. This opens up powerful programming patterns.
+Python treats functions as first-class objects - you can pass them around like any other value. This opens up powerful programming patterns.
 
 ```python
 def bark(text):
@@ -176,7 +180,7 @@ perm_pairs = list(permutations(numbers, 2))  # [(1, 2), (1, 3), (1, 4), (2, 1), 
 ```python
 from itertools import product, chain, combinations
 
-# ❌ God this is bad
+# Bad: God this is bad
 list_a = [1, 2020, 70]
 list_b = [2, 4, 7, 2000]
 list_c = [3, 70, 7]
@@ -187,7 +191,7 @@ for a in list_a:
             if a + b + c == 2077:
                 print(a, b, c)  # 70 2000 7
 
-# ✅ Hell yeah
+# Good: Hell yeah
 list_a = [1, 2]
 list_b = [3, 4]
 for a, b in product(list_a, list_b):
@@ -218,7 +222,7 @@ for x, y in zip([1, 2, 3], ['one', 'two', 'three']):
 ```python
 import time
 
-# ❌ Bad code
+# Bad code
 numbers = [1, 2, 3, 4, 5]
 sq_nums = []
 square = lambda n: n**2
@@ -226,7 +230,7 @@ square = lambda n: n**2
 for num in numbers:
     sq_nums.append(square(num))
 
-# ✅ Better
+# Better
 def sum_of_squares(n):
     """Calculate sum of squares from 1 to n."""
     return sum(i * i for i in range(1, n + 1))
@@ -247,18 +251,18 @@ Generators are memory-efficient and elegant for processing large datasets.
 No need to store the entire sequence in memory.
 
 ```python
-# ❌ Memory-hungry approach
+# Bad: Memory-hungry approach
 def read_large_file_bad(filename):
     with open(filename, 'r') as file:
         return file.read().split('\n')  # Loads entire file into memory
 
-# ✅ Memory-efficient generator
+# Good: Memory-efficient generator
 def read_large_file_good(filename):
     with open(filename, 'r') as file:
         for line in file:
             yield line.strip()  # does not load the entire file, just prints
 
-# ✅ Infinite sequences → since computer has finite memory we use yield
+# Good: Infinite sequences - since computer has finite memory we use yield
 def inf_numbers():
     for i in range(1000000000000000000000000000):
         # print(i) # BAD
@@ -276,17 +280,17 @@ Understanding shallow vs deep copying can save you from subtle bugs:
 ```python
 import copy
 
-# ❌ Shallow copy trap
+# Bad: Shallow copy trap
 xs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 ys = list(xs)  # Shallow copy
 xs[1][0] = "X"
 print(ys)  # ys is also affected! 
 
-# ✅ Deep copy solution → no reference to original, makes independent copy
+# Good: Deep copy solution - no reference to original, makes independent copy
 xs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 zs = copy.deepcopy(xs)
 xs[1][0] = "Y"  # [[1, 2, 3], ['Y', 5, 6], [7, 8, 9]]
-print(zs)       # zs remains unchanged ✅ [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+print(zs)       # zs remains unchanged [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 ```
 
 ### Named Tuples: Classes Without the Boilerplate
@@ -296,7 +300,7 @@ Memory efficient shortcut to defining an immutable class in Python manually.
 ```python
 from collections import namedtuple
 
-# ✅ Clean, immutable data structures
+# Clean, immutable data structures
 Car = namedtuple("Car", ["color", "mileage"])
 my_car = Car("red", 1000)
 print(my_car.color)  # Accessible like attributes
@@ -333,7 +337,7 @@ area = Pizza.circle_area(5)
 ### Dictionary Merging: The Modern Way
 
 ```python
-# ✅ With unpacking
+# With unpacking
 xs = {"a": 1, "b": 2}
 ys = {"c": 3, "d": 4}
 merged = {**xs, **ys}  # {'a': 1, 'b': 2, 'c': 3, 'd': 4}
@@ -342,11 +346,11 @@ merged = {**xs, **ys}  # {'a': 1, 'b': 2, 'c': 3, 'd': 4}
 ### Matrix Operations: Elegant Transformations
 
 ```python
-# ✅ Transpose matrix with zip (so clean)
+# Transpose matrix with zip (so clean)
 matrix = [[8, 9, 10], [11, 12, 13]]
 transposed = list(zip(*matrix))  # [(8, 11), (9, 12), (10, 13)]
 
-# ✅ Flatten nested lists
+# Flatten nested lists
 import itertools
 nested = [[1, 2], [3, 4], [5, 6]]
 flattened = list(itertools.chain.from_iterable(nested))  # [1, 2, 3, 4, 5, 6]
@@ -357,7 +361,7 @@ flattened = list(itertools.chain.from_iterable(nested))  # [1, 2, 3, 4, 5, 6]
 ```python
 from collections import defaultdict
 
-# ❌ Manual key checking
+# Bad: Manual key checking
 word_count = {}
 for word in ["apple", "banana", "apple"]:
     if word in word_count:
@@ -365,7 +369,7 @@ for word in ["apple", "banana", "apple"]:
     else:
         word_count[word] = 1
 
-# ✅ DefaultDict elegance
+# Good: DefaultDict elegance
 word_count = defaultdict(int)
 for word in ["apple", "banana", "apple"]:
     word_count[word] += 1  # apple: 2, banana: 1
@@ -419,14 +423,14 @@ Always use type annotations, always use docstrings under functions. Know what is
 ```python
 from typing import List, Dict
 
-# ❌ Unclear function signature
+# Bad: Unclear function signature
 def calculate_total(items, discount):
     pass
 
 # Readability is quite shit, what are items? is it a list, tuple, dictionary? 
 # discount might be an integer (guessing)
 
-# ✅ Use Types
+# Good: Use Types
 def calculate_total_price( items: List[Dict[str, float]], discount_rate: float) -> float:
     """
     Calculate total price with discount applied.
@@ -466,24 +470,24 @@ def fib(x):
 ```python
 name, age = "Samit", 22
 
-# ❌ Old
+# Bad: Old
 message = "My name is " + name + " and I am " + str(age) + " years old"
 
-# ✅ Formatting (cleaner)
+# Good: Formatting (cleaner)
 print(f"My name is {name} and I'm {age} yrs old")
 ```
 
 ### Context Managers: Resource Management
 
 ```python
-# ❌ Manual resource management (don't do this cmon it's 2025)
+# Bad: Manual resource management (don't do this cmon it's 2025)
 file = open("data.txt", "w")
 try:
     file.write("Hello World")
 finally:
     file.close()
 
-# ✅ Much better
+# Good: Much better
 with open("data.txt", "w") as file:
     file.write("Hello World")
 ```
@@ -493,12 +497,12 @@ with open("data.txt", "w") as file:
 ```python
 import os
 
-# ✅ Assign and use in one expression
+# Assign and use in one expression
 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 if (length := len(data)) > 10:
     print(f"List is long: {length} items")
 
-# ✅ Used for efficient input processing
+# Used for efficient input processing
 while (command := input("$ ")) != "exit":
     os.system(command)
 ```
@@ -506,13 +510,13 @@ while (command := input("$ ")) != "exit":
 ### Unpacking and Destructuring
 
 ```python
-# ✅ Merge different iterables
+# Merge different iterables
 list_a = [1, 2, 3]
 tuple_b = (4, 5, 6)
 set_c = {7, 8, 9}
 merged = [*list_a, *tuple_b, *set_c]  # [1, 2, 3, 4, 5, 6, 8, 9, 7]
 
-# ✅ Function argument unpacking
+# Function argument unpacking
 def greet(first, last, age):
     return f"Hello {first} {last}, age {age}"
 
@@ -550,11 +554,11 @@ numbers[1::2]   # Skip first, then every second
 Stop using `pip` directly for project management. Use `uv` instead:
 
 ```bash
-# ❌ Old way
+# Bad: Old way
 pip install requests
 pip freeze > requirements.txt
 
-# ✅ Modern way with uv (written in Rust, blazingly fast)
+# Good: Modern way with uv (written in Rust, blazingly fast)
 uv add requests
 uv sync
 ```

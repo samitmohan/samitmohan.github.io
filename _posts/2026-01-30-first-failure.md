@@ -4,6 +4,7 @@ title:  "first failure of 2026: solving 100+ deep learning questions"
 date:   2026-01-30 14:06:04 +0530
 categories: fun
 tokens: "~0.2k"
+description: "My first failed resolution of 2026 - attempting to solve one ML problem per day."
 ---
 
 My only resolution for 2026 was to solve one machine learning problem a day.
@@ -31,7 +32,7 @@ DeepML is solid, but:
 Chill the f out:
 
 - **Papers → Implementation** 
-- **TensorTonic** for practice — better platform, built by someone I know.
-- **CUDA** Reading CUDA for Deep Learning one chapter / week — because GPUs rock
+- **TensorTonic** for practice - better platform, built by someone I know.
+- **CUDA** Reading CUDA for Deep Learning one chapter / week - because GPUs rock
 
 All my from-scratch implementations live here: [DeepML Solutions](https://github.com/samitmohan/ML/tree/master/DeepML)

@@ -4,6 +4,7 @@ title: "favourite interview questions"
 date: 2026-02-13 14:06:04 +0530
 categories: tech
 tokens: "~6.5k"
+description: "Common machine learning interview questions and how to think about them."
 ---
 
 These are some of my favourite questions to ask in interviews and I wish we move forward and have these questions in interview rounds instead of cramming algorithmic questions and deriving kadane's algorithm in 30 minutes, pretending we have never seen it before.
@@ -147,6 +148,10 @@ ssock.close()
 ```
 
 Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
+
+---
+
+The first four questions test breadth: can you think across layers of abstraction, from hash tables to TCP sockets? The next two go deep. These are the questions where you prove you actually understand what's happening inside a transformer, not just how to call `model.generate()` and collect your paycheck.
 
 ## Question 5 (covers modern ml)
 
@@ -293,9 +298,9 @@ When you see `torch.matmul(A, B)`, the engine isn't just looping; it's using "Ti
 
 ## Conclusion
 
-While Karpathy's own breakdown is the definitive source, I hope this deep dive into the scalar mechanics, the interview perspective, and the "Tensor Bridge" has given you a more visceral understanding of how LLMs actually work. 
+While Karpathy's own breakdown is the definitive source, I hope this deep dive into the scalar mechanics and the interview perspective has given you a more visceral understanding of how LLMs actually work. 
 
-The code below is my own implementation—clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you don't just know how to *use* a Transformer; you know how to *build* one.
+The code below is my own implementation, clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you don't just know how to *use* a Transformer; you know how to *build* one.
 
 Check out Andrej's original blog [here](https://karpathy.github.io/2026/02/12/microgpt/) for the high-level context.
 
@@ -386,7 +391,7 @@ n_embed = 16
 n_head = 4
 n_layer = 1
 block_size = 16 # maximum context length for predictions
-head_dim = n_embed // n_head # dimnension of each attention head
+head_dim = n_embed // n_head # dimension of each attention head
 
 # Randomly initialise the parameters of the model as Value objects
 matrix = lambda rows, cols: [[Value(random.gauss(0, 0.08)) for _ in range(cols)] for _ in range(rows)]

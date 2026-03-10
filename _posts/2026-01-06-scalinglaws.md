@@ -4,9 +4,10 @@ title:  "scaling laws"
 date:   2026-01-06 14:06:04 +0530
 categories: tech
 tokens: "~1.2k"
+description: "Understanding scaling laws for neural language models - what happens when you scale data, compute, and parameters."
 ---
 
-What can LLMs do that classical ML can't? At scale, how do LLM's differ from traditional ML? What does this mean for the future of AI? Does more data mean better results? OpenAI wrote a paper just on this, it's called [**Scaling Laws for Neural Language Models**](https://arxiv.org/pdf/2001.08361) in 2020.
+What can LLMs do that classical ML can't? At scale, how do LLMs differ from traditional ML? What does this mean for the future of AI? Does more data mean better results? OpenAI wrote a paper just on this, it's called [**Scaling Laws for Neural Language Models**](https://arxiv.org/pdf/2001.08361) in 2020.
 
 -----
 
@@ -35,7 +36,7 @@ Scaling Laws Paper says validation and test loss decreases as parameter and numb
 
 **Maybe intelligence -> lot of compute applied to lot of data having lot of parameters.**
 
-This was the first idea of scaling laws in the 1970s^
+This was the first idea of scaling laws in the 1970s
 
 - We also need to train on enough data which is very important (GPT3 was undertrained) 
 - Chinchilla (half parameter size of GPT3 (70b) but 4x data -> performed better) 
@@ -147,91 +148,11 @@ Hence: Big models need big data.
 - Increase the number of parameters in a model without also scaling the dataset or compute, you’ll hit diminishing returns. The same goes for the other factors. Scaling one without the others doesn’t work
 - Shift to GPUs was a breakthrough, allowing researchers to scale up both model size and dataset size. Transformers have made this even better.
 
-> This is CAP Theorem but for LLMs
+In practice, you’re always budget-constrained, so you pick which of the three knobs to turn: parameters, data, or compute. You *can* have all three - there’s no impossibility theorem here - but nobody has infinite money. The key insight from the Chinchilla paper was that most labs were turning the wrong knob. They were making models too big and not training them long enough on enough data. Chinchilla (70B params, 4x the data of GPT-3) outperformed the much larger GPT-3 by simply allocating the compute budget more wisely.
 
-For a fixed data distribution and objective, expected loss improves predictably as you scale:
+> Loss ~ f(parameters, data, compute) - all three matter, but how you balance them matters more.
 
-- Compute
-- Size
-- Parameters
-
-You cannot simultaneously maximize:
-
-- Model size (parameters)
-- Training data
-- Compute efficiency (time & cost)
-
-If you push two aggressively, the third suffers.
-
-> Loss ∼ 𝑓 ( parameters , data , compute)
-
-Case 1: Huge model + limited compute
-
-- Undertrained model
-- Poor generalization
-- Wasted parameters
-
-Case 2: Huge data + limited parameters
-
-- Underfitting
-- Can’t absorb structure
-
-Case 3: Huge model + huge data
-
-- Requires massive compute
-- Training becomes infeasible
-
-Just like CAP: You must choose your tradeoff point.
-
-**GPT vs Deepseek:**
-ChatGPT chooses:
-
-- Large parameters
-- Broad data
-- Massive compute ➡
-
->️ Optimizes generality and robustness
-
-DeepSeek chooses:
-
-- Fewer parameters
-- Higher-quality data
-- More inference-time compute
-
-> Optimizes reasoning efficiency
-
-They’re on different vertices of the triangle, just like different databases choose CP or AP.
-CAP theorem (hard constraint):
-
-```text
-        Consistency
-            ▲
-            |
-            |
-Availability ───── Partition tolerance
-
-
-LLM scaling (soft frontier):
-
-          Model Quality
-               ▲
-               |
-               |
-Compute  ───── Data
-```
-
-CAP says you must choose what to give up; scaling laws say you must choose what to pay for.
-
-More difference between GPT and Deepseek:
-
-```text
-ChatGPT:  More parameters + less per-query thinking
-DeepSeek: Fewer parameters + more per-query thinking
-```
-
-> Both obey scaling laws — just along different axes.
-
-Scaling laws apply differently to DeepSeek and ChatGPT because they optimize different objectives over different data distributions. ChatGPT follows classic scaling laws by increasing parameters, data, and compute to reduce expected loss across a broad range of tasks, yielding robust general intelligence. DeepSeek, by contrast, specializes in reasoning-heavy tasks and achieves higher parameter efficiency through curated data, teacher-student distillation, and increased inference-time computation. This shifts DeepSeek onto a steeper but narrower scaling curve, allowing strong performance with fewer parameters without violating scaling laws.
+Different labs make different bets on this tradeoff. ChatGPT scales up parameters and broad data with massive compute - optimizing for generality. DeepSeek goes the other way: fewer parameters, higher-quality data, and more inference-time compute - optimizing for reasoning efficiency. Both obey the same scaling laws, they just allocate their budgets differently.
 
 ### Limitations of Scaling Laws + Future
 
