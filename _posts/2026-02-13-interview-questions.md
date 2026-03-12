@@ -12,7 +12,7 @@ These are some of my favourite questions to ask in interviews and I wish we move
 ---
 
 1. **DSA + Hardware**: Matrix multiplication and how to optimise it
-2. **Math + Probability**: Estimating Pi with Monte Carlo
+2. **Math + Probability**: Estimating Pi with Monte Carlo (JomaTech)
 3. **Networking**: What happens when you type google.com
 4. **GPU + OS**: CUDA and Flash Attention
 5. **Modern ML**: Implement a GPT from scratch (autograd, attention, the works)
@@ -21,9 +21,7 @@ These are some of my favourite questions to ask in interviews and I wish we move
 
 ## Q: What is the complexity of matrix multiplication? Write it. How can you optimise it?
 
-**Why this is asked:** This is a layered question. It starts with "do you know your Big-O" and escalates to "do you understand hardware." The interviewer wants to see if you can go from textbook to real-world.
-
-**Answer:**
+Starts as a Big-O question, escalates to a hardware question.
 
 First you check if they can even be multiplied. Then you create an output array to store the results. Then you run a triple loop.
 
@@ -71,15 +69,11 @@ print(f"numpy (BLAS) {n}x{n}: {time.time() - start:.4f}s")
 # now try the naive python triple loop with n=500 and go make yourself a coffee
 ```
 
-**What separates good from great:** The candidate who mentions cache locality and BLAS without being prompted - that person has actually thought about why things are fast, not just what the algorithm is.
-
 ---
 
 ## Q: Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
 
-**Why this is asked:** It tests geometry, probability, and coding in one shot. The interviewer wants to see if you can derive the solution from first principles, not recite it from memory.
-
-**Answer:**
+The point is deriving it, not reciting it.
 
 Draw a unit square. Now draw a quarter circle of radius 1 inside it, center at the origin.
 
@@ -105,15 +99,13 @@ for n in [100, 1_000, 10_000, 100_000, 1_000_000]:
     print(f"n={n:>10,} -> pi = {estimate_pi(n):.6f}")
 ```
 
-**What separates good from great:** The candidate who derives this from the area ratio rather than saying "I've seen this before" actually understands what area means.
+Where I found this problem -> [Joma Tech](https://www.youtube.com/watch?v=pvimAM_SLic&t=68s)
 
 ---
 
 ## Q: What happens when you enter www.google.com and press enter?
 
-**Why this is asked:** This is THE networking question. Every layer of the stack lights up. If you can walk through this end to end without hesitating, you understand how the internet actually works.
-
-**Answer:**
+Every layer of the stack lights up.
 
 **DNS Resolution** - Browser needs an IP address. "www.google.com" means nothing to the network. It checks: browser cache -> OS cache -> router cache. If all miss: recursive DNS resolver asks root nameserver -> ".com" TLD nameserver -> Google's authoritative nameserver. You get back something like 142.250.80.4.
 
@@ -154,15 +146,13 @@ ssock.close()
 
 Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
 
-**What separates good from great:** The candidate who mentions TLS 1.3's reduced round trips, or that DNS is usually UDP but falls back to TCP for large responses - they've gone beyond the textbook answer.
+Bonus points if you mention TLS 1.3's reduced round trips, or that DNS is usually UDP but falls back to TCP for large responses.
 
 ---
 
 ## Q: How does CUDA work? What is Flash Attention?
 
-**Why this is asked:** If you're building anything with GPUs you need to understand the memory hierarchy. This question separates people who call `.cuda()` from people who understand why it's fast.
-
-**Answer:**
+Separates people who call `.cuda()` from people who understand why it's fast.
 
 CUDA is NVIDIA's model for programming GPUs. A GPU has thousands of cores - each one dumber than a CPU core, but there are thousands of them running in parallel. CUDA lets you write "kernels": functions that execute across all those cores simultaneously. When PyTorch does `torch.matmul(A, B)`, a CUDA kernel tiles the matrices, loads chunks into fast SRAM, computes, writes back to global memory. That's the gap between MicroGPT (Python for loops) and production (thousands of parallel threads).
 
@@ -193,8 +183,6 @@ __global__ void matmul(float* A, float* B, float* C, int N) {
 
 Same triple loop. The CPU does N^2 iterations of the outer two loops sequentially. The GPU launches N^2 threads and does them all at once. That's the entire idea.
 
-**What separates good from great:** Mentioning that Flash Attention uses the online softmax trick to avoid materializing the full attention matrix - that shows you've read the paper, not just the blog post.
-
 ---
 
 ---
@@ -205,9 +193,7 @@ The first four questions test breadth: can you think across layers of abstractio
 
 ## Q: Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
 
-**Why this is asked:** This is the ultimate "do you actually understand transformers" question. Anyone can call `model.generate()`. Very few people can write the scalar autograd, attention mechanism, softmax, and Adam optimizer from raw Python. If you can, you don't just know how to *use* a Transformer - you know how to *build* one. The interviewer wants you at the whiteboard for 30 minutes. Every section below is something you should be able to explain cold. This is my own chat gippity - the whole thing, scalar by scalar.
-
-**Answer:**
+Anyone can call `model.generate()`. Writing the autograd, attention, softmax, and Adam from raw Python is a different thing. This is my own chat gippity - the whole thing, scalar by scalar.
 
 Yes, you can. 200 lines. No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math. But before the code, let me walk through the ideas that make it work.
 
@@ -545,20 +531,6 @@ for _ in range(10):
     print(generated_name)
 ```
 
-**What separates good from great:** Walking through the backward pass and explaining every gradient, not just writing the forward pass and hand-waving about "autograd handles it." If you can explain why `child.grad += local_grad * v.grad` uses `+=` instead of `=`, you understand how fan-out works in the computational graph. That's the kind of detail that tells me you actually built this, not just read about it.
+The detail I look for: can you explain why `child.grad += local_grad * v.grad` uses `+=` instead of `=`? That's fan-out in the computational graph. If you know that, you built this. If you don't, you read about it.
 
 ---
-
-## Why these five
-
-Each question targets a different failure mode I see in interviews:
-
-| Question | What it catches |
-|:---|:---|
-| Matrix multiplication | Knows algorithms but never thinks about hardware |
-| Monte Carlo Pi | Can code but can't derive anything from first principles |
-| What happens when you type google.com | Uses the internet daily but has no idea how it works |
-| CUDA + Flash Attention | Calls `.cuda()` but doesn't know what the GPU is actually doing |
-| GPT from scratch | Uses transformers but can't explain the backward pass |
-
-The common thread: each one asks you to go exactly one level deeper than your job requires. That's where understanding lives.
