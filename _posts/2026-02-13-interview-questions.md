@@ -105,7 +105,7 @@ Where I found this problem -> [Joma Tech](https://www.youtube.com/watch?v=pvimAM
 
 ## Q: What happens when you enter www.google.com and press enter?
 
-Every layer of the stack lights up.
+This was inspired by this [repo](https://github.com/alex/what-happens-when) I read long time ago
 
 **DNS Resolution** - Browser needs an IP address. "www.google.com" means nothing to the network. It checks: browser cache -> OS cache -> router cache. If all miss: recursive DNS resolver asks root nameserver -> ".com" TLD nameserver -> Google's authoritative nameserver. You get back something like 142.250.80.4.
 
