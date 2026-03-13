@@ -8,7 +8,7 @@ math: true
 description: "A from-scratch PyTorch clone in ~1000 lines of Python and NumPy - reverse-mode autograd, modules, convolutions, and enough to train MNIST."
 ---
 
-> **TL;DR:** PyTorch operations build a computation graph by attaching `_backward` closures to tensors. `.backward()` topologically sorts the graph and fires each closure in reverse. 
+> **TL;DR:** PyTorch operations build a computation graph by attaching _backward closures to tensors. .backward() topologically sorts the graph and fires each closure in reverse. 
 
 **what this covers:** reverse-mode autograd, module system, conv2d with im2col, optimizers - ~1,300 lines of Python + NumPy. trains MNIST (95% MLP, 96% CNN). no C++, no CUDA, just closures and numpy arrays.
 
