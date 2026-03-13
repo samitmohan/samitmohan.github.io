@@ -1,0 +1,159 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{font-family:var(--font-sans);color:var(--color-text-primary);max-width:680px}
+.hero{margin-bottom:1.5rem}
+.hero h2{font-size:22px;font-weight:500;margin-bottom:4px}
+.hero p{font-size:13px;color:var(--color-text-secondary);line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.stat .label{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.stat .val{font-size:22px;font-weight:500}
+.chart-section{margin-bottom:1.5rem}
+.chart-section h3{font-size:16px;font-weight:500;margin-bottom:10px}
+.chart-wrap{position:relative;width:100%;height:260px}
+.modules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mod-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;cursor:pointer;transition:border-color .15s}
+.mod-card:hover{border-color:var(--color-border-secondary)}
+.mod-card.active{border-color:var(--color-border-info);border-width:2px}
+.mod-name{font-size:14px;font-weight:500;margin-bottom:2px}
+.mod-lines{font-size:12px;color:var(--color-text-secondary)}
+.mod-desc{font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5;display:none}
+.mod-card.active .mod-desc{display:block}
+.mod-concepts{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;display:none}
+.mod-card.active .mod-concepts{display:flex}
+.pill{font-size:11px;padding:3px 8px;border-radius:var(--border-radius-md);background:var(--color-background-info);color:var(--color-text-info)}
+.pill.g{background:var(--color-background-success);color:var(--color-text-success)}
+.pill.w{background:var(--color-background-warning);color:var(--color-text-warning)}
+.pill.d{background:var(--color-background-danger);color:var(--color-text-danger)}
+.section-title{font-size:16px;font-weight:500;margin-bottom:10px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:1.5rem}
+.flow-step{font-size:12px;padding:6px 12px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:all .15s}
+.flow-step:hover{border-color:var(--color-border-secondary)}
+.flow-step.hl{background:var(--color-background-info);color:var(--color-text-info);border-color:transparent}
+.flow-arrow{font-size:14px;color:var(--color-text-tertiary)}
+.detail-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px 16px;font-size:13px;color:var(--color-text-secondary);line-height:1.6;min-height:60px;margin-bottom:1.5rem}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.res-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.res-card .model{font-size:14px;font-weight:500;margin-bottom:2px}
+.res-card .acc{font-size:22px;font-weight:500;color:var(--color-text-success);margin-bottom:2px}
+.res-card .meta{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+</style>
+<div class="wrap">
+  <div class="hero">
+    <h2>minitorch — building pytorch from scratch</h2>
+    <p>Reverse-mode autograd, module system, conv2d with im2col, optimizers. ~1,300 lines of Python + NumPy. Trains MNIST to 96%.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Total lines</div><div class="val">~1,300</div></div>
+    <div class="stat"><div class="label">Files</div><div class="val">11</div></div>
+    <div class="stat"><div class="label">Dependencies</div><div class="val">NumPy</div></div>
+    <div class="stat"><div class="label">Best accuracy</div><div class="val">96.4%</div></div>
+  </div>
+
+  <div class="chart-section">
+    <h3>Codebase breakdown</h3>
+    <div class="chart-wrap"><canvas id="codeChart"></canvas></div>
+  </div>
+
+  <div class="section-title">Module explorer</div>
+  <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px">Click a module to see details and key concepts</p>
+  <div class="modules" id="modules"></div>
+
+  <div class="section-title">Training loop flow</div>
+  <div class="flow" id="flow"></div>
+  <div class="detail-box" id="flow-detail">Click a step above to see what happens at each stage of the training loop.</div>
+
+  <div class="section-title" style="margin-top:0.5rem">MNIST results</div>
+  <div class="results">
+    <div class="res-card">
+      <div class="model">MLP (2-layer)</div>
+      <div class="acc">95.15%</div>
+      <div class="meta">784 → 128 → 10<br>15 epochs, 10k samples<br>Adam optimizer</div>
+    </div>
+    <div class="res-card">
+      <div class="model">CNN (2 conv blocks)</div>
+      <div class="acc">96.40%</div>
+      <div class="meta">Conv→Pool→Conv→Pool→FC<br>10 epochs, 2k samples<br>Adam optimizer</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const modules = [
+  {name:'tensor.py',lines:522,desc:'The core: Tensor class with all operators and autograd engine. Every op builds a computation graph via _backward closures. .backward() topologically sorts and fires closures in reverse.',concepts:['Computation graph','Topological sort','_backward closures','Broadcasting gradients','_accum_grad'],cat:''},
+  {name:'module.py',lines:140,desc:'Module system and Sequential container. Recursively collects parameters via __dict__ introspection. state_dict/load_state_dict for serialization. train/eval mode toggling.',concepts:['parameters()','Sequential','state_dict','train/eval mode'],cat:'g'},
+  {name:'layers.py',lines:109,desc:'Linear layer with Kaiming/Xavier init, ReLU, Dropout (inverted scaling), and BatchNorm1d with running statistics. BatchNorm uses autograd ops — no hand-written backward needed.',concepts:['Kaiming init','Inverted dropout','BatchNorm1d','Running statistics'],cat:''},
+  {name:'conv.py',lines:150,desc:'Conv2d via im2col trick — converts convolution into matrix multiply. col2im for backward. MaxPool2d uses NumPy stride_tricks for zero-copy patch extraction.',concepts:['im2col / col2im','Stride tricks','MaxPool2d mask','Flatten'],cat:'w'},
+  {name:'functional.py',lines:82,desc:'Activation functions: relu, sigmoid, tanh, softmax, log_softmax. All follow the same pattern — forward with NumPy, backward closure with chain rule. Numerical stability via max-subtraction.',concepts:['ReLU mask gating','Log-sum-exp trick','Numerical stability'],cat:'g'},
+  {name:'loss.py',lines:25,desc:'MSE (one-liner), BCE with clamping, cross-entropy with one-hot conversion and fused log_softmax for stability.',concepts:['MSE','BCE','Cross-entropy','One-hot encoding'],cat:''},
+  {name:'optim.py',lines:113,desc:'SGD with momentum (velocity accumulation), Adam with bias-corrected first/second moments. Gradient clipping (norm and value). StepLR and cosine annealing schedulers.',concepts:['Momentum','Adam moments','Bias correction','Gradient clipping','LR scheduling'],cat:'w'},
+  {name:'grad_check.py',lines:56,desc:'Numerical gradient verification via central finite differences in float64. Compares analytic vs numerical gradients with np.allclose. Catches silently wrong backward implementations.',concepts:['Central differences','Float64 precision','np.allclose'],cat:'d'},
+  {name:'viz.py',lines:39,desc:'Renders computation graph with graphviz. Green nodes = requires_grad, gray = constants, blue boxes = operations. Useful for debugging missing edges or detached tensors.',concepts:['DAG visualization','Graphviz'],cat:''},
+  {name:'data.py',lines:27,desc:'Minimal DataLoader — shuffles indices and yields batches of tensors. No multiprocessing, no prefetch. Just enough to feed a training loop.',concepts:['Batch iteration','Index shuffling'],cat:'g'},
+  {name:'backend.py',lines:33,desc:'Optional CuPy GPU backend with get_array_module() dispatch. Transparent switch between NumPy and CuPy arrays. im2col still CPU-bound.',concepts:['CuPy dispatch','Array module pattern'],cat:''},
+];
+
+const flowSteps = [
+  {label:'Forward pass',detail:'Input flows through the model — each layer computes its output and records a _backward closure capturing the chain rule derivative. This builds the computation graph as a DAG of tensors connected by operations.'},
+  {label:'Compute loss',detail:'The loss function (MSE, cross-entropy) produces a scalar tensor. This scalar is the tip of the computation graph — calling .backward() on it will propagate gradients through every operation that created it.'},
+  {label:'zero_grad()',detail:'Clear all parameter gradients from the previous step. Without this, gradients accumulate across iterations (useful for gradient accumulation, but wrong by default).'},
+  {label:'.backward()',detail:'Seeds loss.grad = 1.0, topologically sorts the graph (depth-first), then walks it in reverse calling each node\'s _backward() closure. Gradients flow from loss back to every leaf parameter via the chain rule.'},
+  {label:'optimizer.step()',detail:'Uses the accumulated gradients to update parameters. SGD: θ -= lr × grad. Adam: tracks running mean and variance of gradients, applies bias correction, then updates with adaptive per-parameter learning rates.'},
+];
+
+const container = document.getElementById('modules');
+modules.forEach((m,i) => {
+  const card = document.createElement('div');
+  card.className = 'mod-card';
+  card.innerHTML = `<div class="mod-name">${m.name}</div><div class="mod-lines">${m.lines} lines</div><div class="mod-desc">${m.desc}</div><div class="mod-concepts">${m.concepts.map(c=>`<span class="pill ${m.cat}">${c}</span>`).join('')}</div>`;
+  card.onclick = () => {
+    document.querySelectorAll('.mod-card').forEach(c=>c.classList.remove('active'));
+    card.classList.toggle('active');
+  };
+  container.appendChild(card);
+});
+
+const flowEl = document.getElementById('flow');
+flowSteps.forEach((s,i) => {
+  if(i>0){const a=document.createElement('span');a.className='flow-arrow';a.textContent='→';flowEl.appendChild(a)}
+  const step = document.createElement('span');
+  step.className = 'flow-step';
+  step.textContent = s.label;
+  step.onclick = () => {
+    document.querySelectorAll('.flow-step').forEach(e=>e.classList.remove('hl'));
+    step.classList.add('hl');
+    document.getElementById('flow-detail').textContent = s.detail;
+  };
+  flowEl.appendChild(step);
+});
+
+const dark = matchMedia('(prefers-color-scheme:dark)').matches;
+const colors = ['#534AB7','#0F6E56','#D85A30','#993556','#185FA5','#639922','#BA7517','#5F5E5A','#E24B4A','#1D9E75','#3C3489'];
+const borderColors = dark ? colors.map(c=>c+'cc') : colors;
+
+new Chart(document.getElementById('codeChart'), {
+  type:'bar',
+  data:{
+    labels: modules.map(m=>m.name.replace('.py','')),
+    datasets:[{
+      data: modules.map(m=>m.lines),
+      backgroundColor: colors.map(c=> c + (dark?'aa':'cc')),
+      borderColor: borderColors,
+      borderWidth:1,
+      borderRadius:4
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+' lines'}}},
+    scales:{
+      x:{grid:{color:dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)'},ticks:{color:dark?'#9c9a92':'#73726c',font:{size:11}}},
+      y:{grid:{display:false},ticks:{color:dark?'#c2c0b6':'#3d3d3a',font:{size:11,family:'"Anthropic Sans",sans-serif'}}}
+    }
+  }
+});
+</script>

@@ -13,9 +13,7 @@ Random things I've learnt over the years which transform Python from "it works" 
 
 ---
 
-## Function Magic: *args and **kwargs: Use them to your advantage
-
-One of Python's most powerful features is its flexible argument handling. Instead of creating multiple function overloads, embrace `*args` and `**kwargs`.
+## *args and **kwargs
 
 Useful when you don't know how many arguments are going to be passed to your function at runtime.
 
@@ -38,13 +36,9 @@ printer(name="samit", age=22) # name - samit, age - 22
 
 ```
 
-**Why this matters:** This pattern eliminates the need for function overloading and makes your APIs incredibly flexible.
-
 ### Lambda Functions: Single expression functions
 
 Helpful when you want to sort a sequence by some arbitrary computed key.
-
-Lambda functions shine in sorting and functional programming contexts:
 
 ```python
 # Elegant sorting with custom keys
@@ -136,9 +130,9 @@ print(fib_fast(40))  # Runs instantly instead of taking forever
 ```
 ---
 
-### First-Class Functions and Higher-Order Magic
+### first-class functions
 
-Python treats functions as first-class objects - you can pass them around like any other value. This opens up powerful programming patterns.
+Python treats functions as first-class objects - you can pass them around like any other value.
 
 ```python
 def bark(text):
@@ -245,9 +239,8 @@ print(f"Function took: {duration:.6f} seconds")  # Function took: 0.013979 secon
 ```
 
 
-### Generators: Lazy Evaluation for the Win
+### generators
 
-Generators are memory-efficient and elegant for processing large datasets.
 No need to store the entire sequence in memory.
 
 ```python
@@ -273,9 +266,7 @@ squares_list = [x**2 for x in range(1000000)]      # Size ~37MB
 squares_generator = (x**2 for x in range(1000000)) # Size ~88 bytes
 ```
 
-### Shallow vs Deep Copy
-
-Understanding shallow vs deep copying can save you from subtle bugs:
+### shallow vs deep copy
 
 ```python
 import copy
@@ -536,7 +527,7 @@ all_even = all(n % 2 == 0 for n in numbers)  # True
 any_greater_than_5 = any(n > 5 for n in numbers)  # True
 ```
 
-### Palindrome Check: Slicing Magic
+### Palindrome Check: Slicing
 
 ```python
 def is_palindrome(text: str) -> bool:
@@ -566,8 +557,6 @@ uv sync
 - [uv Documentation](https://github.com/astral-sh/uv)
 
 ### Performance Insights: Under the Hood
-
-Understanding Python's internals helps you write faster code.
 
 The `dis` module shows Python bytecode - the internal operations.
 
