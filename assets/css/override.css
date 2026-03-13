@@ -93,93 +93,93 @@
 }
 
 .dark-mode {
-  --bg: #1a1a2e;
-  --bg-secondary: #16213e;
-  --bg-card: #16213e;
-  --bg-code: #0d1117;
-  --bg-code-inline: #2a2a4a;
-  --bg-header: #16213e;
-  --bg-blockquote: #16213e;
-  --bg-input: #16213e;
+  --bg: #1a1b26;
+  --bg-secondary: #16161e;
+  --bg-card: #1f2335;
+  --bg-code: #16161e;
+  --bg-code-inline: #292e42;
+  --bg-header: #16161e;
+  --bg-blockquote: #1f2335;
+  --bg-input: #1f2335;
 
-  --text: #e0e0e0;
-  --text-secondary: #a0a0b0;
-  --text-muted: #8a8a9e;
-  --text-heading: #f0f0f0;
-  --text-code: #e6edf3;
-  --text-code-inline: #f0a0c0;
-  --text-blockquote: #c0c0d0;
+  --text: #a9b1d6;
+  --text-secondary: #787c99;
+  --text-muted: #565f89;
+  --text-heading: #c0caf5;
+  --text-code: #c0caf5;
+  --text-code-inline: #bb9af7;
+  --text-blockquote: #787c99;
 
-  --link: #6db3f2;
-  --link-hover: #90caf9;
-  --link-visited: #6db3f2;
+  --link: #7aa2f7;
+  --link-hover: #7dcfff;
+  --link-visited: #9d7cd8;
 
-  --border: #2a2a4a;
-  --border-light: #2a2a4a;
-  --border-code: #30363d;
-  --border-header-top: #4a6fa5;
-  --border-header-bottom: #2a2a4a;
-  --border-blockquote: #4a6fa5;
+  --border: #292e42;
+  --border-light: #292e42;
+  --border-code: #33384d;
+  --border-header-top: #3d59a1;
+  --border-header-bottom: #292e42;
+  --border-blockquote: #3d59a1;
 
-  --accent: #6db3f2;
+  --accent: #7aa2f7;
 
-  --tag-ml-bg: #1e3a5f; --tag-ml-text: #79c0ff;
-  --tag-cv-bg: #4a1942; --tag-cv-text: #f0a0c0;
-  --tag-cuda-bg: #064e3b; --tag-cuda-text: #7ee787;
-  --tag-tools-bg: #4a3728; --tag-tools-text: #ffa657;
-  --tag-sys-bg: #2a2a3a; --tag-sys-text: #c9d1d9;
-  --tag-dsa-bg: #2a2a3a; --tag-dsa-text: #c9d1d9;
+  --tag-ml-bg: #1f2e50; --tag-ml-text: #7aa2f7;
+  --tag-cv-bg: #30203a; --tag-cv-text: #bb9af7;
+  --tag-cuda-bg: #1a2e28; --tag-cuda-text: #9ece6a;
+  --tag-tools-bg: #2e2820; --tag-tools-text: #ff9e64;
+  --tag-sys-bg: #24283b; --tag-sys-text: #a9b1d6;
+  --tag-dsa-bg: #24283b; --tag-dsa-text: #a9b1d6;
 
-  --toggle-border: #30363d;
-  --toggle-color: #c0c0d0;
+  --toggle-border: #33384d;
+  --toggle-color: #787c99;
 
-  --share-fill: #8a8a9e;
-  --shadow-card: rgba(0,0,0,0.3);
+  --share-fill: #565f89;
+  --shadow-card: rgba(0,0,0,0.4);
   --img-opacity: 0.9;
 
-  /* Syntax - hljs dark (GitHub dark) */
-  --syn-keyword: #ff7b72;
-  --syn-builtin: #79c0ff;
-  --syn-function: #d2a8ff;
-  --syn-class: #7ee787;
-  --syn-invoke: #ffa657;
-  --syn-variable: #d2a8ff;
-  --syn-string: #a5d6ff;
-  --syn-number: #79c0ff;
-  --syn-comment: #8b949e;
-  --syn-params: #c9d1d9;
-  --syn-punctuation: #c9d1d9;
-  --syn-literal: #79c0ff;
-  --syn-meta: #79c0ff;
-  --syn-attr: #d2a8ff;
-  --syn-subst: #7ee787;
-  --syn-template: #ffa657;
+  /* Syntax - hljs dark (Tokyo Night) */
+  --syn-keyword: #bb9af7;
+  --syn-builtin: #7aa2f7;
+  --syn-function: #7aa2f7;
+  --syn-class: #9ece6a;
+  --syn-invoke: #ff9e64;
+  --syn-variable: #c0caf5;
+  --syn-string: #9ece6a;
+  --syn-number: #ff9e64;
+  --syn-comment: #565f89;
+  --syn-params: #a9b1d6;
+  --syn-punctuation: #787c99;
+  --syn-literal: #ff9e64;
+  --syn-meta: #7dcfff;
+  --syn-attr: #bb9af7;
+  --syn-subst: #7dcfff;
+  --syn-template: #ff9e64;
 
-  /* Syntax - Rouge dark */
-  --rouge-keyword: #ff7b72;
-  --rouge-string: #a5d6ff;
-  --rouge-comment: #8b949e;
-  --rouge-func: #d2a8ff;
-  --rouge-class: #7ee787;
-  --rouge-module: #ffa657;
-  --rouge-number: #79c0ff;
-  --rouge-op: #c9d1d9;
-  --rouge-name: #c9d1d9;
-  --rouge-builtin: #79c0ff;
+  /* Syntax - Rouge dark (Tokyo Night) */
+  --rouge-keyword: #bb9af7;
+  --rouge-string: #9ece6a;
+  --rouge-comment: #565f89;
+  --rouge-func: #7aa2f7;
+  --rouge-class: #9ece6a;
+  --rouge-module: #ff9e64;
+  --rouge-number: #ff9e64;
+  --rouge-op: #89ddff;
+  --rouge-name: #a9b1d6;
+  --rouge-builtin: #7dcfff;
 
   /* Copy button */
-  --copy-bg: rgba(255,255,255,0.05);
-  --copy-border: #30363d;
-  --copy-color: #8b949e;
-  --copy-hover-bg: rgba(255,255,255,0.1);
-  --copy-hover-color: #e0e0e0;
+  --copy-bg: rgba(255,255,255,0.04);
+  --copy-border: #33384d;
+  --copy-color: #565f89;
+  --copy-hover-bg: rgba(255,255,255,0.08);
+  --copy-hover-color: #a9b1d6;
 
   /* Anchor */
-  --anchor-color: #484f58;
-  --anchor-hover: #6db3f2;
+  --anchor-color: #3d59a1;
+  --anchor-hover: #7aa2f7;
 
   /* Progress bar */
-  --progress-bg: #6db3f2;
+  --progress-bg: #7aa2f7;
 
 }
 

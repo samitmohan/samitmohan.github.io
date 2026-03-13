@@ -13,7 +13,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://samitmohan.github.io/minitorch/">minitorch</a></div>
       <span class="project-tag tag-ml">ml</span>
     </div>
-    <div class="project-description">PyTorch from scratch - tensors, autograd, and backpropagation implemented by hand to understand how deep learning frameworks actually work under the hood.</div>
+    <div class="project-description">PyTorch clone from scratch - reverse-mode autodiff, Module system (Linear, Conv2d, BatchNorm, Dropout), Adam/SGD optimizers, LR schedulers, and optional CUDA support via CuPy. Trains MNIST with both MLP and CNN.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -22,7 +22,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/rag-for-blogs">personal-rag</a></div>
       <span class="project-tag tag-ml">ml</span>
     </div>
-    <div class="project-description">RAG pipeline over my blog posts - chunking, embeddings, vector search, and retrieval-augmented generation for semantic blog search.</div>
+    <div class="project-description">Hybrid RAG with dual-mode architecture: CPU-only retrieval on Render (FAISS + SentenceTransformers) for public use, local Qwen 2.5:7b via Ollama for synthesized answers. Citation system grounding answers in specific blog sections.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -40,7 +40,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/deep-residual-learning-pytorch">resnet implementation</a></div>
       <span class="project-tag tag-ml">ml</span>
     </div>
-    <div class="project-description">Clean reimplementation of residual networks with skip connections, batch norm, and bottleneck blocks following the original paper.</div>
+    <div class="project-description">Faithful reproduction of the 2015 ResNet paper's CIFAR-10 experiments - trains plain vs residual nets at depths 20-110, with results closely matching original error rates. Includes ImageNet variants (ResNet-18 to 152).</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -49,7 +49,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/tennis-analysis/tree/master">tennis analyser</a></div>
       <span class="project-tag tag-cv">cv</span>
     </div>
-    <div class="project-description">Real-time tennis match analysis using object detection and tracking - player positions, ball trajectory, and court mapping.</div>
+    <div class="project-description">Multi-model CV pipeline: YOLOv8x for player tracking, fine-tuned YOLO for ball detection, ResNet50 for 14-keypoint court mapping. Calculates shot velocity, groups rallies, and generates per-player court heatmaps.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -58,7 +58,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/spotify-mcp">spotify mcp server</a></div>
       <span class="project-tag tag-tools">tools</span>
     </div>
-    <div class="project-description">MCP server that lets Claude analyse Spotify playlists, track listening patterns, and generate insights from your music data.</div>
+    <div class="project-description">MCP server with 21 tools for natural-language Spotify control - playback, playlist management, music discovery, and lyrics retrieval via Genius API. Integrates with Claude Desktop.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -76,7 +76,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/Automated-Journal">python journal</a></div>
       <span class="project-tag tag-tools">tools</span>
     </div>
-    <div class="project-description">Automated daily journal that prompts, timestamps, and archives entries - because writing should be frictionless.</div>
+    <div class="project-description">CLI journaling tool with NLP-powered analysis - DistilBERT sentiment, 7-emotion detection, YAKE keyword extraction, streak tracking, morning/evening prompts, and a Streamlit + Plotly dashboard for mood trends.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -85,7 +85,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://samitmohan.github.io/interviews/">dsa algorithms</a></div>
       <span class="project-tag tag-dsa">dsa</span>
     </div>
-    <div class="project-description">Documentation of interview prep - data structures, algorithms, and problem-solving patterns.</div>
+    <div class="project-description">400+ solutions across LeetCode, Neetcode 150, and Striver Sheet. 12 from-scratch data structure implementations, OS fundamentals, design patterns, and a time complexity cheatsheet.</div>
     <div class="project-lang">Python</div>
   </div>
 
@@ -94,7 +94,7 @@ This also consists of my upcoming projects (at the bottom; will keep updating as
       <div class="project-title"><a href="https://github.com/samitmohan/ML">ml algorithms</a></div>
       <span class="project-tag tag-ml">ml</span>
     </div>
-    <div class="project-description">ML algorithms implemented from scratch - linear regression, SVMs, decision trees, k-means, and neural nets without frameworks.</div>
+    <div class="project-description">100+ educational implementations: MicroGPT (complete GPT in 218 lines), ResNet-34 three ways, attention mechanisms, CNNs, LSTMs, autograd engine, linear algebra, and optimization methods - all from scratch.</div>
     <div class="project-lang">Python</div>
   </div>
 
