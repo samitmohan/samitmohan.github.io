@@ -108,6 +108,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // --- 3. Table of Contents ---
+  var headingOffsets = [];
   var postContent = document.querySelector('.post-content');
   if (postContent) {
     var tocHeadings = postContent.querySelectorAll('h2[id], h3[id], h4[id]');
@@ -145,10 +146,6 @@ document.addEventListener("DOMContentLoaded", function() {
         mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       });
 
-      // Active section highlighting on scroll (throttled with rAF)
-      var tocLinks = tocWrapper.querySelectorAll('.toc-list a');
-      var scrollTicking = false;
-
       function getHeadingOffsets() {
         var offsets = [];
         tocHeadings.forEach(function(h) {
@@ -157,36 +154,9 @@ document.addEventListener("DOMContentLoaded", function() {
         return offsets;
       }
 
-      var headingOffsets = getHeadingOffsets();
+      headingOffsets = getHeadingOffsets();
       window.addEventListener('resize', function() {
         headingOffsets = getHeadingOffsets();
-      });
-
-      window.addEventListener('scroll', function() {
-        if (!scrollTicking) {
-          requestAnimationFrame(function() {
-            var scrollPos = window.scrollY + 120;
-            var activeId = '';
-
-            for (var i = headingOffsets.length - 1; i >= 0; i--) {
-              if (scrollPos >= headingOffsets[i].top) {
-                activeId = headingOffsets[i].id;
-                break;
-              }
-            }
-
-            tocLinks.forEach(function(link) {
-              if (link.getAttribute('href') === '#' + activeId) {
-                link.classList.add('active');
-              } else {
-                link.classList.remove('active');
-              }
-            });
-
-            scrollTicking = false;
-          });
-          scrollTicking = true;
-        }
       });
     }
 
@@ -210,18 +180,41 @@ document.addEventListener("DOMContentLoaded", function() {
   backToTop.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>';
   document.body.appendChild(backToTop);
 
-  var backToTopTicking = false;
+  var scrollTicking = false;
+  var tocLinks = document.querySelectorAll('.toc-wrapper .toc-list a');
+  var hasToc = tocLinks.length > 0;
   window.addEventListener('scroll', function() {
-    if (!backToTopTicking) {
+    if (!scrollTicking) {
       requestAnimationFrame(function() {
+        if (hasToc) {
+          var scrollPos = window.scrollY + 120;
+          var activeId = '';
+
+          for (var i = headingOffsets.length - 1; i >= 0; i--) {
+            if (scrollPos >= headingOffsets[i].top) {
+              activeId = headingOffsets[i].id;
+              break;
+            }
+          }
+
+          tocLinks.forEach(function(link) {
+            if (link.getAttribute('href') === '#' + activeId) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+
         if (window.scrollY > 500) {
           backToTop.classList.add('visible');
         } else {
           backToTop.classList.remove('visible');
         }
-        backToTopTicking = false;
+
+        scrollTicking = false;
       });
-      backToTopTicking = true;
+      scrollTicking = true;
     }
   });
 

@@ -1,8 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/2764533501_2449229135_223132457.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_2956373948_3670091333.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_2280809798_408335137.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_409392447_1605129218.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_863020693_311092231.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_1422790552_1599456159.mp4'
-file 'file:/Users/samit/personal/samitmohan.github.io/media/videos/scaling_curves/480p15/partial_movie_files/ScalingCurves/1005961788_310540274_68488142.mp4'

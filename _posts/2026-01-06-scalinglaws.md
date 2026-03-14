@@ -15,7 +15,7 @@ What can LLMs do that classical ML can't? At scale, how do LLMs differ from trad
 
 ![sl](/assets/images/scaling_laws/scaling_laws.webp)
 
-<video autoplay loop muted playsinline style="max-width:100%">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none">
   <source src="/assets/images/scaling/scaling_curves.mp4" type="video/mp4">
 </video>
 *Scaling parameters alone, data alone, or both (Chinchilla) - same compute, different loss.*

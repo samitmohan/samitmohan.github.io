@@ -281,7 +281,7 @@ The tensors and their `_prev` links form a **directed acyclic graph** (DAG). The
 
 ### walking through an example
 
-<video autoplay loop muted playsinline style="max-width:100%">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none">
   <source src="/assets/images/minitorch/autograd_backward.mp4" type="video/mp4">
 </video>
 
@@ -808,7 +808,7 @@ Naive convolution is nested loops. Painfully slow. The real trick - used by ever
 
 ### the im2col trick
 
-<video autoplay loop muted playsinline style="max-width:100%">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none">
   <source src="/assets/images/minitorch/im2col.mp4" type="video/mp4">
 </video>
 

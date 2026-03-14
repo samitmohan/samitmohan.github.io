@@ -27,3 +27,9 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-sitemap
+
+feed:
+  excerpt_only: true
+
+sass:
+  style: compressed

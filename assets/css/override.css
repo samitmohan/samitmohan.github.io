@@ -2,10 +2,10 @@
    CSS Custom Properties (Light/Dark)
    ======================================== */
 :root {
-  --bg: #fff;
+  --bg: #fafbfc;
   --bg-secondary: #f6f8fa;
-  --bg-card: #fff;
-  --bg-code: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-code: #f1f3f6;
   --bg-code-inline: #f8f9fa;
   --bg-header: #fff;
   --bg-blockquote: #f6f8fa;
@@ -134,7 +134,7 @@
   --toggle-color: #787c99;
 
   --share-fill: #565f89;
-  --shadow-card: rgba(0,0,0,0.4);
+  --shadow-card: rgba(0,0,0,0.6);
   --img-opacity: 0.9;
 
   /* Syntax - hljs dark (Tokyo Night) */
@@ -245,7 +245,9 @@ img { opacity: var(--img-opacity); }
   background-color: var(--bg-header);
   border-top-color: var(--border-header-top);
   border-bottom-color: var(--border-header-bottom);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
+.dark-mode .site-header { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 
 .site-title, .site-title:visited { color: var(--text); }
 .site-title { font-weight: 700; font-size: 1.2rem; }
@@ -254,8 +256,53 @@ img { opacity: var(--img-opacity); }
 
 .site-footer {
   background-color: var(--bg-header);
-  border-top-color: var(--border);
+  border-top: 1px solid var(--border);
   color: var(--text-muted);
+  padding: 20px 0;
+}
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.footer-name {
+  font-weight: 600;
+  color: var(--text);
+}
+.footer-sep {
+  opacity: 0.3;
+}
+.footer-desc {
+  color: var(--text-muted);
+}
+.footer-links {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.footer-link {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+.footer-link:hover {
+  color: var(--accent);
+}
+.footer-link svg {
+  display: block;
+}
+@media screen and (max-width: 600px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
 }
 
 /* ========================================
@@ -308,13 +355,18 @@ img { opacity: var(--img-opacity); }
 
 .post-item {
   margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 20px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease;
 }
+.post-item:hover { box-shadow: 0 2px 8px var(--shadow-card); }
 .post-item:last-child { border-bottom: none; }
 .post-item .post-date {
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 0.7em;
+  font-weight: 500;
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -407,8 +459,8 @@ pre code.hljs { padding: 0; background: transparent; }
 
 .post-content pre, .highlight {
   background-color: var(--bg-code) !important;
-  border-radius: 8px !important;
-  padding: 12px !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
   margin-bottom: 1em !important;
   overflow-x: auto !important;
   position: relative;
@@ -482,6 +534,7 @@ pre code.hljs { padding: 0; background: transparent; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  will-change: transform;
 }
 
 .project-card:hover {
@@ -586,6 +639,9 @@ pre code.hljs { padding: 0; background: transparent; }
   vertical-align: middle;
 }
 
+.theme-toggle svg {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
 .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .icon-moon { display: none; }
 .icon-sun { display: block; }
@@ -764,6 +820,7 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { color: var
   transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
   z-index: 999;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  will-change: opacity;
 }
 
 .back-to-top.visible {
@@ -938,6 +995,45 @@ h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { color: var
 h2 .anchor-link:focus-visible,
 h3 .anchor-link:focus-visible,
 h4 .anchor-link:focus-visible {
+  opacity: 1;
+}
+
+/* Copy Code Button */
+.code-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -30px; /* Pull button into the code block area */
+  position: relative;
+  z-index: 10;
+  padding-right: 10px;
+  padding-top: 10px;
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  color: #555;
+  transition: all 0.2s;
+}
+
+/* Heading Anchors */
+.anchor-link {
+  text-decoration: none;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.8em;
+  color: var(--anchor-color, #a0a0a0);
+  user-select: none;
+}
+
+h2:hover .anchor-link,
+h3:hover .anchor-link,
+h4:hover .anchor-link {
   opacity: 1;
 }
 
