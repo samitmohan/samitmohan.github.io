@@ -9,15 +9,15 @@ description: "My first failed resolution of 2026 - attempting to solve one ML pr
 
 My only resolution for 2026 was to solve one machine learning problem a day.
 
-![res](/assets/images/failure/res.png)
+![res](/assets/images/failure/res.webp)
 
 Made it 20+ days. Went to bombay for concert and lost my streak...
 
-![progress](/assets/images/failure/progress.png){: loading="lazy"}
+![progress](/assets/images/failure/progress.webp){: loading="lazy"}
 
 Still solved **100+ problems** though. 
 
-![100pr](/assets/images/failure/100pr.png){: loading="lazy"}
+![100pr](/assets/images/failure/100pr.webp){: loading="lazy"}
 
 ## Why I'm Done
 

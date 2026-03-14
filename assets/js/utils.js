@@ -18,6 +18,13 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.classList.add('dark-mode');
   }
 
+  // --- 0b. Lazy-load all post images ---
+  var postImages = document.querySelectorAll('.post-content img');
+  postImages.forEach(function(img) {
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+  });
+
   // Theme toggle button
   var toggle = document.getElementById('theme-toggle');
   if (toggle) {

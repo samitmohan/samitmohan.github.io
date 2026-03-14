@@ -13,7 +13,7 @@ What can LLMs do that classical ML can't? At scale, how do LLMs differ from trad
 
 ## Scaling Laws
 
-![sl](/assets/images/scaling_laws/scaling_laws.png)
+![sl](/assets/images/scaling_laws/scaling_laws.webp)
 
 <video autoplay loop muted playsinline style="max-width:100%">
   <source src="/assets/images/scaling/scaling_curves.mp4" type="video/mp4">
@@ -60,13 +60,13 @@ Data Scaling Laws: formula that maps dataset size(n)
 
 Loss and 'n' is linear on a loglog plot
 
-![dl](/assets/images/scaling_laws/data_loss.png){: loading="lazy"}
+![dl](/assets/images/scaling_laws/data_loss.webp){: loading="lazy"}
 
 **Engineering Data Laws:**
 
 How does data composition affect model performance (not just size) -> data composition only affects offset not slope (You can do data select experiments on a much smaller model)
 
-![datacomposition](/assets/images/scaling_laws/dc.png){: loading="lazy"}
+![datacomposition](/assets/images/scaling_laws/dc.webp){: loading="lazy"}
 
 Another question to look for:
 
@@ -176,4 +176,4 @@ But we are going out of data:
 - Running out of data (quality of data) -> ways to make data synthetic (deepmind alphago plays against itself and only has synthetic data) 
 - Reasoning model (o1) bridges this gap (chain of thought) -> longer o1 thinks better it performs (new paradigm for scaling llms -> reasoning (we need higher compute for this)- > current state of AI)
 - Invent new arch? Numerical stability of model should be there (none so far, transformer works only)
-![sl](/assets/images/scaling_laws/scaling_loss.png){: loading="lazy"}
+![sl](/assets/images/scaling_laws/scaling_loss.webp){: loading="lazy"}
