@@ -146,8 +146,6 @@ ssock.close()
 
 Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
 
-Bonus points if you mention TLS 1.3's reduced round trips, or that DNS is usually UDP but falls back to TCP for large responses.
-
 ---
 
 ## Q: How does CUDA work? What is Flash Attention?
@@ -185,17 +183,9 @@ Same triple loop. The CPU does N^2 iterations of the outer two loops sequentiall
 
 ---
 
----
-
-The first four questions test breadth: can you think across layers of abstraction, from cache hierarchies to TCP sockets to GPU memory? The last one goes deep.
-
----
-
 ## Q: Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
 
-Anyone can call `model.generate()`. Writing the autograd, attention, softmax, and Adam from raw Python is a different thing. This is my own chat gippity - the whole thing, scalar by scalar.
-
-Yes, you can. 200 lines. No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math. But before the code, let me walk through the ideas that make it work.
+~200 lines. No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math. But before the code, let me walk through the ideas that make it work.
 
 ### Autograd: Why It Matters
 
@@ -294,15 +284,6 @@ In the `softmax` function, you'll see:
 
 **Why?**
 The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
-
-### Scaling to Production
-
-You might wonder: "If we can write a GPT in 200 lines of Python, why is PyTorch so huge?"
-
-The answer is **Vectorization** and **Kernel Fusion**.
-In MicroGPT, calculating a dot product involves a Python `for` loop, which is slow. In production, we use NVIDIA's CUDA or OpenAI's Triton to launch thousands of threads that compute these products in parallel.
-
-When you see `torch.matmul(A, B)`, the engine isn't just looping; it's using "Tiling" to move chunks of data into the GPU's fast SRAM (Static Random-Access Memory), computing the result, and moving it back. MicroGPT is the *logic*; PyTorch is the *plumbing*.
 
 ### The Code (200 Lines)
 
@@ -531,6 +512,6 @@ for _ in range(10):
     print(generated_name)
 ```
 
-The detail I look for: can you explain why `child.grad += local_grad * v.grad` uses `+=` instead of `=`? That's fan-out in the computational graph. If you know that, you built this. If you don't, you read about it.
+> I also sometimes ask silly questions like speed of light, what is 13 in binary etc.. just to check their fluency with these numbers and in general fluency with computers is what gets you hired, not passion.
 
 ---
