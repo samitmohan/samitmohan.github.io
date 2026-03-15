@@ -4,7 +4,7 @@ title:  "some python tricks"
 date:   2025-10-25 14:06:04 +0530
 categories: tech
 tokens: "~3.5k"
-description: "Python tricks and patterns that make code cleaner - generators, decorators, context managers, and more."
+description: "Random things I've learnt over the years which transform Python from 'it works' to 'it's beautiful.'"
 ---
 
 How to write more pythonic (god I hate this word) code

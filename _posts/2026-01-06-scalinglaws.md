@@ -4,7 +4,7 @@ title:  "scaling laws"
 date:   2026-01-06 14:06:04 +0530
 categories: tech
 tokens: "~1.2k"
-description: "Understanding scaling laws for neural language models - what happens when you scale data, compute, and parameters."
+description: "Maybe intelligence is just a lot of compute applied to a lot of data having a lot of parameters. OpenAI wrote a paper on this."
 ---
 
 What can LLMs do that classical ML can't? At scale, how do LLMs differ from traditional ML? What does this mean for the future of AI? Does more data mean better results? OpenAI wrote a paper just on this, it's called [**Scaling Laws for Neural Language Models**](https://arxiv.org/pdf/2001.08361) in 2020.

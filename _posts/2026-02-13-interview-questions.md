@@ -4,7 +4,7 @@ title: "favourite interview questions"
 date: 2026-02-13 14:06:04 +0530
 categories: tech
 tokens: "~6.5k"
-description: "Common machine learning interview questions and how to think about them."
+description: "Five questions I'd rather ask than 'derive Kadane's algorithm in 30 minutes pretending you've never seen it.'"
 ---
 
 These are some of my favourite questions to ask in interviews and I wish we move forward and have these questions in interview rounds instead of cramming algorithmic questions and deriving kadane's algorithm in 30 minutes, pretending we have never seen it before.
