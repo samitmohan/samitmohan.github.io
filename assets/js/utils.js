@@ -198,8 +198,12 @@ document.addEventListener("DOMContentLoaded", function() {
       }
 
       headingOffsets = getHeadingOffsets();
+      var resizeTimer;
       window.addEventListener('resize', function() {
-        headingOffsets = getHeadingOffsets();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+          headingOffsets = getHeadingOffsets();
+        }, 150);
       });
     }
 

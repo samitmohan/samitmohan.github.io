@@ -101,8 +101,11 @@ Docs: [minitorch documentation, examples and source code](https://samitmohan.git
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+lazyWidget('codeChart', function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+  s.onload = function() {
 const modules = [
   {name:'tensor.py',lines:522,desc:'The core: Tensor class with all operators and autograd engine. Every op builds a computation graph via _backward closures. .backward() topologically sorts and fires closures in reverse.',concepts:['Computation graph','Topological sort','_backward closures','Broadcasting gradients','_accum_grad'],cat:''},
   {name:'module.py',lines:140,desc:'Module system and Sequential container. Recursively collects parameters via __dict__ introspection. state_dict/load_state_dict for serialization. train/eval mode toggling.',concepts:['parameters()','Sequential','state_dict','train/eval mode'],cat:'g'},
@@ -177,6 +180,9 @@ new Chart(document.getElementById('codeChart'), {
       y:{grid:{display:false},ticks:{color:dark?'#c2c0b6':'#3d3d3a',font:{size:11,family:'"Anthropic Sans",sans-serif'}}}
     }
   }
+});
+  };
+  document.head.appendChild(s);
 });
 </script>
 
