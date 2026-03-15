@@ -31,8 +31,8 @@ DeepML is solid, but:
 
 Chill the f out:
 
-- **Papers → Implementation** 
-- **TensorTonic** for practice - better platform, built by someone I know.
+- **Papers -> Implementation** 
+- **TensorTonic** for practice (shameless plug)
 - **CUDA** Reading CUDA for Deep Learning one chapter / week - because GPUs rock
 
-All my from-scratch implementations live here: [DeepML Solutions](https://github.com/samitmohan/ML/tree/master/DeepML)
+All my from-scratch implementations live here: [ML Repo](https://github.com/samitmohan/ML)

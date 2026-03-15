@@ -91,6 +91,24 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
+  // --- 1b. Collapsible Code Blocks (> 15 lines) ---
+  codeBlocks.forEach(function(block) {
+    var code = block.querySelector('code');
+    if (!code) return;
+    var lineCount = code.textContent.split('\n').length;
+    if (lineCount > 15) {
+      block.classList.add('code-collapsible', 'collapsed');
+      var btn = document.createElement('button');
+      btn.className = 'code-expand-btn';
+      btn.textContent = 'Expand (' + lineCount + ' lines)';
+      block.parentNode.insertBefore(btn, block.nextSibling);
+      btn.addEventListener('click', function() {
+        var isCollapsed = block.classList.toggle('collapsed');
+        btn.textContent = isCollapsed ? 'Expand (' + lineCount + ' lines)' : 'Collapse';
+      });
+    }
+  });
+
   // --- 2. Heading Anchors ---
   var headings = document.querySelectorAll('.post-content h2, .post-content h3, .post-content h4');
 
@@ -106,6 +124,31 @@ document.addEventListener("DOMContentLoaded", function() {
       heading.appendChild(anchor);
     }
   });
+
+  // --- 2b. Image Captions ---
+  var contentArea = document.querySelector('.post-content');
+  if (contentArea) {
+    var captionImgs = Array.from(contentArea.querySelectorAll('p > img'));
+    captionImgs.forEach(function(img) {
+      if (img.closest('figure')) return;
+      var alt = (img.getAttribute('alt') || '').trim();
+      if (!alt) return;
+      var p = img.parentElement;
+      if (p.children.length !== 1) return;
+
+      var figure = document.createElement('figure');
+      figure.className = 'image-figure';
+      p.parentNode.replaceChild(figure, p);
+      figure.appendChild(img);
+
+      var caption = alt.replace(/[_-]/g, ' ');
+      caption = caption.charAt(0).toUpperCase() + caption.slice(1);
+      var figcaption = document.createElement('figcaption');
+      figcaption.className = 'image-caption';
+      figcaption.textContent = caption;
+      figure.appendChild(figcaption);
+    });
+  }
 
   // --- 3. Table of Contents ---
   var headingOffsets = [];
@@ -236,5 +279,63 @@ document.addEventListener("DOMContentLoaded", function() {
       firstP.innerHTML = text.replace(match[0], '');
     }
   });
+
+  // --- 6. Scroll Animations ---
+
+  // 6a. Code block slide-in on viewport entry
+  var animCodeBlocks = document.querySelectorAll('.post-content .highlighter-rouge');
+  if (animCodeBlocks.length) {
+    var codeObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('code-visible');
+          codeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '50px' });
+
+    animCodeBlocks.forEach(function(block) {
+      if (block.classList.contains('code-collapsible')) return;
+      var rect = block.getBoundingClientRect();
+      if (rect.top >= window.innerHeight) {
+        block.classList.add('code-animate');
+        codeObserver.observe(block);
+      }
+    });
+  }
+
+  // 6b. Math formula reveal (after MathJax renders)
+  function initMathAnimations() {
+    var displayMath = document.querySelectorAll('mjx-container[display="true"]');
+    if (!displayMath.length) return;
+
+    var mathObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('math-visible');
+          mathObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '50px' });
+
+    displayMath.forEach(function(el) {
+      var rect = el.getBoundingClientRect();
+      if (rect.top >= window.innerHeight) {
+        el.classList.add('math-animate');
+        mathObserver.observe(el);
+      }
+    });
+  }
+
+  document.addEventListener('mathjax-done', initMathAnimations);
+
+  // 6c. Home page staggered post entrance
+  var homePostItems = document.querySelectorAll('.home .post-item');
+  if (homePostItems.length) {
+    homePostItems.forEach(function(item, index) {
+      item.classList.add('post-stagger');
+      item.style.animationDelay = (index * 0.08) + 's';
+    });
+  }
 
 });
