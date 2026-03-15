@@ -32,13 +32,6 @@ window.lazyWidget=function(id,fn){var el=document.getElementById(id);if(!el)retu
     },
     options: {
       skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-    },
-    startup: {
-      pageReady: function() {
-        return MathJax.startup.defaultPageReady().then(function() {
-          document.dispatchEvent(new Event('mathjax-done'));
-        });
-      }
     }
   };
 </script>

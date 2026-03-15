@@ -1109,30 +1109,6 @@ h4:hover .anchor-link {
    Scroll Animations
    ======================================== */
 
-/* Code block slide-in */
-.highlighter-rouge.code-animate {
-  opacity: 0;
-  transform: translateX(-20px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.highlighter-rouge.code-animate.code-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* Math formula reveal */
-mjx-container[display="true"].math-animate {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-
-mjx-container[display="true"].math-animate.math-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* Home page staggered entrance */
 .post-item.post-stagger {
   opacity: 0;
@@ -1152,9 +1128,7 @@ mjx-container[display="true"].math-animate.math-visible {
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .post-item.post-stagger,
-  .highlighter-rouge.code-animate,
-  mjx-container[display="true"].math-animate {
+  .post-item.post-stagger {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;

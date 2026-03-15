@@ -286,54 +286,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // --- 6. Scroll Animations ---
 
-  // 6a. Code block slide-in on viewport entry
-  var animCodeBlocks = document.querySelectorAll('.post-content .highlighter-rouge');
-  if (animCodeBlocks.length) {
-    var codeObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('code-visible');
-          codeObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '50px' });
-
-    animCodeBlocks.forEach(function(block) {
-      if (block.classList.contains('code-collapsible')) return;
-      var rect = block.getBoundingClientRect();
-      if (rect.top >= window.innerHeight) {
-        block.classList.add('code-animate');
-        codeObserver.observe(block);
-      }
-    });
-  }
-
-  // 6b. Math formula reveal (after MathJax renders)
-  function initMathAnimations() {
-    var displayMath = document.querySelectorAll('mjx-container[display="true"]');
-    if (!displayMath.length) return;
-
-    var mathObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('math-visible');
-          mathObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '50px' });
-
-    displayMath.forEach(function(el) {
-      var rect = el.getBoundingClientRect();
-      if (rect.top >= window.innerHeight) {
-        el.classList.add('math-animate');
-        mathObserver.observe(el);
-      }
-    });
-  }
-
-  document.addEventListener('mathjax-done', initMathAnimations);
-
-  // 6c. Home page staggered post entrance
+  // 6a. Home page staggered post entrance
   var homePostItems = document.querySelectorAll('.home .post-item');
   if (homePostItems.length) {
     homePostItems.forEach(function(item, index) {
