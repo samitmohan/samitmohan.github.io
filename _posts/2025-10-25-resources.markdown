@@ -40,9 +40,7 @@ blogs to write:
 
 website:
 
-- all blogs manually see what to add / remove
-- all projects complete (claude)
-- upcoming projects to add (empty repos)
+- upcoming projects to add 
   - triton 
   - llama2
   - autoresearch
@@ -61,7 +59,7 @@ video to watch
 - AI Engineering playlist
 - LLD, HLD (gkcs) + OOP revise
 - CS336, 244n, 329S
-- [from tcp to http ](https://www.youtube.com/watch?v=FknTw9bJsXM&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=20&t=1155s)
+- [from tcp to http](https://www.youtube.com/watch?v=FknTw9bJsXM&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=20&t=1155s)
 - [tcpip for programmers](https://www.youtube.com/watch?v=0OztKsGTqos&list=PLJf-Umv9fV2O0ctm_Nrxb9M78waQUnztE&index=3)
 - [multi-threading interview questions](https://www.youtube.com/watch?v=GHYFTmeIgVw)
 
