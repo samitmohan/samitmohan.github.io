@@ -501,8 +501,10 @@ pre code.hljs { padding: 0; background: transparent; }
 
 .post-content video {
   display: block;
+  width: 100%;
   max-width: 100%;
   height: auto;
+  aspect-ratio: 16 / 9;
   border-radius: 6px;
   margin: 1.5em 0;
 }

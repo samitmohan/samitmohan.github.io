@@ -20,7 +20,7 @@ Stack more layers. Learn more complex features. Get better results. That's the i
 
 In 2015, He et al. trained plain (no skip connections) convolutional networks of increasing depth on CIFAR-10. The expectation: a 56-layer network should beat a 20-layer network because it has strictly more capacity. A 56-layer net can represent everything a 20-layer net can (set the extra 36 layers to identity) plus more.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/degradation_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/degradation_poster.jpg">
   <source src="/assets/images/attn_res/degradation.mp4" type="video/mp4">
 </video>
 
@@ -47,7 +47,7 @@ $$H(x) = F(x) + x$$
 
 That's a skip connection. The input $x$ bypasses the convolutional layers entirely and gets added to the output. Express lane past the computation.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/skip_connection_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/skip_connection_poster.jpg">
   <source src="/assets/images/attn_res/skip_connection.mp4" type="video/mp4">
 </video>
 
@@ -148,7 +148,7 @@ for i in [0, 8, 16, 32, 64]:
 
 Output: `72 -> 227 -> 725 -> 7241 -> 730954`
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/norm_growth_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/norm_growth_poster.jpg">
   <source src="/assets/images/attn_res/norm_growth.mp4" type="video/mp4">
 </video>
 
@@ -160,7 +160,7 @@ Output: `72 -> 227 -> 725 -> 7241 -> 730954`
 
 That's standard residuals. After 64 layers, each layer contributes ~1.5% of the final hidden state. Layer 47 found a critical pattern between two tokens? Too bad, same weight as layer 3 which copied the embedding.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/dilution_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/dilution_poster.jpg">
   <source src="/assets/images/attn_res/dilution.mp4" type="video/mp4">
 </video>
 
@@ -193,7 +193,7 @@ x = x + self.attn(self.norm1(x))  # norm bounds the input
 
 The attention output is bounded. But you're adding that bounded output to `x`, which is the ever-growing running sum. Each new layer's signal is a smaller and smaller fraction of the total.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/prenorm_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/prenorm_poster.jpg">
   <source src="/assets/images/attn_res/prenorm.mp4" type="video/mp4">
 </video>
 
@@ -209,7 +209,7 @@ Instead of `weight = 1.0` for everything, let the network **learn** the weights.
 
 How? Same way we learn everything else - attention. But instead of attending over sequence positions (the usual kind), attend over **depth**. Each block boundary looks at all previous checkpoint outputs and decides which ones matter.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/weights_comparison_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/weights_comparison_poster.jpg">
   <source src="/assets/images/attn_res/weights_comparison.mp4" type="video/mp4">
 </video>
 
@@ -234,7 +234,7 @@ Where:
 
 RMSNorm here is subtle but important: it ensures scores depend on the *direction* of each layer's output, not its magnitude. Without it, deeper layers (with bigger norms) would dominate the softmax.
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/depth_attn_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/depth_attn_poster.jpg">
   <source src="/assets/images/attn_res/depth_attn.mp4" type="video/mp4">
 </video>
 
@@ -265,7 +265,7 @@ Layer 32 attends over 32 checkpoints. Layer 64 attends over 64. The checkpoint l
 - **Boundary**: depth attention over $\{h_0, h_8', h_{16}\}$ -> $h_{16}'$
 - ...repeat
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/attn_res/block_architecture_poster.jpg">
+<video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/block_architecture_poster.jpg">
   <source src="/assets/images/attn_res/block_architecture.mp4" type="video/mp4">
 </video>
 
@@ -420,6 +420,25 @@ Caveat: these are Moonshot's internal runs at massive scale. [Code is open sourc
 
 ---
 
+## when this doesn't work
+
+[Ziming Liu](https://kindxiaoming.github.io/blog/2026/attention-residual/) (the KAN guy) makes a good no-free-lunch argument: if AttnRes wins on language modeling, it has to lose somewhere else.
+
+He constructs a simple experiment - interpolate between a structured linear task and a random memorization task, test both methods at different depths. The result:
+
+- **Structured tasks** (patterns, relationships): AttnRes wins, and wins harder as depth increases.
+- **Memorization tasks** (random input-output mappings): standard residuals win. AttnRes actually hurts.
+
+Why? The zero-init trick that makes AttnRes safe also makes it dumb at the start. When $w = 0$, all weights are uniform: $h_l = \frac{1}{l}\left(h_0 + \sum_{i=1}^{l-1} v_i\right)$. That's pure averaging. The model has to learn its way out of this averaging regime before it can do anything useful. For memorization - where you need every layer to contribute maximally different signal - that averaging phase is a tax you never fully recover from.
+
+There's a deeper trade-off here: **stability vs expressivity**. Softmax bounds the weights (they sum to 1), which stabilizes training but caps how much any single layer can contribute. Standard residuals let layers contribute unbounded signal - messier gradients, but more raw capacity for brute-force memorization.
+
+At 4 blocks the methods are roughly equivalent. At 30 blocks the gap widens in both directions. Depth amplifies whatever advantage each method has on its preferred task type.
+
+Language modeling is mostly structured (syntax, semantics, reasoning patterns), which is why AttnRes shows consistent gains on LLM benchmarks. But if your task is closer to lookup tables than language - don't assume this is a free upgrade.
+
+---
+
 ## transformer++ upgrade list
 
 The running list of things that make modern LLMs better than the 2017 transformer:
@@ -443,6 +462,7 @@ The residual weight was 1.0 for a decade. What else is hiding in plain sight? So
 ## references
 
 - [Attention Residuals](https://arxiv.org/abs/2603.15031) - Moonshot AI (Kimi team)
+- [When does Kimi's Attention Residuals work?](https://kindxiaoming.github.io/blog/2026/attention-residual/) - Ziming Liu's no-free-lunch analysis
 - [Attention Residuals Code](https://github.com/MoonshotAI/Attention-Residuals)
 - [Deep Residual Learning (ResNet)](https://arxiv.org/abs/1512.03385)
 - [My CIFAR-10 ResNet implementation](https://github.com/samitmohan/deep-residual-learning-pytorch)
