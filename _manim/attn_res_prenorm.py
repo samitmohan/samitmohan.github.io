@@ -73,7 +73,7 @@ class PreNormProblem(Scene):
             ratio_text = Text(
                 f"{ratio * 100:.0f}%", font_size=11, color=YELLOW
             )
-            ratio_text.next_to(contrib_bar, RIGHT, buff=0.08)
+            ratio_text.next_to(contrib_bar, UP, buff=0.06)
 
             self.play(
                 GrowFromEdge(sum_bar, DOWN),

@@ -320,6 +320,9 @@
     const API_BASE = "https://rag-for-blogs.onrender.com";
     
     let isBackendReady = false;
+    let healthCheckSuccesses = 0;
+    let healthCheckInterval = null;
+    let searchElapsedTimer = null;
 
     const dom = {
       container: document.getElementById('main-container'),
@@ -339,7 +342,7 @@
         breaks: true
     });
 
-    // 1. Health Check
+    // 1. Health Check - smart polling
     async function checkHealth() {
       try {
         const res = await fetch(`${API_BASE}/status`);
@@ -347,17 +350,70 @@
           isBackendReady = true;
           dom.statusDot.classList.add('online');
           dom.statusText.textContent = "LLM Online";
+          healthCheckSuccesses++;
+
+          // Once stable (5 consecutive successes), stop polling entirely
+          if (healthCheckSuccesses >= 5 && healthCheckInterval) {
+            clearInterval(healthCheckInterval);
+            healthCheckInterval = null;
+          } else if (healthCheckSuccesses === 1) {
+            // Just came online - switch to slower polling (30s)
+            restartHealthCheck(30000);
+          }
         } else {
           throw new Error("Not ready");
         }
       } catch (e) {
         isBackendReady = false;
+        healthCheckSuccesses = 0;
         dom.statusDot.classList.remove('online');
         dom.statusText.textContent = "LLM Disconnected";
+
+        // While disconnected, poll fast (5s) to detect wake-up
+        if (!healthCheckInterval || healthCheckInterval._currentMs !== 5000) {
+          restartHealthCheck(5000);
+        }
       }
     }
+
+    function restartHealthCheck(ms) {
+      if (healthCheckInterval) clearInterval(healthCheckInterval);
+      healthCheckInterval = setInterval(checkHealth, ms);
+      healthCheckInterval._currentMs = ms;
+    }
+
     checkHealth();
-    setInterval(checkHealth, 5000);
+    restartHealthCheck(5000);
+
+    // Helper: fetch with AbortController timeout
+    function fetchWithTimeout(url, options, timeoutMs) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeoutId));
+    }
+
+    // Helper: elapsed timer displayed in sources area
+    function startElapsedTimer(messagePrefix) {
+      let elapsed = 0;
+      clearElapsedTimer();
+      updateSourcesStatus(messagePrefix + ' (0s)');
+      searchElapsedTimer = setInterval(() => {
+        elapsed++;
+        updateSourcesStatus(messagePrefix + ' (' + elapsed + 's)');
+      }, 1000);
+    }
+
+    function clearElapsedTimer() {
+      if (searchElapsedTimer) {
+        clearInterval(searchElapsedTimer);
+        searchElapsedTimer = null;
+      }
+    }
+
+    function updateSourcesStatus(msg) {
+      dom.sources.innerHTML = '<div style="grid-column: 1/-1; color:#888;">' + msg + '</div>';
+    }
 
     // 2. Main Search Logic
     async function performSearch() {
@@ -366,18 +422,55 @@
 
       // UI Transition
       dom.container.classList.add('has-results');
-      dom.sources.innerHTML = '<div style="grid-column: 1/-1; color:#888;">searching knowledge base...</div>';
       dom.aiSection.style.display = 'none';
 
+      // Cold-start aware loading message
+      if (!isBackendReady) {
+        startElapsedTimer('Waking up backend... this may take 30-60 seconds');
+      } else {
+        startElapsedTimer('Searching knowledge base...');
+      }
+
       try {
-        // Step A: Retrieve (RAG Search)
-        const res = await fetch(`${API_BASE}/retrieve`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, top_k: 3 })
-        });
+        // Step A: Retrieve (RAG Search) - 45s timeout, retry once on network error
+        let res;
+        try {
+          res = await fetchWithTimeout(`${API_BASE}/retrieve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, top_k: 3 })
+          }, 45000);
+        } catch (firstError) {
+          if (firstError.name === 'AbortError') {
+            throw new Error('Request timed out - backend may still be starting up. Please try again in a moment.');
+          }
+          // Network error (Failed to fetch, etc.) - retry once after 2s
+          updateSourcesStatus('Retrying...');
+          await new Promise(r => setTimeout(r, 2000));
+          try {
+            res = await fetchWithTimeout(`${API_BASE}/retrieve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query, top_k: 3 })
+            }, 45000);
+          } catch (retryError) {
+            if (retryError.name === 'AbortError') {
+              throw new Error('Request timed out after retry - backend may still be waking up. Please try again shortly.');
+            }
+            throw retryError;
+          }
+        }
         
         if (!res.ok) throw new Error("Retrieval Service Failed");
+
+        // Backend responded - update status and clear timer
+        clearElapsedTimer();
+        if (!isBackendReady) {
+          isBackendReady = true;
+          dom.statusDot.classList.add('online');
+          dom.statusText.textContent = "LLM Online";
+        }
+        updateSourcesStatus('Connected! Searching...');
 
         const data = await res.json();
         const chunks = data.chunks || [];
@@ -390,11 +483,11 @@
         }
 
       } catch (e) {
+        clearElapsedTimer();
         let msg = `System Error: ${e.message}`;
         if (e.message.includes("Failed to fetch")) {
-            msg = `<strong>Connection Failed:</strong> The Search Engine is offline.<br>
-            Please start the backend server:<br>
-            <code>uvicorn backend.app:app --host 0.0.0.0 --port 8000</code>`;
+            msg = `<strong>Connection Failed:</strong> The Search Engine is offline or still waking up.<br>
+            Render free tier can take 30-60 seconds to start. Please try again shortly.`;
         }
         dom.sources.innerHTML = `<div style="grid-column: 1/-1; color:#ea4335; text-align:center;">${msg}</div>`;
       }
@@ -425,11 +518,11 @@
       dom.aiContent.innerHTML = '<span class="pulse">Synthesizing answer from sources...</span>';
 
       try {
-        const res = await fetch(`${API_BASE}/generate`, {
+        const res = await fetchWithTimeout(`${API_BASE}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query, chunks })
-        });
+        }, 60000);
         
         // Handle "LLM Offline" gracefully
         if (!res.ok) {
@@ -446,11 +539,14 @@
 
       } catch (e) {
         console.warn("Generation failed:", e);
-        // Fallback UI: Hide AI section or show "Offline" badge
-        // Option A: Just hide it -> dom.aiSection.style.display = 'none';
-        // Option B: Show friendly message
-        dom.aiHeader.textContent = "AI Offline; try running a local model on localhost. Ollama is recommended.";
-        dom.aiContent.innerHTML = `<span style="color:#5f6368; font-style:italic;">LLM generation is currently unavailable. Viewing search results only.</span>`;
+        if (e.name === 'AbortError') {
+          dom.aiHeader.textContent = "timed out";
+          dom.aiContent.innerHTML = `<span style="color:#5f6368; font-style:italic;">Answer generation timed out. The backend may be under heavy load - try again.</span>`;
+        } else {
+          // Fallback UI: Show friendly message
+          dom.aiHeader.textContent = "AI Offline; try running a local model on localhost. Ollama is recommended.";
+          dom.aiContent.innerHTML = `<span style="color:#5f6368; font-style:italic;">LLM generation is currently unavailable. Viewing search results only.</span>`;
+        }
       }
     }
 

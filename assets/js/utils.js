@@ -295,4 +295,26 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
+
+  // --- 7. Share Buttons (event delegation) ---
+  var shareContainer = document.getElementById('share-buttons');
+  if (shareContainer) {
+    shareContainer.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-share]');
+      if (!btn) return;
+      var type = btn.getAttribute('data-share');
+      var url = btn.getAttribute('data-url');
+      if (type === 'twitter') {
+        var text = btn.getAttribute('data-text');
+        var via = btn.getAttribute('data-via');
+        window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text + '&via=' + via, 'popup', 'width=600,height=600');
+      } else if (type === 'linkedin') {
+        window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + url, 'popup', 'width=600,height=600');
+      } else if (type === 'email') {
+        var subject = btn.getAttribute('data-subject');
+        window.location.href = 'mailto:?body=' + url + '&subject=' + subject;
+      }
+    });
+  }
+
 });

@@ -107,6 +107,11 @@ def greet():
 print(greet())  # "YO"
 ```
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/python/decorators_poster.jpg">
+  <source src="/assets/images/python/decorators.mp4" type="video/mp4">
+</video>
+*The decorator wraps greet(), intercepts the return value, transforms "yo" to "YO".*
+
 The `@lru_cache` decorator is like getting memoization for free:
 
 ```python
@@ -128,6 +133,12 @@ def fib_fast(n):
 print(fib_fast(40))  # Runs instantly instead of taking forever
 # Just use lru_cache instead of figuring out DP forever.
 ```
+
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/python/lru_cache_poster.jpg">
+  <source src="/assets/images/python/lru_cache.mp4" type="video/mp4">
+</video>
+*Left: naive fib explodes into duplicate calls. Right: cached fib computes each value once.*
+
 ---
 
 ### first-class functions

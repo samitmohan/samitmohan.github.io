@@ -403,13 +403,13 @@ img { opacity: var(--img-opacity); }
 /* ========================================
    Layout width
    ======================================== */
-.wrapper { max-width: calc(1000px - (30px * 2)) !important; }
+.wrapper { max-width: calc(1000px - (30px * 2)); }
 
 @media screen and (max-width: 1000px) {
   .wrapper {
-    max-width: calc(1000px - (30px)) !important;
-    padding-right: 15px !important;
-    padding-left: 15px !important;
+    max-width: calc(1000px - (30px));
+    padding-right: 15px;
+    padding-left: 15px;
   }
 }
 
@@ -497,6 +497,14 @@ pre code.hljs { padding: 0; background: transparent; }
   max-width: 100%;
   height: auto;
   border-radius: 6px;
+}
+
+.post-content video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1.5em 0;
 }
 
 /* Code language badge - disabled */

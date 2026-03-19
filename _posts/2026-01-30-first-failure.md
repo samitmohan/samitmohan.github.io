@@ -11,7 +11,7 @@ My only resolution for 2026 was to solve one machine learning problem a day.
 
 ![res](/assets/images/failure/res.webp)
 
-Made it 20+ days. Went to bombay for concert and lost my streak...
+Made it 20+ days. Went to bombay for concert and lost my streak... I did see Linkin Park tho :P
 
 ![progress](/assets/images/failure/progress.webp){: loading="lazy"}
 

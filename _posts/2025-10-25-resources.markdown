@@ -20,10 +20,8 @@ blogs to write:
 - how chatGPT works (add unsloth fine tuning (w5,6))
 - Pretraining blog (based on elliot)
 - Posttraining blog (based on elliot)
-- How to use Claude (based on elliot)
-- ML System Design (based on bbg, genaidesign book, other ml system design books) {LATER}
+- ML System Design (based on bbg, genaidesign book, other ml system design books) 
 - Karpathy videos blog
-- Resnet blog (add viz)
 - Programming pearls blog
 - CUDA blog (post book and elliot video)
 - What I learnt from LLM from scratch + Hands on LLMs

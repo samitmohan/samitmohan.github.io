@@ -287,7 +287,7 @@ The tensors and their `_prev` links form a **directed acyclic graph** (DAG). The
 
 ### walking through an example
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/minitorch/autograd_backward_poster.jpg">
   <source src="/assets/images/minitorch/autograd_backward.mp4" type="video/mp4">
 </video>
 
@@ -545,6 +545,11 @@ Every one has a hand-written backward closure. You can chain any combination and
 
 Tensors with autograd need organizing into layers and models. That's the **Module** system.
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/minitorch/module_system_poster.jpg">
+  <source src="/assets/images/minitorch/module_system.mp4" type="video/mp4">
+</video>
+*Module hierarchy, recursive parameter collection, and state_dict serialization.*
+
 ```python
 class Module:
     def __init__(self):
@@ -730,6 +735,11 @@ Since $y$ is one-hot, this simplifies to picking out the log-probability of the 
 
 Takes gradients from `.backward()` and updates parameters.
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/minitorch/adam_poster.jpg">
+  <source src="/assets/images/minitorch/adam.mp4" type="video/mp4">
+</video>
+*Adam tracking momentum and variance, parameter converging toward the optimum over 5 steps.*
+
 ### SGD with momentum
 
 Vanilla SGD: $\theta \leftarrow \theta - \alpha \nabla L$. Momentum adds a velocity term:
@@ -810,13 +820,18 @@ minitorch also has gradient clipping (both norm and value), StepLR, and cosine a
 
 > matrix multiplication is just convolution
 
-Naive convolution is nested loops. Painfully slow. The real trick - used by every serious framework - is **im2col**: convert the convolution into a matrix multiply.
+Naive convolution is nested loops. Painfully slow. Every serious framework uses **im2col** instead: convert the convolution into a matrix multiply.
 
 ### the im2col trick
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/minitorch/im2col_poster.jpg">
   <source src="/assets/images/minitorch/im2col.mp4" type="video/mp4">
 </video>
+
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/minitorch/conv2d_im2col_poster.jpg">
+  <source src="/assets/images/minitorch/conv2d_im2col.mp4" type="video/mp4">
+</video>
+*Patches extracted from input, flattened into rows, then matrix-multiplied with the kernel.*
 
 A convolution with a $k \times k$ kernel takes a $k \times k$ patch of the input and dots it with the kernel. It does this at every valid position. What if we extracted *every* patch, flattened each into a row, and stacked them into a matrix? Then the convolution becomes a single matrix multiply.
 

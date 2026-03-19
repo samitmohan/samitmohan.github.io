@@ -21,7 +21,7 @@ These are some of my favourite questions to ask in interviews and I wish we move
 
 ## Q: What is the complexity of matrix multiplication? Write it. How can you optimise it?
 
-Starts as a Big-O question, escalates to a hardware question.
+> O(n^3)
 
 First you check if they can even be multiplied. Then you create an output array to store the results. Then you run a triple loop.
 
@@ -49,6 +49,11 @@ def matrixmulNumpy(a, b):
 
 How do you optimise it? Three levels.
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/cuda_parallel_poster.jpg">
+  <source src="/assets/images/interview/cuda_parallel.mp4" type="video/mp4">
+</video>
+*CPU processes matrix elements one at a time. GPU processes them all at once.*
+
 **Strassen's algorithm** - Instead of 8 recursive multiplications on sub-matrices, Strassen does it in 7. Drops O(n^3) to O(n^2.807). The constant factor is huge though, so in practice you switch to Strassen for large matrices and fall back to naive for small ones.
 
 **Cache-aware blocking** - Modern CPUs have cache hierarchies (L1, L2, L3). The naive i-j-k loop gets cache misses on every access to `b` because you're jumping across rows. Tile the multiplication into blocks that fit in L1 cache. Doesn't change big-O but the wall-clock difference is massive.
@@ -66,14 +71,14 @@ start = time.time()
 c = a @ b
 print(f"numpy (BLAS) {n}x{n}: {time.time() - start:.4f}s")
 
-# now try the naive python triple loop with n=500 and go make yourself a coffee
+# now try the naive python triple loop with n=500 and see how long do you have to wait...
 ```
 
 ---
 
 ## Q: Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
 
-The point is deriving it, not reciting it.
+> first response when I ask this is "what??"
 
 Draw a unit square. Now draw a quarter circle of radius 1 inside it, center at the origin.
 
@@ -99,13 +104,18 @@ for n in [100, 1_000, 10_000, 100_000, 1_000_000]:
     print(f"n={n:>10,} -> pi = {estimate_pi(n):.6f}")
 ```
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/monte_carlo_poster.jpg">
+  <source src="/assets/images/interview/monte_carlo.mp4" type="video/mp4">
+</video>
+*200 random darts, Pi estimate converging toward 3.14159...*
+
 Where I found this problem -> [Joma Tech](https://www.youtube.com/watch?v=pvimAM_SLic&t=68s)
 
 ---
 
 ## Q: What happens when you enter www.google.com and press enter?
 
-This was inspired by this [repo](https://github.com/alex/what-happens-when) I read long time ago
+> This was inspired by this [repo](https://github.com/alex/what-happens-when) I read long time ago
 
 **DNS Resolution** - Browser needs an IP address. "www.google.com" means nothing to the network. It checks: browser cache -> OS cache -> router cache. If all miss: recursive DNS resolver asks root nameserver -> ".com" TLD nameserver -> Google's authoritative nameserver. You get back something like 142.250.80.4.
 
@@ -146,11 +156,18 @@ ssock.close()
 
 Three stdlib imports and you've just done DNS resolution, a TCP handshake, a TLS handshake, and an HTTP request. Everything your browser does, in 10 lines.
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/network_stack_poster.jpg">
+  <source src="/assets/images/interview/network_stack.mp4" type="video/mp4">
+</video>
+*DNS, TCP handshake, TLS, HTTP request/response - the full flow.*
+
+I like explanations that start from first principles at the hardware level, what happens from the moment you press Enter: the keyboard controller fires a hardware interrupt, the CPU jumps to the interrupt handler, the OS processes the keycode, and so on up the stack
+
 ---
 
 ## Q: How does CUDA work? What is Flash Attention?
 
-Separates people who call `.cuda()` from people who understand why it's fast.
+> a must for any deep learning interview, do you just call torch.device("cuda") or do you know what happens
 
 CUDA is NVIDIA's model for programming GPUs. A GPU has thousands of cores - each one dumber than a CPU core, but there are thousands of them running in parallel. CUDA lets you write "kernels": functions that execute across all those cores simultaneously. When PyTorch does `torch.matmul(A, B)`, a CUDA kernel tiles the matrices, loads chunks into fast SRAM, computes, writes back to global memory. That's the gap between MicroGPT (Python for loops) and production (thousands of parallel threads).
 
@@ -181,11 +198,16 @@ __global__ void matmul(float* A, float* B, float* C, int N) {
 
 Same triple loop. The CPU does N^2 iterations of the outer two loops sequentially. The GPU launches N^2 threads and does them all at once. That's the entire idea.
 
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/flash_attention_poster.jpg">
+  <source src="/assets/images/interview/flash_attention.mp4" type="video/mp4">
+</video>
+*Standard attention materializes the full NxN matrix in slow HBM. Flash Attention tiles through fast SRAM.*
+
 ---
 
-## Q: Implement a GPT from scratch. No PyTorch. No TensorFlow. Just Python and math.
+## Q: Implement a GPT from scratch. No libraries.
 
-~200 lines. No `nn.Module`, no `loss.backward()` magic, no CUDA kernels. Just the raw math. But before the code, let me walk through the ideas that make it work.
+> ~200 lines. No `nn.Module`, no `loss.backward()`, no CUDA kernels. 
 
 ### Autograd: Why It Matters
 
@@ -231,6 +253,11 @@ But in a real network, the graph is not a simple chain. It's a DAG with fan-out 
 The `+=` is critical. When a value feeds into multiple downstream operations, its gradient accumulates contributions from all of them. This handles the fan-out case correctly: if `w` is used in both `a = w * 3` and `b = w * 5`, then `d(loss)/d(w) = d(loss)/d(a) * 3 + d(loss)/d(b) * 5`.
 
 That's the entire backward pass. No magic. Just: sort the graph, walk it backwards, multiply and accumulate local gradients.
+
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/comp_graph_poster.jpg">
+  <source src="/assets/images/interview/comp_graph.mp4" type="video/mp4">
+</video>
+*Forward pass builds the DAG, backward pass propagates gradients through it.*
 
 #### What is a Gradient, Practically?
 
@@ -287,7 +314,7 @@ The exponential function `e^x` grows catastrophically fast. If a logit is `100`,
 
 ### The Code (200 Lines)
 
-The code below is my own implementation, clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you don't just know how to *use* a Transformer; you know how to *build* one.
+The code below is my own implementation, clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you know how a transformer works.
 
 Check out Andrej's original blog [here](https://karpathy.github.io/2026/02/12/microgpt/) for the high-level context.
 

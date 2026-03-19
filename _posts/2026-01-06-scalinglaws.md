@@ -15,7 +15,7 @@ What can LLMs do that classical ML can't? At scale, how do LLMs differ from trad
 
 ![sl](/assets/images/scaling_laws/scaling_laws.webp)
 
-<video autoplay loop muted playsinline style="max-width:100%" preload="none">
+<video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/scaling/scaling_curves_poster.jpg">
   <source src="/assets/images/scaling/scaling_curves.mp4" type="video/mp4">
 </video>
 *Scaling parameters alone, data alone, or both (Chinchilla) - same compute, different loss.*
@@ -54,7 +54,112 @@ where *N* = number of parameters, *D* = dataset size (tokens), *C* = compute bud
 This was the first idea of scaling laws in the 1970s
 
 - We also need to train on enough data which is very important (GPT3 was undertrained) 
-- Chinchilla (half parameter size of GPT3 (70b) but 4x data -> performed better) 
+- Chinchilla (half parameter size of GPT3 (70b) but 4x data -> performed better)
+
+<style>
+.chinchilla-widget{background:var(--bg-card,#1f2335);border:1px solid var(--border,#e1e4e8);border-radius:10px;padding:20px 24px;margin:24px 0;font-family:inherit}
+.chinchilla-widget h4{margin:0 0 12px;color:var(--text-heading,#c0caf5);font-size:16px}
+.chinchilla-widget p.desc{font-size:13px;color:var(--text-secondary,#787c99);margin:0 0 16px}
+.chinchilla-widget .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chinchilla-widget .presets button{background:var(--bg-code,#16161e);color:var(--text,#a9b1d6);border:1px solid var(--border,#e1e4e8);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px;font-family:var(--font-mono,'JetBrains Mono',monospace);transition:background .15s,border-color .15s}
+.chinchilla-widget .presets button:hover,.chinchilla-widget .presets button.active{background:var(--accent,#0366d6);color:#fff;border-color:var(--accent,#0366d6)}
+.chinchilla-widget input[type=text]{width:100%;box-sizing:border-box;background:var(--bg-input,#1f2335);color:var(--text,#a9b1d6);border:1px solid var(--border,#e1e4e8);border-radius:6px;padding:8px 12px;font-size:14px;font-family:var(--font-mono,'JetBrains Mono',monospace);margin-bottom:16px}
+.chinchilla-widget .results{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chinchilla-widget .result-card{background:var(--bg-code,#16161e);border-radius:8px;padding:14px 16px;border-left:3px solid var(--accent,#0366d6)}
+.chinchilla-widget .result-card.old{border-left-color:#ff6b6b}
+.chinchilla-widget .result-card .label{font-size:12px;color:var(--text-muted,#565f89);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.chinchilla-widget .result-card .val{font-size:15px;font-weight:600;color:var(--text-heading,#c0caf5);font-family:var(--font-mono,'JetBrains Mono',monospace)}
+.chinchilla-widget .result-card .val span{font-weight:400;font-size:12px;color:var(--text-muted,#565f89)}
+.chinchilla-widget .summary{margin-top:14px;padding:12px 16px;background:var(--bg-code,#16161e);border-radius:8px;font-size:13px;color:var(--text,#a9b1d6);line-height:1.6;font-family:var(--font-mono,'JetBrains Mono',monospace)}
+@media(max-width:500px){.chinchilla-widget .results{grid-template-columns:1fr}}
+</style>
+
+<div id="chinchilla-calc" class="chinchilla-widget">
+  <h4>Chinchilla Compute Allocator</h4>
+  <p class="desc">Enter a compute budget in FLOPs. Compare Kaplan (2020) allocation vs Chinchilla (2022) optimal allocation.</p>
+  <div class="presets"></div>
+  <input type="text" id="cc-input" placeholder="e.g. 1e21">
+  <div class="results">
+    <div class="result-card old">
+      <div class="label">Kaplan (2020) - params heavy</div>
+      <div class="val" id="cc-kaplan">-</div>
+    </div>
+    <div class="result-card">
+      <div class="label">Chinchilla (2022) - balanced</div>
+      <div class="val" id="cc-chinchilla">-</div>
+    </div>
+  </div>
+  <div class="summary" id="cc-summary"></div>
+</div>
+
+<script>
+lazyWidget('chinchilla-calc', function(){
+  var presets = [1e18, 1e20, 1e22, 1e24];
+  var presetContainer = document.querySelector('#chinchilla-calc .presets');
+  var input = document.getElementById('cc-input');
+  var kaplanEl = document.getElementById('cc-kaplan');
+  var chinchillaEl = document.getElementById('cc-chinchilla');
+  var summaryEl = document.getElementById('cc-summary');
+
+  function fmt(n){
+    if(n>=1e15) return (n/1e15).toFixed(1)+'Q';
+    if(n>=1e12) return (n/1e12).toFixed(1)+'T';
+    if(n>=1e9) return (n/1e9).toFixed(1)+'B';
+    if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toFixed(0);
+  }
+
+  function fmtFlops(n){
+    var exp = Math.floor(Math.log10(n));
+    var mantissa = n / Math.pow(10, exp);
+    return mantissa.toFixed(1) + 'e' + exp;
+  }
+
+  function compute(C){
+    // Chinchilla: equal allocation in log space
+    // C ~ 6 * N * D, with N_opt ~ C^0.5, D_opt ~ C^0.5
+    // More precisely: N_opt = (C/6)^0.5, D_opt = (C/6)^0.5
+    // so that 6*N*D = C
+    var chinN = Math.pow(C / 6, 0.5);
+    var chinD = Math.pow(C / 6, 0.5);
+
+    // Kaplan: params-heavy allocation
+    // Kaplan suggested N scales faster: N ~ C^0.73, D ~ C^0.27
+    // Using C = 6*N*D constraint: N = (C/6)^0.73, D = C/(6*N)
+    var kapN = Math.pow(C / 6, 0.73);
+    var kapD = C / (6 * kapN);
+
+    kaplanEl.innerHTML = 'N = ' + fmt(kapN) + ' params<br>D = ' + fmt(kapD) + ' tokens <span>(params-heavy)</span>';
+    chinchillaEl.innerHTML = 'N = ' + fmt(chinN) + ' params<br>D = ' + fmt(chinD) + ' tokens <span>(balanced)</span>';
+    summaryEl.innerHTML = 'With C = ' + fmtFlops(C) + ' FLOPs:<br>' +
+      'Chinchilla says N = ' + fmt(chinN) + ' params, D = ' + fmt(chinD) + ' tokens<br>' +
+      'Kaplan would use ' + fmt(kapN) + ' params but only ' + fmt(kapD) + ' tokens<br>' +
+      'Ratio: Chinchilla uses ' + (chinD/kapD).toFixed(1) + 'x more data with ' + (kapN/chinN).toFixed(1) + 'x fewer params';
+  }
+
+  presets.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.textContent = '10^' + Math.log10(p);
+    btn.onclick = function(){
+      document.querySelectorAll('#chinchilla-calc .presets button').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      input.value = p.toExponential();
+      compute(p);
+    };
+    presetContainer.appendChild(btn);
+  });
+
+  input.addEventListener('input', function(){
+    document.querySelectorAll('#chinchilla-calc .presets button').forEach(function(b){b.classList.remove('active')});
+    var v = parseFloat(input.value);
+    if(!isNaN(v) && v > 0) compute(v);
+  });
+
+  compute(1e21);
+  input.value = '1e21';
+});
+</script>
 
 Data Scaling Laws: formula that maps dataset size(n)
 
@@ -163,7 +268,7 @@ Hence: Big models need big data.
 - Increase the number of parameters in a model without also scaling the dataset or compute, you’ll hit diminishing returns. The same goes for the other factors. Scaling one without the others doesn’t work
 - Shift to GPUs was a breakthrough, allowing researchers to scale up both model size and dataset size. Transformers have made this even better.
 
-In practice, you’re always budget-constrained, so you pick which of the three knobs to turn: parameters, data, or compute. You *can* have all three - there’s no impossibility theorem here - but nobody has infinite money. The key insight from the Chinchilla paper was that most labs were turning the wrong knob. They were making models too big and not training them long enough on enough data. Chinchilla (70B params, 4x the data of GPT-3) outperformed the much larger GPT-3 by simply allocating the compute budget more wisely.
+In practice, you’re always budget-constrained, so you pick which of the three knobs to turn: parameters, data, or compute. You *can* have all three - there’s no impossibility theorem here - but nobody has infinite money. The Chinchilla paper showed that most labs were turning the wrong knob. They were making models too big and not training them long enough on enough data. Chinchilla (70B params, 4x the data of GPT-3) outperformed the much larger GPT-3 by allocating the compute budget more wisely.
 
 > Loss ~ f(parameters, data, compute) - all three matter, but how you balance them matters more.
 
