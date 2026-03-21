@@ -207,7 +207,12 @@ Same triple loop. The CPU does N^2 iterations of the outer two loops sequentiall
 
 ## Q: Implement a GPT from scratch. No libraries.
 
-> ~200 lines. No `nn.Module`, no `loss.backward()`, no CUDA kernels. 
+> ~200 lines. No `nn.Module`, no `loss.backward()`, no CUDA kernels.
+
+I put together a [visual walkthrough](/assets/images/interview/microgpt_config.png) of MicroGPT. The diagrams below are from that document.
+
+<img src="/assets/images/interview/microgpt_architecture.png" alt="MicroGPT GPT Architecture - decoder-only transformer pipeline from token input to next-token prediction" style="max-width:100%">
+*The `gpt()` function as a pipeline: embedding lookup, RMSNorm, multi-head attention with residual, MLP with residual, lm_head projection, softmax.*
 
 ### Autograd: Why It Matters
 
@@ -254,6 +259,9 @@ The `+=` is critical. When a value feeds into multiple downstream operations, it
 
 That's the entire backward pass. No magic. Just: sort the graph, walk it backwards, multiply and accumulate local gradients.
 
+<img src="/assets/images/interview/microgpt_autograd.png" alt="Autograd Value class - scalar computation graph with backward() chain rule, showing L=(a*b)+c example with gradient flow" style="max-width:100%">
+*Every operation builds a DAG node. backward() walks it in reverse, multiplying local gradients by the chain rule.*
+
 <video autoplay loop muted playsinline style="max-width:100%" preload="none" poster="/assets/images/interview/comp_graph_poster.jpg">
   <source src="/assets/images/interview/comp_graph.mp4" type="video/mp4">
 </video>
@@ -281,6 +289,9 @@ This is the most significant departure from standard PyTorch training.
 
 **Why?** Implementing a 2D causal mask and matrix multiplication using scalar `Value` objects would be catastrophically slow. By using a KV cache during training, Karpathy makes "causality" (not looking ahead) implicit and the code much easier to read.
 
+<img src="/assets/images/interview/microgpt_attention.png" alt="Multi-head attention - Q,K,V projections split into 4 heads, scaled dot-product attention with KV cache" style="max-width:100%">
+*4 heads x 4 dimensions = 16 total. Each head independently attends over the KV cache, then results are concatenated and projected through Wo.*
+
 ### Adam from Scratch
 
 In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
@@ -290,6 +301,9 @@ In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 3. `m_hat` / `v_hat`: Bias correction for the early steps of training.
 
 It then updates `param.data` directly. This proves that Adam is just an adaptive learning rate that scales every single weight update based on its own history.
+
+<img src="/assets/images/interview/microgpt_training.png" alt="Training loop - tokenize, forward pass, cross-entropy loss, backward pass, Adam optimizer update, zero gradients" style="max-width:100%">
+*One complete training step: tokenize name, forward through gpt(), compute cross-entropy loss, backward(), Adam update with LR decay, zero gradients.*
 
 ### The Gradient Journey
 
@@ -311,6 +325,11 @@ In the `softmax` function, you'll see:
 
 **Why?**
 The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
+
+### Embedding + Positional Encoding
+
+<img src="/assets/images/interview/microgpt_embedding.png" alt="Embedding and positional encoding - wte token lookup table and wpe position lookup table, element-wise addition" style="max-width:100%">
+*wte (27x16) encodes what the token IS, wpe (16x16) encodes where the token SITS. Both are learnable - no sin/cos here.*
 
 ### The Code (200 Lines)
 
@@ -538,6 +557,9 @@ for _ in range(10):
         generated_name += chars[token_id] # append the generated character to the name
     print(generated_name)
 ```
+
+<img src="/assets/images/interview/microgpt_cheatsheet.png" alt="MicroGPT quick reference cheat sheet - architecture flow, parameter count breakdown, key functions, training recipe, attention math, Adam update" style="max-width:100%">
+*The complete MicroGPT architecture on one page. Every concept maps 1:1 to a line in the code above.*
 
 > I also sometimes ask silly questions like speed of light, what is 13 in binary etc.. just to check their fluency with these numbers and in general fluency with computers is what gets you hired, not passion.
 
