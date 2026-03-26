@@ -9,7 +9,7 @@ layout: home
       Hi, I’m Samit, I work as a computer vision engineer, building real time AI pipelines with an innate passion for intelligent systems.
     </p>
     <p>
-       Building <a href="https://www.tensortonic.com/">tensortonic</a> and <a href="https://aiengg.dev/">aiengg.dev</a>,
+       Building <a href="https://aiengg.dev/">aiengg.dev</a>,
     </p>
     <p>
       In my free time, I run this blog where I share nerdy but cool tingz.
