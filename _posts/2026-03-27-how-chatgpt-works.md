@@ -7,23 +7,19 @@ tokens: "~12k"
 description: "from raw internet text to a streaming response in your browser - pretraining, alignment, inference, and everything in between"
 ---
 
-You press Enter. A response starts appearing. What actually happened?
+You press Enter. Between that and the first token appearing in your browser: 13 trillion tokens of training data, 96 transformer layers, a reward model trained on human rankings, a KV cache growing token by token in GPU VRAM, and a continuous batching scheduler keeping H100s at 85% utilization. This post covers all of it.
 
-This post covers the full pipeline: from a URL in a web crawl to a token in your browser. Pretraining, alignment, decoding, and everything that runs between your request and the first word of the response. Code included. Most explanations skip the engineering tricks that make this work at scale - this one doesn't.
-
-You won't pretrain a model from scratch. You'll care about fine-tuning, RAG, and prompts. You still need the full picture for interviews, for reasoning about cost, and for working with people who do train models.
+You won't pretrain from scratch. You'll care about fine-tuning, RAG, and prompts. You still need the full picture for interviews, for reasoning about cost, and for working with people who do train models.
 
 ---
 
 ## The Data
 
-Before there's a model, there's data.
-
-GPT-4 trained on roughly 13 trillion tokens. Most of it starts as raw HTML from [Common Crawl](https://commoncrawl.org/) - 2.7 billion web pages, 200-400TB per crawl, new crawl every two months. That's mostly garbage.
+GPT-4 trained on roughly 13 trillion tokens. Most of it starts as raw HTML from [Common Crawl](https://commoncrawl.org/) - 2.7 billion web pages, 200-400TB per crawl, new crawl every two months. Raw Common Crawl is mostly garbage: boilerplate, navigation menus, duplicate content, spam.
 
 ![GPT-2 crawler pipeline](/assets/images/chatgpt/gpt2-crawler.png){: loading="lazy"}
 
-GPT-2 tried using Common Crawl directly. The paper notes that large amounts of content was "unintelligible" - boilerplate, navigation menus, ads. So they switched to a different signal: Reddit upvotes. Outbound links from Reddit posts with 3+ karma. The assumption: if humans upvoted it, it's probably worth reading.
+GPT-2 tried using Common Crawl directly. The paper notes that large amounts of content was "unintelligible." So they switched to a different signal: Reddit upvotes. Outbound links from posts with 3+ karma. If humans upvoted it, it clears a basic quality bar.
 
 The cleaning pipeline every serious dataset now runs:
 1. Parse HTML, strip tags, extract actual content (h1, p tags)
@@ -50,13 +46,13 @@ print(dataset[0])
 # }
 ```
 
-The model can only learn what's in the training data. No architecture improvement compensates for bad data. Data quality is the real differentiator between models at the same parameter count.
+The model learns only what's in the training data. Two models at identical parameter count but different data quality will perform very differently. No architecture change fixes a bad corpus.
 
 ---
 
 ## Tokenization
 
-The model doesn't see text. It sees integers.
+The model reads integers, not text.
 
 A token is roughly a word or subword. "Unbelievable" might be one token or split into "un" + "believable" depending on frequency in the training corpus. Characters are too granular (4096 characters = 4096 steps). Full words break on anything outside the training vocabulary - you can't handle novel words or code identifiers.
 
@@ -200,11 +196,13 @@ Three parts:
 
 ![Input and output of decoder](/assets/images/chatgpt/inpoutofdecode.png){: loading="lazy"}
 
+![Embedding and transformer block flow](/assets/images/chatgpt/trans.png){: loading="lazy"}
+
 Each block has two sublayers:
 - **Attention**: tokens communicate with each other
 - **MLP (Feed-Forward Network)**: each token independently processes its own representation
 
-The intuition: Attention moves information between tokens. MLP changes each token's representation based on what it collected. Residual connections act as memory - each block adds to, rather than replacing, the representation from the previous block.
+Attention moves information between tokens. MLP changes each token's representation based on what it collected. Residual connections accumulate - each block adds to the previous representation rather than replacing it.
 
 ```
 Attention = Routing = Information Movement
@@ -221,7 +219,7 @@ Every token computes three vectors at every layer:
 
 Attention score between positions i and j: `dot(Q_i, K_j) / sqrt(d_k)`. Scale by `sqrt(d_k)` for numerical stability. Softmax to get weights. Weighted sum of V gives the output.
 
-Think of it as a search engine: Query = your search query, Keys = document titles, Values = document contents.
+Like a search engine: Query is your search string, Keys are document titles, Values are the document contents. Dot product is the relevance score.
 
 For "bank" in "river bank":
 - `Q_bank · K_river` = high score, borrows "river" meaning
@@ -333,7 +331,7 @@ GPT-4 scale: trillions of tokens, thousands of H100s, months. Training runs at t
 
 What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation.
 
-Pretraining is where the money goes. SFT and alignment together cost less than a single day of pretraining compute.
+OpenAI's GPT-4 pretraining run reportedly cost over $100M. The alignment phase that turned it into ChatGPT cost a fraction of that - a few weeks of SFT and RLHF on a model that already knew everything.
 
 ![Pretraining vs post-training overview](/assets/images/chatgpt/preandpost.png){: loading="lazy"}
 
@@ -341,7 +339,7 @@ Pretraining is where the money goes. SFT and alignment together cost less than a
 
 ## Post-Training: Making It an Assistant
 
-Two stages to go from base model to ChatGPT.
+The base model is a very good autocomplete engine. Two training stages convert it into something that follows instructions and aligns to human preferences.
 
 ### SFT (Supervised Fine-Tuning)
 
@@ -391,6 +389,66 @@ Four steps:
 
 Pretraining gives capability. Post-training shapes behavior. RLHF doesn't teach new facts - it reshapes how the model uses what it already knows.
 
+<div class="rlhf-loop">
+  <p class="anim-label">RLHF training loop</p>
+  <div class="rlhf-steps">
+    <div class="rstep rs1" id="rs1">SFT Model</div>
+    <div class="rs-arrow ra1">&#8595;</div>
+    <div class="rstep rs2" id="rs2">Generate<br>4-8 responses</div>
+    <div class="rs-arrow ra2">&#8595;</div>
+    <div class="rstep rs3" id="rs3">Human ranking<br>A &gt; C &gt; B &gt; D</div>
+    <div class="rs-arrow ra3">&#8595;</div>
+    <div class="rstep rs4" id="rs4">Train reward model<br>R(prompt, response)</div>
+    <div class="rs-arrow ra4">&#8595;</div>
+    <div class="rstep rs5" id="rs5">PPO update<br>maximize R + KL penalty</div>
+    <div class="rs-arrow ra5">&#8593;</div>
+    <div class="rstep rs6" id="rs6">Improved policy</div>
+  </div>
+</div>
+
+<style>
+.rlhf-loop {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.rlhf-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.rstep {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0;
+  animation: fadeUp 0.3s forwards;
+}
+.rs-arrow {
+  color: #3a6b4a;
+  font-size: 16px;
+  margin-left: 20px;
+  opacity: 0;
+  animation: fadeUp 0.2s forwards;
+}
+.rs1 { background: #1a2a3b; color: #a8c7fa; border: 1px solid #2a4a6b; animation-delay: 0.2s; }
+.rs2 { background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a; animation-delay: 0.6s; }
+.rs3 { background: #3b3b1a; color: #fafaa8; border: 1px solid #6b6b2a; animation-delay: 1.0s; }
+.rs4 { background: #2a1a3b; color: #c4a8fa; border: 1px solid #4a2a6b; animation-delay: 1.4s; }
+.rs5 { background: #3b1a2a; color: #faa8c4; border: 1px solid #6b2a4a; animation-delay: 1.8s; }
+.rs6 { background: #1a3b3b; color: #a8fafa; border: 1px solid #2a6b6b; animation-delay: 2.2s; }
+.ra1 { animation-delay: 0.4s; }
+.ra2 { animation-delay: 0.8s; }
+.ra3 { animation-delay: 1.2s; }
+.ra4 { animation-delay: 1.6s; }
+.ra5 { animation-delay: 2.0s; color: #6b4a2a; }
+</style>
+
 | Stage | Purpose | Data | Objective |
 |-------|---------|------|-----------|
 | Pretraining | Learn language | Internet text | Next-token prediction |
@@ -419,7 +477,7 @@ Thinking model:
   -> "237 x 194 = 45,978"  (verified via reasoning)
 ```
 
-Thinking tokens cost compute and context - often 500-5000 tokens of reasoning for a 50-token reply. Worth it for math and code. Wasteful for "what's the capital of France?"
+Thinking tokens burn real compute and context - often 500-5000 tokens of reasoning before a 50-token answer. For math and code, the accuracy improvement justifies the cost. For factual lookups, it's overhead with no benefit.
 
 ---
 
@@ -607,6 +665,76 @@ Decoding strategy comparison:
 ## What Happens When You Press Enter
 
 One request, start to finish.
+
+<div class="pipeline-viz">
+  <p class="anim-label">Request flow: Enter key to first token</p>
+  <div class="pipeline-steps">
+    <div class="pstep ps1">Client<br><span class="ps-sub">POST /v1/chat</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps2">CDN<br><span class="ps-sub">~20ms</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps3">Gateway<br><span class="ps-sub">auth/rate</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps4">Backend<br><span class="ps-sub">tokenize</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps5">Safety<br><span class="ps-sub">~12ms</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps6">GPU Cluster<br><span class="ps-sub">prefill+decode</span></div>
+    <div class="ps-arrow">&#8594;</div>
+    <div class="pstep ps7">SSE Stream<br><span class="ps-sub">tokens/sec</span></div>
+  </div>
+</div>
+
+<style>
+.pipeline-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  overflow-x: auto;
+}
+.pipeline-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: max-content;
+}
+.pstep {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0;
+  animation: fadeUp 0.3s forwards;
+}
+.ps-sub {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+.ps-arrow {
+  color: #444;
+  font-size: 18px;
+  opacity: 0;
+  animation: fadeUp 0.2s forwards;
+}
+.ps1 { background: #1a2a3b; color: #a8c7fa; border: 1px solid #2a4a6b; animation-delay: 0.1s; }
+.ps2 { background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a; animation-delay: 0.4s; }
+.ps3 { background: #3b2a1a; color: #fac4a8; border: 1px solid #6b4a2a; animation-delay: 0.7s; }
+.ps4 { background: #2a1a3b; color: #c4a8fa; border: 1px solid #4a2a6b; animation-delay: 1.0s; }
+.ps5 { background: #3b1a1a; color: #faafa8; border: 1px solid #6b2a2a; animation-delay: 1.3s; }
+.ps6 { background: #1a3b3b; color: #a8fafa; border: 1px solid #2a6b6b; animation-delay: 1.6s; }
+.ps7 { background: #3b3b1a; color: #fafaa8; border: 1px solid #6b6b2a; animation-delay: 1.9s; }
+.ps-arrow:nth-child(2)  { animation-delay: 0.25s; }
+.ps-arrow:nth-child(4)  { animation-delay: 0.55s; }
+.ps-arrow:nth-child(6)  { animation-delay: 0.85s; }
+.ps-arrow:nth-child(8)  { animation-delay: 1.15s; }
+.ps-arrow:nth-child(10) { animation-delay: 1.45s; }
+.ps-arrow:nth-child(12) { animation-delay: 1.75s; }
+</style>
 
 ![System design overview](/assets/images/chatgpt/sysDesign.png){: loading="lazy"}
 
@@ -929,6 +1057,86 @@ Speedup: 2-3x with no quality change
 
 If a draft token is wrong, the rest get discarded and the large model takes over from that position. Works because text is predictable enough that a good small model gets most tokens right.
 
+<div class="spec-viz">
+  <p class="anim-label">Speculative decoding: draft 5, verify 1 pass</p>
+  <div class="spec-row">
+    <div class="spec-label">Draft (7B):</div>
+    <div class="spec-tokens">
+      <span class="stoken st1 accepted">The</span>
+      <span class="stoken st2 accepted">capital</span>
+      <span class="stoken st3 accepted">of</span>
+      <span class="stoken st4 accepted">France</span>
+      <span class="stoken st5 rejected">is</span>
+    </div>
+  </div>
+  <div class="spec-row" style="margin-top:8px">
+    <div class="spec-label">Verify (70B):</div>
+    <div class="spec-tokens">
+      <span class="stoken st6 accepted">The</span>
+      <span class="stoken st7 accepted">capital</span>
+      <span class="stoken st8 accepted">of</span>
+      <span class="stoken st9 accepted">France</span>
+      <span class="stoken st10 corrected">est</span>
+    </div>
+  </div>
+  <p class="spec-note" id="specnote">4 tokens accepted, 1 corrected. 5 tokens generated in 1 large-model pass.</p>
+</div>
+
+<style>
+.spec-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.spec-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spec-label {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  width: 90px;
+  flex-shrink: 0;
+}
+.spec-tokens {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.stoken {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  animation: fadeUp 0.25s forwards;
+}
+.accepted { background: #1a3b2a; border: 1px solid #2a6b4a; color: #a8fac4; }
+.rejected  { background: #3b1a1a; border: 1px solid #6b2a2a; color: #faa8a8; }
+.corrected { background: #3b2a1a; border: 1px solid #6b4a2a; color: #fac4a8; }
+.st1  { animation-delay: 0.2s; }
+.st2  { animation-delay: 0.5s; }
+.st3  { animation-delay: 0.8s; }
+.st4  { animation-delay: 1.1s; }
+.st5  { animation-delay: 1.4s; }
+.st6  { animation-delay: 1.8s; }
+.st7  { animation-delay: 2.0s; }
+.st8  { animation-delay: 2.2s; }
+.st9  { animation-delay: 2.4s; }
+.st10 { animation-delay: 2.6s; }
+.spec-note {
+  color: #666;
+  font-size: 12px;
+  margin: 14px 0 0 0;
+  opacity: 0;
+  animation: fadeUp 0.3s 3.0s forwards;
+}
+</style>
+
 ### Flash Attention
 
 Standard attention builds the full `seq x seq` attention matrix in slow HBM (GPU main memory). For a 4096-token sequence with 128-dim heads: 4096 x 4096 = 128MB per head per layer, written and re-read multiple times.
@@ -978,10 +1186,6 @@ With prompt caching:
 ```
 
 OpenAI charges 50% less for cached input tokens. Anthropic caches for 5 minutes. Saves both cost and latency since prefill is compute-bound.
-
-### Speculative Decoding
-
-(Covered in the optimizations section above.)
 
 ### Model Routing
 
@@ -1108,9 +1312,17 @@ Benchmarks are easy to overfit. A model that scores 90% on MMLU might still give
 
 From a URL in a web crawl to a token in your browser: crawl the web, clean it, tokenize it, train a transformer to predict next tokens, fine-tune it to follow instructions, serve it through a layered production system, and stream each token back as it's generated.
 
-The expensive part is pretraining. SFT and alignment are cheap by comparison. The real engineering challenge is serving - routing, batching, caching, safety, streaming, and observability at a scale where millions of people are talking to the same neural network simultaneously.
+Pretraining is where the money is - $50-100M+ and months on thousands of GPUs. SFT and alignment are weeks and comparatively cheap. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
 
-The model doesn't think. It compresses patterns from training data into weights, then uses those weights to continue token sequences. That's enough to write code, explain concepts, and hold a conversation - but the model has no mechanism to distinguish plausible continuations from true ones. Calibration (knowing when it's uncertain) is a separate, unsolved problem.
+The model compresses patterns from training data into weights, then uses those weights to continue token sequences. That's enough to write code, explain concepts, and hold a conversation - but the model has no mechanism to distinguish plausible continuations from true ones.
+
+---
+
+## Further Reading
+
+**Papers**: [InstructGPT](https://arxiv.org/abs/2203.02155) (RLHF in practice), [LLaMA 3](https://arxiv.org/abs/2407.21783) (training at scale), [vLLM/PagedAttention](https://arxiv.org/abs/2309.06180) (inference at scale), [FlashAttention-2](https://arxiv.org/abs/2307.08691) (memory-efficient attention)
+
+**Hands-on**: [Karpathy - Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxruWIwMSOWxAywIRyoiOWHaXY), [makemore](https://github.com/karpathy/makemore), [Hugging Face NLP course](https://huggingface.co/learn/nlp-course)
 
 ---
 
