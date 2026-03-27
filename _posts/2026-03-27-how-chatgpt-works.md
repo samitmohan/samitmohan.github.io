@@ -863,6 +863,38 @@ After generation: detokenize (token IDs back to text), strip control tokens, nor
 
 The backend intercepts this, runs the tool, injects the result back into context, and the model generates its final answer. This is the foundation of AI agents - models that can take actions, not just produce text.
 
+### Output Safety Layer
+
+Output moderation runs in parallel with streaming, not after it. While the model is generating tokens 10-20, the safety classifier is checking tokens 1-9. If a violation appears mid-stream, the partially-delivered response gets cut and the client receives an error chunk. That parallel design is why output moderation adds only ~8ms of overhead to TTFT rather than to total response time.
+
+The `finish_reason` field in every API response tells you what stopped generation:
+- `"stop"` - model generated an EOS token naturally
+- `"length"` - hit `max_tokens` limit
+- `"content_filter"` - output moderation flagged the response
+
+If you're building on the API and users report truncated responses, `finish_reason` is the first thing to check.
+
+### Logging and Observability
+
+Every request emits structured metrics at each layer:
+
+```text
+request_id:       "req_abc123"
+user_id:          "usr_456"
+model:            "gpt-4o"
+input_tokens:     512
+output_tokens:    248
+total_latency_ms: 2340
+ttft_ms:          210        <- Time To First Token
+tps:              87         <- Tokens Per Second during decode
+region:           "us-east-1"
+gpu_node:         "h100-node-42"
+finish_reason:    "stop"
+safety_flagged:   false
+```
+
+**TTFT (Time to First Token)** and **TPS (Tokens Per Second)** are the two numbers anyone running inference cares about. TTFT measures how quickly you start responding - dominated by prefill and queue wait. TPS measures throughput during decode - dominated by model size, quantization, and GPU memory bandwidth. Optimizing one doesn't automatically improve the other: disaggregated serving exists because prefill and decode respond to different hardware improvements.
+
 ### Full Latency Breakdown
 
 For a typical GPT-4o request ("Explain the transformer architecture", ~400 token response):
@@ -883,6 +915,22 @@ Total wall-clock:               ~4150ms
 ```
 
 The bottleneck is decode. Making it faster (quantization, speculative decoding, better hardware) is the primary focus of inference optimization.
+
+### Cost vs Latency Tradeoffs
+
+Every production decision is a trade between these three:
+
+| Optimization | Latency | Cost/token | Quality |
+|---|---|---|---|
+| Larger batch size | higher (more queuing) | lower | unchanged |
+| INT4 quantization | lower | lower | slight loss |
+| Smaller model (3.5 vs 4) | much lower | much lower | lower |
+| More GPUs per request | lower | higher | unchanged |
+| Speculative decoding | lower | slightly higher | unchanged |
+| Streaming | same total, lower perceived | unchanged | unchanged |
+| KV cache reuse | lower | lower | unchanged |
+
+Output tokens cost 2-3x more than input tokens at most providers - the model generates them sequentially while input gets processed in parallel. Cached input (repeated system prompt) is typically half-price. If you're building on the API: back-of-envelope with 500 input + 300 output tokens per request, multiply by volume, then check whether open-weights on your own GPU cluster beats provider pricing at your scale.
 
 ---
 
