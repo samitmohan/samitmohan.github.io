@@ -1731,7 +1731,7 @@ With prompt caching:
   Request 2: load cached + compute [user(80 tokens)]  -> 80 tokens prefill
 ```
 
-OpenAI charges 50% less for cached input tokens. Anthropic caches for 5 minutes. Saves both cost and latency since prefill is compute-bound. Free money if your system prompt is long.
+OpenAI charges 50% less for cached input tokens. Anthropic caches for 5 minutes. Saves both cost and latency since prefill is compute-bound.
 
 ### model routing
 
@@ -1853,17 +1853,19 @@ From a URL in a web crawl to a token in your browser: crawl the web, clean it, t
 
 Pretraining costs $50-100M+ and runs for months on thousands of GPUs. SFT and RLHF run for a few weeks and cost a few million at most. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
 
-Next-token prediction on 13 trillion tokens is a simple objective. The weights that result encode facts, reasoning patterns, and enough of a world model to pass the bar exam. The model generates the most probable continuation regardless of truth. When training data is sparse on a topic, plausible text and true text look identical to the predictor - so it confabulates.
+Next-token prediction on 13 trillion tokens is a simple objective. The weights that result encode facts, reasoning patterns, and enough of a world model to pass the bar exam. The model generates the most probable continuation regardless of truth.
 
 ---
 
 ## further reading
 
-**Papers**: [InstructGPT](https://arxiv.org/abs/2203.02155) (RLHF in practice), [LLaMA 3](https://arxiv.org/abs/2407.21783) (training at scale), [vLLM/PagedAttention](https://arxiv.org/abs/2309.06180) (inference at scale), [FlashAttention-2](https://arxiv.org/abs/2307.08691) (memory-efficient attention)
-
-**Articles**: [Quantization explained](https://ngrok.com/blog/quantization) (ngrok - INT4/INT8 quantization in practice)
-
-**Hands-on**: [Karpathy - Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxruWIwMSOWxAywIRyoiOWHaXY), [makemore](https://github.com/karpathy/makemore), [Hugging Face NLP course](https://huggingface.co/learn/nlp-course)
+- [InstructGPT](https://arxiv.org/abs/2203.02155) (RLHF in practice)
+- [LLaMA 3](https://arxiv.org/abs/2407.21783) (training at scale)
+- [vLLM/PagedAttention](https://arxiv.org/abs/2309.06180) (inference at scale)
+- [FlashAttention-2](https://arxiv.org/abs/2307.08691) (memory-efficient attention)
+- [Quantization explained](https://ngrok.com/blog/quantization) (ngrok - INT4/INT8 quantization in practice)
+- [Karpathy - Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxruWIwMSOWxAywIRyoiOWHaXY)
+- [ChatGPT in 200 lines](https://karpathy.github.io/2026/02/12/microgpt/)
 
 ---
 
