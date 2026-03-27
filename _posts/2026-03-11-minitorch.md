@@ -274,7 +274,7 @@ When you write `with no_grad():`, it flips the global to `False`. Now any new te
 
 ## 3. the autograd engine
 
-The core of the whole thing. Understand this section and you understand PyTorch's autograd. Everything else is just filling in operators.
+The core of the whole thing. Everything else is filling in operators.
 
 ### the computation graph
 
@@ -447,7 +447,7 @@ def __add__(self, other):
     return out
 ```
 
-**Multiplication** is also very straight forward. The derivative of $a \cdot b$ with respect to $a$ is $b$, and with respect to $b$ is $a$. Each input's gradient uses the *other* input's value:
+**Multiplication** is straightforward. The derivative of $a \cdot b$ with respect to $a$ is $b$, and with respect to $b$ is $a$. Each input's gradient uses the *other* input's value:
 
 ```python
 def __mul__(self, other):
@@ -492,7 +492,7 @@ def __matmul__(self, other):
     return out
 ```
 
-If you remember one thing from this section, let it be this: the gradient of `A @ B` with respect to `A` is `grad @ B.T`, and with respect to `B` is `A.T @ grad`. You'll see this exact pattern again in the Conv2d backward pass.
+The gradient of `A @ B` with respect to `A` is `grad @ B.T`, and with respect to `B` is `A.T @ grad`. This exact pattern shows up again in the Conv2d backward pass.
 
 ---
 
@@ -621,7 +621,7 @@ class Linear(Module):
 
 The autograd engine handles the backward pass automatically - `@` and `+` already have backward closures.
 
-The weight initialization matters more than you'd think. Originally used `np.random.randn` with no scaling to see the results. The MLP "trained"; 60% accuracy on MNIST. It was that activations were dying in the forward pass because the initial weights were way too large for ReLU. The fix:
+The weight initialization matters more than you'd think. I first tried `np.random.randn` with no scaling. The MLP "trained"; 60% accuracy on MNIST. It was that activations were dying in the forward pass because the initial weights were way too large for ReLU. The fix:
 
 - **Kaiming init**: scale by $\sqrt{2/\text{fan\_in}}$. The factor of 2 compensates for ReLU killing half the signal.
 - **Xavier init**: scale by $\sqrt{2/(\text{fan\_in} + \text{fan\_out})}$. Better for sigmoid/tanh.
@@ -861,7 +861,7 @@ def im2col(input_data, kh, kw, stride, padding):
     return cols.transpose(0, 4, 5, 1, 2, 3).reshape(N * OH * OW, -1)
 ```
 
-The loops here are over the kernel dimensions ($k_h \times k_w$), not over the spatial dimensions. For a $3 \times 3$ kernel, that's just 9 iterations regardless of image size. Each iteration uses NumPy slicing with strides to extract all patches at one kernel position across all batch elements and channels simultaneously. That's the key insight - the "expensive" part (spatial iteration) is handled by NumPy's vectorized strided slicing.
+The loops here are over the kernel dimensions ($k_h \times k_w$), not over the spatial dimensions. For a $3 \times 3$ kernel, that's just 9 iterations regardless of image size. Each iteration uses NumPy slicing with strides to extract all patches at one kernel position across all batch elements and channels simultaneously. The "expensive" part (spatial iteration) is handled by NumPy's vectorized strided slicing.
 
 The final `reshape` flattens each patch into a row, giving us a matrix of shape $(N \cdot O_H \cdot O_W, C \cdot k_h \cdot k_w)$.
 
@@ -1046,7 +1046,7 @@ for epoch in range(100):
     optimizer.step()
 ```
 
-Forward, loss, zero_grad, backward, step. Same five lines whether you're fitting a line or training a language model.
+Forward, loss, zero_grad, backward, step. Five lines, same whether you're fitting a line or training a language model.
 
 ### MNIST MLP
 
@@ -1107,7 +1107,7 @@ The training loop is the standard five-line pattern, and evaluation uses `no_gra
 
 ## 11. gradient checking
 
-How do you know your backward closures are correct? Compute gradients the dumb way - finite differences - and compare:
+The only reliable check: compute gradients the dumb way via finite differences and compare:
 
 $$f'(x) \approx \frac{f(x + \epsilon) - f(x - \epsilon)}{2\epsilon}$$
 

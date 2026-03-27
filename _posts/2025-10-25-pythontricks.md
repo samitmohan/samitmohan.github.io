@@ -85,13 +85,7 @@ even_numbers = list(filter(lambda n: n % 2 == 0, numbers))
 
 #### Pre-requisite: Decorators
 
-Decorators let you modify function behavior without changing the original code.
-
-They let you do that without permanently modifying the wrapped function itself (the function behavior changes only when it's decorated).
-
-Good for writing wrapper functions: modify behavior of callable through a wrapper closure so you don't have to permanently modify the original.
-
-The original callable isn't modified → its behavior changes only when decorated.
+Decorators let you modify function behavior without changing the original code. Good for wrapper functions: modify behavior of a callable through a closure without touching the original.
 
 ```python
 def uppercase(func):
@@ -157,7 +151,7 @@ input_numbers = list(map(int, input("Enter numbers: ").split()))
 # Input: "1 2 3 4 5" → Output: [1, 2, 3, 4, 5]
 ```
 
-The `map()` function is great for transforming data efficiently. It's lazy (memory-efficient) and often more readable than list comprehensions for simple transformations. Really helpful when you're doing competitive programming (don't).
+The `map()` function is lazy (memory-efficient) and often more readable than list comprehensions for simple transformations. Helpful when you're doing competitive programming (don't).
 
 ### More math stuff
 
@@ -204,7 +198,7 @@ for a, b in product(list_a, list_b):
 
 ```
 
-### Essential Tools: zip & enumerate
+### essential tools: zip & enumerate
 
 ```python
 # enumerate for index + value (useful for leetcode problems where you need index as well)
@@ -222,7 +216,7 @@ for x, y in zip([1, 2, 3], ['one', 'two', 'three']):
 # 3 three
 ```
 
-### Benchmarking: Measure Before You Optimize
+### benchmarking: measure before you optimize
 
 ```python
 import time
@@ -295,9 +289,9 @@ xs[1][0] = "Y"  # [[1, 2, 3], ['Y', 5, 6], [7, 8, 9]]
 print(zs)       # zs remains unchanged [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 ```
 
-### Named Tuples: Classes Without the Boilerplate
+### named tuples: classes without the boilerplate
 
-Memory efficient shortcut to defining an immutable class in Python manually.
+Memory-efficient shortcut for defining an immutable class.
 
 ```python
 from collections import namedtuple
@@ -308,11 +302,9 @@ my_car = Car("red", 1000)
 print(my_car.color)  # Accessible like attributes
 ```
 
-### Static Methods: Clear Intent
+### static methods: clear intent
 
-Static methods can't access class or instance state because they don't take a `cls` or `self` argument.
-
-It's a great signal to show that particular method is independent from everything else around it.
+Static methods can't access class or instance state because they don't take a `cls` or `self` argument. A clear signal that a method is independent from the rest of the class.
 
 ```python
 import math
@@ -336,7 +328,7 @@ area = Pizza.circle_area(5)
 
 [More on Object Oriented Programming in Python](https://github.com/samitmohan/interviews/tree/master/PythonLanguageSpecific/OOPs)
 
-### Dictionary Merging: The Modern Way
+### dictionary merging: the modern way
 
 ```python
 # With unpacking
@@ -345,7 +337,7 @@ ys = {"c": 3, "d": 4}
 merged = {**xs, **ys}  # {'a': 1, 'b': 2, 'c': 3, 'd': 4}
 ```
 
-### Matrix Operations: Elegant Transformations
+### matrix operations: elegant transformations
 
 ```python
 # Transpose matrix with zip (so clean)
@@ -358,7 +350,7 @@ nested = [[1, 2], [3, 4], [5, 6]]
 flattened = list(itertools.chain.from_iterable(nested))  # [1, 2, 3, 4, 5, 6]
 ```
 
-### DefaultDict: Eliminate Key Checking
+### defaultdict: eliminate key checking
 
 ```python
 from collections import defaultdict
@@ -383,9 +375,9 @@ hm = Counter(a)  # Counter({'samit': 2, 'mohan': 1})
 list(hm.values())  # [2, 1]
 ```
 
-### Binary Search with Bisect
+### binary search with bisect
 
-When to use Bisect? Searching in sorted arrays or maintaining sorted collections.
+Use `bisect` for searching in sorted arrays or maintaining sorted collections.
 
 ```python
 import bisect
@@ -418,7 +410,7 @@ bisect.insort_left(arr, 6)   # arr becomes [1, 3, 5, 6, 7, 9]
 bisect.insort_right(arr, 4)  # arr becomes [1, 3, 4, 5, 6, 7, 9]
 ```
 
-### Use Type Annotations
+### use type annotations
 
 Always use type annotations, always use docstrings under functions. Know what is expected to be the input and output of your function.
 
@@ -429,7 +421,7 @@ from typing import List, Dict
 def calculate_total(items, discount):
     pass
 
-# Readability is quite shit, what are items? is it a list, tuple, dictionary? 
+# Readability is shit, what are items? is it a list, tuple, dictionary?
 # discount might be an integer (guessing)
 
 # Good: Use Types
@@ -448,7 +440,7 @@ def calculate_total_price( items: List[Dict[str, float]], discount_rate: float) 
     return total * (1 - discount_rate)
 ```
 
-### Keep It Simple
+### keep it simple
 
 Please don't write code like this:
 
@@ -467,7 +459,7 @@ def fib(x):
     return x if x <= 1 else fib(x - 1) + fib(x - 2)
 ```
 
-### String Formatting: F-Strings Rule
+### string formatting: f-strings rule
 
 ```python
 name, age = "Samit", 22
@@ -479,7 +471,7 @@ message = "My name is " + name + " and I am " + str(age) + " years old"
 print(f"My name is {name} and I'm {age} yrs old")
 ```
 
-### Context Managers: Resource Management
+### context managers: resource management
 
 ```python
 # Bad: Manual resource management (don't do this cmon it's 2025)
@@ -494,7 +486,7 @@ with open("data.txt", "w") as file:
     file.write("Hello World")
 ```
 
-### The Walrus Operator: Assignment in Expressions
+### the walrus operator: assignment in expressions
 
 ```python
 import os
@@ -509,7 +501,7 @@ while (command := input("$ ")) != "exit":
     os.system(command)
 ```
 
-### Unpacking and Destructuring
+### unpacking and destructuring
 
 ```python
 # Merge different iterables
@@ -526,7 +518,7 @@ person_data = ("John", "Doe", 30)
 greeting = greet(*person_data) # unpacks tuples and passes to function: Hello John Doe, age 30
 ```
 
-### Boolean Logic Shortcuts
+### boolean logic shortcuts
 
 ```python
 numbers = [2, 4, 6, 8, 10]
@@ -538,7 +530,7 @@ all_even = all(n % 2 == 0 for n in numbers)  # True
 any_greater_than_5 = any(n > 5 for n in numbers)  # True
 ```
 
-### Palindrome Check: Slicing
+### palindrome check: slicing
 
 ```python
 def is_palindrome(text: str) -> bool:
@@ -551,7 +543,7 @@ numbers[::-1]   # Reverse
 numbers[1::2]   # Skip first, then every second
 ```
 
-### Package Management
+### package management
 
 Stop using `pip` directly for project management. Use `uv` instead:
 
@@ -567,7 +559,7 @@ uv sync
 
 - [uv Documentation](https://github.com/astral-sh/uv)
 
-### Performance Insights: Under the Hood
+### performance insights: under the hood
 
 The `dis` module shows Python bytecode - the internal operations.
 
@@ -589,7 +581,7 @@ dis.dis(compile("[28, 's', 'a', 'm']", "", "eval"))
 #               RETURN_VALUE
 ```
 
-**Key takeaway:** Tuples are pre-computed at compile time, lists are built at runtime.
+Tuples are pre-computed at compile time. Lists are built at runtime.
 
 ---
 

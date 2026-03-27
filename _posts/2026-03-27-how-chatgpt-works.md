@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "how chatgpt works"
+title:  "what happens when you press 'submit' on chatgpt"
 date:   2026-03-27 00:00:00 +0530
 categories: [tech]
 tokens: "~12k"
@@ -11,7 +11,7 @@ You press Enter. Between that and the first token appearing in your browser: 13 
 
 ---
 
-## The Data
+## the data
 
 GPT-4 trained on roughly 13 trillion tokens. Most of it starts as raw HTML from [Common Crawl](https://commoncrawl.org/) - 2.7 billion web pages, 200-400TB per crawl, new crawl every two months. Raw Common Crawl is mostly garbage: boilerplate, navigation menus, duplicate content, spam.
 
@@ -30,7 +30,7 @@ The cleaning pipeline every serious dataset now runs:
 
 ![FineWeb data pipeline](/assets/images/chatgpt/fineweb.png){: loading="lazy"}
 
-The data structure is simple: a table with `text`, `id`, `dump`, and `url` columns. Loading it:
+A table with `text`, `id`, `dump`, and `url` columns. Loading it:
 
 ```python
 from datasets import load_dataset
@@ -48,7 +48,7 @@ The model learns only what's in the training data. Two models at identical param
 
 ---
 
-## Tokenization
+## tokenization
 
 The model reads integers, not text.
 
@@ -181,7 +181,7 @@ Fewer tokens per sentence = less compute per request. Token efficiency is a real
 
 ---
 
-## The Transformer
+## the transformer
 
 Modern LLMs use a decoder-only transformer. Token integers go in, a probability distribution over the next token comes out.
 
@@ -208,7 +208,7 @@ MLP/FFN   = Computation = Processing and Inference
 Residual  = Memory = Accumulation
 ```
 
-### How Attention Works
+### how attention works
 
 Every token computes three vectors at every layer:
 - **Q (Query)**: what am I looking for?
@@ -297,13 +297,116 @@ For a deeper look at how residual connections and attention interact across laye
 }
 </style>
 
-### Context Window
+### context window
 
-The context window is the model's working memory - everything it can attend to at once. Think of it as a desk: the model can only work with what's on the desk. Messages that scroll out of the window are simply gone; the model has no access to them.
+The context window is the model's working memory - everything it can attend to at once. Messages that scroll out are gone; the model has no access to them.
 
 GPT-2: 1,024 tokens. GPT-4o: 128,000 tokens. Larger context = more GPU memory and more compute per token, but enables longer documents and conversations.
 
-### When Does Generation Stop?
+<div class="ctx-win-viz">
+  <p class="anim-label">Context window filling: tokens accumulate, oldest get evicted when full</p>
+  <div class="ctx-win-outer">
+    <div class="ctx-win-inner" id="ctxwin-bar"></div>
+  </div>
+  <div class="ctx-win-meta">
+    <span id="ctxwin-count">0 tokens used</span>
+    <span>128,000 token limit</span>
+  </div>
+  <p class="ctx-win-note" id="ctxwin-note">Tokens accumulate left to right. When the window fills, oldest tokens are evicted - the model loses access to them entirely.</p>
+</div>
+
+<script>
+window._anims = window._anims || {};
+(function(){
+  var timers=[];
+  window._anims.ctxwin = function(){
+    timers.forEach(clearTimeout); timers=[];
+    var bar=document.getElementById("ctxwin-bar");
+    var countEl=document.getElementById("ctxwin-count");
+    var noteEl=document.getElementById("ctxwin-note");
+    if(!bar) return;
+    bar.innerHTML='';
+    if(countEl) countEl.textContent='0 tokens used';
+    if(noteEl){ noteEl.textContent='Tokens accumulate left to right. When the window fills, oldest tokens are evicted.'; noteEl.style.color='#666'; }
+    var segs=[
+      {label:"system",  flex:5,  color:"#1a2a3b",border:"#2a4a6b",text:"#a8c7fa", tok:6400},
+      {label:"turn 1",  flex:12, color:"#1a3b2a",border:"#2a6b4a",text:"#a8fac4", tok:21760},
+      {label:"turn 2",  flex:12, color:"#3b3b1a",border:"#6b6b2a",text:"#fafaa8", tok:37120},
+      {label:"turn 3",  flex:18, color:"#2a1a3b",border:"#4a2a6b",text:"#c4a8fa", tok:60160},
+      {label:"turn 4",  flex:20, color:"#3b1a2a",border:"#6b2a4a",text:"#faa8c4", tok:85760},
+      {label:"new msg", flex:8,  color:"#1a3b3b",border:"#2a6b6b",text:"#a8fafa", tok:96000},
+      {label:"overflow \u2192",flex:25,color:"#130a0a",border:"#3a1212",text:"#5a2020",tok:128000},
+    ];
+    segs.forEach(function(seg,i){
+      timers.push(setTimeout(function(){
+        var el=document.createElement("div");
+        el.className="ctx-win-seg";
+        el.style.flex=seg.flex+"";
+        el.style.background=seg.color;
+        el.style.borderColor=seg.border;
+        el.style.color=seg.text;
+        el.textContent=seg.label;
+        bar.appendChild(el);
+        if(countEl) countEl.textContent=seg.tok.toLocaleString()+" tokens used";
+        if(i===segs.length-1 && noteEl){ noteEl.style.color="#8a3a3a"; noteEl.textContent="Window full. System prompt and turn 1 get truncated - the model has no memory of them."; }
+      },600*(i+1)));
+    });
+  };
+})();
+</script>
+
+<style>
+.ctx-win-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.ctx-win-outer {
+  height: 36px;
+  background: #070c10;
+  border: 1px solid #1a2a3b;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0 6px;
+  padding: 2px;
+}
+.ctx-win-inner {
+  display: flex;
+  gap: 2px;
+  height: 100%;
+}
+.ctx-win-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 0 3px;
+  opacity: 0;
+  animation: fadeUp 0.35s forwards;
+}
+.ctx-win-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: monospace;
+  font-size: 11px;
+  color: #555;
+}
+.ctx-win-note {
+  color: #666;
+  font-size: 12px;
+  margin: 10px 0 0;
+  transition: color 0.6s;
+}
+</style>
+
+### when does generation stop?
 
 Three stopping conditions:
 - **EOS token**: model generates a special end-of-sequence token
@@ -312,13 +415,13 @@ Three stopping conditions:
 
 ---
 
-## Pretraining
+## pretraining
 
 Take 15 trillion tokens of cleaned text. Feed sequences into the transformer. At each position, predict the next token. Cross-entropy loss against the actual token. Backprop. Repeat. (If you want to understand how backprop and the tensor operations underneath this actually work, [building pytorch from scratch](/tech/2026/03/11/minitorch.html) walks through it.)
 
-No labels, no human annotation. The supervision signal is the text itself.
+The supervision signal is the text itself.
 
-The model learns whatever is predictable in human-written text: grammar, facts, reasoning patterns, code structure, mathematical notation.
+The model learns whatever is predictable in human-written text: grammar, facts, reasoning patterns, code structure, mathematical notation. No one programs this in. It falls out of the loss.
 
 **GPT-2** as a concrete example:
 - Dataset: WebText - 40GB, 8 million Reddit-linked documents with 3+ upvotes
@@ -329,17 +432,125 @@ The model learns whatever is predictable in human-written text: grammar, facts, 
 
 GPT-4 scale: trillions of tokens, thousands of H100s, months. Training runs at this scale cost $50-100M+. GPT-4 reportedly uses a Mixture of Experts (MoE) architecture - 8 expert FFN layers per block, 2 active per token. Total parameter count ~1.76 trillion, but only ~220 billion activate for any given token. You get the capacity of a 1.76T model at the inference cost of a ~220B model. The exact numbers aren't public.
 
-What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation.
+<div class="moe-viz">
+  <p class="anim-label">MoE: router picks 2 of 8 FFN experts per token per layer</p>
+  <div class="moe-top">
+    <div class="moe-token-box" id="moe-tok-box">token: "Paris"</div>
+    <div class="moe-router-lbl">&#8595; router (learned linear layer, softmax scores)</div>
+  </div>
+  <div class="moe-expert-row">
+    <div class="moe-exp" id="mexp0">E0</div>
+    <div class="moe-exp" id="mexp1">E1</div>
+    <div class="moe-exp" id="mexp2">E2</div>
+    <div class="moe-exp" id="mexp3">E3</div>
+    <div class="moe-exp" id="mexp4">E4</div>
+    <div class="moe-exp" id="mexp5">E5</div>
+    <div class="moe-exp" id="mexp6">E6</div>
+    <div class="moe-exp" id="mexp7">E7</div>
+  </div>
+  <p class="moe-note" id="moe-note-txt">Top-2 experts by router score activate. Only ~12.5% of FFN params run per token.</p>
+</div>
 
-### Pretraining is Compression
+<script>
+window._anims = window._anims || {};
+(function(){
+  var moeInterval=null, moeIdx=0;
+  window._anims.moe = function(){
+    if(moeInterval) clearInterval(moeInterval);
+    moeIdx=0;
+    var examples=[
+      {token:'"Paris"',    active:[2,5], note:"Geography domain. E2+E5 score highest. 220B of 1.76T params active."},
+      {token:'"def"',      active:[0,7], note:"Code domain. E0+E7 score highest. 220B of 1.76T params active."},
+      {token:'"integral"', active:[1,4], note:"Math domain. E1+E4 score highest. 220B of 1.76T params active."},
+      {token:'"Hello"',    active:[3,6], note:"Conversational domain. E3+E6 score highest. 220B of 1.76T params active."},
+    ];
+    function step(){
+      var ex=examples[moeIdx%examples.length];
+      for(var i=0;i<8;i++){ var el=document.getElementById("mexp"+i); if(el) el.className="moe-exp"; }
+      var tb=document.getElementById("moe-tok-box"); if(tb) tb.textContent="token: "+ex.token;
+      setTimeout(function(){
+        ex.active.forEach(function(e){ var el=document.getElementById("mexp"+e); if(el) el.className="moe-exp moe-active"; });
+        var nt=document.getElementById("moe-note-txt"); if(nt) nt.textContent=ex.note;
+      },450);
+      moeIdx++;
+    }
+    step();
+    moeInterval=setInterval(step,2600);
+  };
+})();
+</script>
 
-There's a deeper way to read what just happened. Shannon proved that optimal prediction and optimal compression are the same algorithm: a model that assigns probability p to the next token can compress text to -log2(p) bits per token. Better prediction = smaller file.
+<style>
+.moe-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.moe-top { text-align: center; margin-bottom: 10px; }
+.moe-token-box {
+  display: inline-block;
+  background: #1a2a3b;
+  border: 1px solid #2a4a6b;
+  color: #a8c7fa;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 5px;
+}
+.moe-router-lbl {
+  font-family: monospace;
+  font-size: 11px;
+  color: #3a6b4a;
+  margin: 5px 0 2px;
+}
+.moe-expert-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.moe-exp {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 700;
+  background: #111820;
+  border: 1px solid #1e2a38;
+  color: #2a3a4a;
+  transition: background 0.35s, border-color 0.35s, color 0.35s, box-shadow 0.35s;
+}
+.moe-active {
+  background: #1a3b2a !important;
+  border-color: #2a6b4a !important;
+  color: #a8fac4 !important;
+  box-shadow: 0 0 10px #1a4a2a80;
+}
+.moe-note {
+  color: #666;
+  font-size: 12px;
+  margin: 12px 0 0;
+  font-family: monospace;
+}
+</style>
 
-Marcus Hutter took this seriously. The [Hutter Prize](http://prize.hutter1.net/) offers €500,000 to whoever compresses 1GB of English Wikipedia below a target size. The prize isn't really about compression - it's a bet that compression = intelligence. To compress English text well, you need to model it: grammar, syntax, world facts, coreference, causal structure. A lookup table won't do it. You need a predictor that generalizes.
+What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation. That's all pretraining does. The surprising part is how far that gets you.
+
+### pretraining is compression
+
+Shannon proved that optimal prediction and optimal compression are the same algorithm: a model that assigns probability p to the next token can compress text to -log2(p) bits per token. Better prediction = smaller file.
+
+Marcus Hutter took this seriously. The [Hutter Prize](http://prize.hutter1.net/) offers €500,000 to whoever compresses 1GB of English Wikipedia below a target size. The prize bets that compression = intelligence. To compress English text well, you need to model it: grammar, syntax, world facts, coreference, causal structure. A lookup table won't do it. You need a predictor that generalizes.
 
 This is exactly what pretraining produces. Llama 3 70B achieves roughly 1.0-1.3 bits/character on natural English text. Shannon's 1951 estimate for the entropy of English was ~1 bit/character. Modern LLMs are approaching the theoretical limit of how well you can predict English.
 
-The weights don't store the internet. They store what predicts the internet. That's why the model knows "The Eiffel Tower is in Paris" without having memorized that specific string - it learned the statistical structure that makes "Paris" the right continuation. And it's why the model hallucinates: it's generating the most probable continuation, not retrieving stored facts. When training data is sparse on a topic, plausible-sounding text and true text are indistinguishable to the predictor.
+The weights don't store the internet. They store what predicts the internet. That's why the model knows "The Eiffel Tower is in Paris" without having memorized that specific string - it learned the statistical structure that makes "Paris" the right continuation. It's also why the model hallucinates: it's generating the most probable continuation, not retrieving stored facts. When training data is sparse on a topic, plausible-sounding text and true text are indistinguishable to the predictor.
 
 OpenAI's GPT-4 pretraining run reportedly cost over $100M. The alignment phase that turned it into ChatGPT cost a fraction of that - a few weeks of SFT and RLHF on a model that already knew everything.
 
@@ -349,13 +560,13 @@ How much data and how large a model to train? That's the Chinchilla question - c
 
 ---
 
-## Post-Training: Making It an Assistant
+## post-training: making it an assistant
 
-### SFT (Supervised Fine-Tuning)
+### SFT (supervised fine-tuning)
 
 Curate 10,000-100,000 examples of (prompt, ideal response). Continue training with the same loss function at a much smaller learning rate. The model learns to respond in a useful format.
 
-SFT is cheap because the knowledge is already in the weights - you're steering, not teaching. The base model knows what "the capital of France" is; SFT teaches it to respond in a useful format instead of just continuing the text.
+SFT is cheap. The knowledge is already in the weights; you're redirecting it. The base model knows what "the capital of France" is - SFT teaches it to answer instead of continuing the sentence.
 
 ChatGPT's SFT dataset is InstructGPT: ~14,500 manually curated (instruction, response) pairs written by contractors.
 
@@ -369,9 +580,9 @@ Problem: "ideal" is subjective. Different annotators write different ideal respo
 
 ![SFT data preparation](/assets/images/chatgpt/data_prep_sft.png){: loading="lazy"}
 
-### RLHF (Reinforcement Learning from Human Feedback)
+### RLHF (reinforcement learning from human feedback)
 
-Some answers are verifiable - code, math. Others aren't - writing, brainstorming. For unverifiable answers, you need a way to score them.
+Code and math have verifiable correct answers. Writing and brainstorming don't - you need a reward model to score them.
 
 Four steps:
 
@@ -396,8 +607,6 @@ Four steps:
 ![Scores](/assets/images/chatgpt/scores.png){: loading="lazy"}
 
 ![PPO training loop](/assets/images/chatgpt/ppo.png){: loading="lazy"}
-
-The knowledge is already in the weights from pretraining. Post-training shapes how the model applies it - RLHF steers, it doesn't teach.
 
 <div class="rlhf-loop">
   <p class="anim-label">RLHF training loop</p>
@@ -467,9 +676,25 @@ The knowledge is already in the weights from pretraining. Post-training shapes h
 
 ![Summary](/assets/images/chatgpt/summary.png){: loading="lazy"}
 
-### Thinking Models
+### DPO: a simpler alternative to PPO
 
-o1, DeepSeek-R1: same RLHF idea, but RL-trained to emit reasoning tokens before the final answer. The model produces a `<think>...</think>` block - working through the problem - before committing to a response.
+PPO requires maintaining four models simultaneously: the policy being trained, a frozen reference for the KL penalty, the reward model, and a value function. The optimization loop is fragile and sensitive to hyperparameters.
+
+DPO (Direct Preference Optimization) reframes alignment as supervised learning. Given a preferred response `y_w` and a rejected response `y_l` for the same prompt, the loss is:
+
+```text
+loss = -log σ(β · (log π(y_w|x)/π_ref(y_w|x) - log π(y_l|x)/π_ref(y_l|x)))
+```
+
+This increases the likelihood of preferred responses relative to the reference policy while decreasing the likelihood of rejected ones. No reward model. No RL loop. The reward is implicit in the policy itself.
+
+Same preference data as RLHF, half the implementation complexity. Llama 3, Mistral, Phi-3, and most open-weight models now use DPO variants (ORPO, SimPO) rather than PPO.
+
+The tradeoff: DPO is less stable on very large preference datasets and more sensitive to data quality. PPO still dominates for reasoning models where RL on verifiable rewards is the primary signal - that's where a proper reward function exists and RL can find solutions humans wouldn't label.
+
+### thinking models
+
+o1, DeepSeek-R1: RL-trained to emit reasoning tokens before the final answer. The model produces a `<think>...</think>` block - working through the problem step by step - before committing to a response.
 
 ```text
 User: "What is 237 x 194?"
@@ -487,43 +712,134 @@ Thinking model:
   -> "237 x 194 = 45,978"  (verified via reasoning)
 ```
 
-Thinking tokens burn real compute and context - often 500-5000 tokens of reasoning before a 50-token answer. For math and code, the accuracy improvement justifies the cost. For factual lookups, it's overhead with no benefit.
+**GRPO: How R1 was actually trained**
+
+DeepSeek-R1 uses GRPO (Group Relative Policy Optimization) rather than PPO. The key difference: PPO requires a separate critic network to estimate value baselines. GRPO eliminates it by sampling a group of G responses per prompt and using their relative rewards as the baseline:
+
+```python
+# PPO: baseline from a learned value function
+advantage = reward - V(state)
+
+# GRPO: baseline is the mean reward of the sampled group
+rewards = [r1, r2, r3, r4]   # G=4 responses sampled per prompt
+baseline = mean(rewards)
+advantages = [r - baseline for r in rewards]
+```
+
+For math and code where rewards are binary (correct/incorrect), GRPO is more stable - no value function to train, no actor-critic mismatch. R1's training worked because "does this answer match the ground truth" is a clean reward signal. The structured chain-of-thought emerged from RL on math problems. The model discovered that working through intermediate steps improved its reward on verifiable answers.
+
+**When thinking tokens are worth the cost:**
+
+| Task | Use thinking | Reason |
+|------|-------------|--------|
+| Multi-step math | Yes | Each step is verifiable, RL can optimize |
+| Complex code | Yes | Logic chains benefit from working through |
+| Factual lookup | No | Answer is in weights, no reasoning path needed |
+| Creative writing | No | Chain-of-thought doesn't help creativity |
+| Simple Q&A | No | 10-100x compute overhead, no accuracy gain |
+
+Thinking models are expensive: 500-5000 reasoning tokens before a 50-token answer. For tasks where correctness is verifiable and errors are costly, that overhead is justified. For everything else, the standard model is better value.
 
 ---
 
-## Decoding: How Text Gets Generated
+## decoding: how text gets generated
 
 The model outputs logits - a vector of ~50,000 floats, one per vocabulary token. You need a strategy to pick a token.
+
+<div class="autogen-viz">
+  <p class="anim-label">Autoregressive decode: one forward pass per token</p>
+  <div class="ag-seq">
+    <span class="ag-tok ag-p">The</span><span class="ag-tok ag-p"> capital</span><span class="ag-tok ag-p"> of</span><span class="ag-tok ag-p"> France</span><span class="ag-tok ag-p"> is</span><span id="ag-gen-container"></span><span class="ag-cursor" id="ag-cur">&#9611;</span>
+  </div>
+  <p class="ag-note" id="ag-note-txt">Prompt processed in prefill. Sampling from 50,000-token distribution...</p>
+</div>
+
+<script>
+window._anims = window._anims || {};
+(function(){
+  var timers = [];
+  window._anims.autogen = function(){
+    timers.forEach(clearTimeout); timers = [];
+    var container = document.getElementById("ag-gen-container");
+    var noteEl = document.getElementById("ag-note-txt");
+    var cursor = document.getElementById("ag-cur");
+    if(!container) return;
+    container.innerHTML = '';
+    if(cursor) cursor.style.display = 'inline';
+    if(noteEl) noteEl.textContent = 'Prompt processed in prefill. Sampling from 50,000-token distribution...';
+    var tokens=[" Paris","."," It"," is"," known"," as"," the"," City"," of"," Light","."];
+    var notes=["' Paris' sampled (p\u224887%). KV cache extended by 1 token.","'.' sampled. Context now 7 tokens.","Sampling continues. Each step reads the full growing KV cache.","","","","","","","","EOS token generated. Decode stops."];
+    tokens.forEach(function(tok,i){
+      timers.push(setTimeout(function(){
+        var span=document.createElement("span");
+        span.className="ag-tok ag-g";
+        span.textContent=tok;
+        container.appendChild(span);
+        if(notes[i]) noteEl.textContent=notes[i];
+        if(i===tokens.length-1) cursor.style.display="none";
+      },700*(i+1)));
+    });
+  };
+})();
+</script>
+
+<style>
+.autogen-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: monospace;
+}
+.ag-seq {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin: 12px 0 8px;
+  font-size: 15px;
+  line-height: 2;
+}
+.ag-tok { border-radius: 3px; }
+.ag-p { background: #1a2a3b; color: #a8c7fa; padding: 2px 5px; margin-right: 1px; }
+.ag-g {
+  background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a;
+  padding: 2px 6px; margin-left: 1px;
+  opacity: 0; animation: fadeUp 0.3s forwards;
+}
+.ag-cursor { color: #a8c7fa; animation: blink 0.9s infinite; margin-left: 2px; }
+.ag-note { color: #666; font-size: 12px; margin: 10px 0 0; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
 
 ![Output probabilities](/assets/images/chatgpt/op.png){: loading="lazy"}
 
 ![Choosing from probabilities](/assets/images/chatgpt/choosingprob.png){: loading="lazy"}
 
-### Greedy Search
+### greedy search
 
 Always pick the highest-probability token. Deterministic. Fast. Gets stuck in repetitive loops.
 
 ![Greedy search](/assets/images/chatgpt/greedy.png){: loading="lazy"}
 
-### Beam Search
+### beam search
 
 Keep the top-k most likely sequences at each step (beam width k=3-5). More creative than greedy. More expensive. Used in translation and summarization where you want a few good candidates rather than pure randomness.
 
 ![Beam search](/assets/images/chatgpt/beam.png){: loading="lazy"}
 
-### Multinomial Sampling
+### multinomial sampling
 
 Sample according to probabilities. Introduces randomness - you might pick low-probability tokens. Can produce incoherent text if not constrained.
 
 ![Multinomial sampling](/assets/images/chatgpt/multinomial.png){: loading="lazy"}
 
-### Top-K Sampling
+### top-K sampling
 
 Pick the top K tokens by probability. Sample from those K. Fixed candidate set size is a problem: sometimes the model is very confident (K=1 is ideal), sometimes uncertain (K=50 makes sense). A fixed K fits neither case.
 
 ![Top-K sampling](/assets/images/chatgpt/topk.png){: loading="lazy"}
 
-### Top-P (Nucleus) Sampling
+### top-P (nucleus) sampling
 
 Pick the smallest set of tokens whose cumulative probability exceeds p (typically 0.9). Candidate set size adapts to the model's confidence.
 
@@ -549,7 +865,7 @@ def top_p_sample(logits, p=0.9, temperature=1.0):
     return int(sorted_idx[chosen_rank])
 ```
 
-### Temperature
+### temperature
 
 Scales logits before softmax. Temperature < 1.0 sharpens the distribution (model becomes more confident). Temperature > 1.0 flattens it (more random). Temperature approaching 0 approaches greedy.
 
@@ -672,7 +988,7 @@ Decoding strategy comparison:
 
 ---
 
-## What Happens When You Press Enter
+## what happens when you press enter
 
 One request, start to finish.
 
@@ -760,7 +1076,7 @@ One request, start to finish.
 | 8 | Safety | Output moderation | ~8ms |
 | 9 | Post-processing | Detokenize, log, bill | ~2ms |
 
-### 1. Client
+### 1. client
 
 When you press Enter, the browser sends:
 
@@ -777,13 +1093,13 @@ When you press Enter, the browser sends:
 }
 ```
 
-`stream: true` opens a Server-Sent Events connection. Tokens stream back as they're generated. Why SSE over WebSockets? SSE is one-directional (server to client), which is all you need. WebSockets are bidirectional and add unnecessary complexity. SSE works natively over HTTP/2 and browsers reconnect automatically.
+`stream: true` opens a Server-Sent Events connection. Tokens stream back as they're generated. SSE is one-directional (server to client), which is all you need. WebSockets are bidirectional and add unnecessary complexity. SSE works natively over HTTP/2 and browsers reconnect automatically.
 
-### 2. CDN / Edge
+### 2. CDN / edge
 
 Cloudflare or Fastly handles TLS termination and DDoS protection at the edge. Geographic routing sends the request to the nearest datacenter. Saves 50-200ms for users far from origin servers.
 
-### 3. API Gateway
+### 3. API gateway
 
 The front door. Three jobs:
 
@@ -803,7 +1119,7 @@ Token Bucket:
 
 **Routing**: based on model name, route to the appropriate GPU cluster. GPT-4o goes to H100s. GPT-3.5-turbo goes to cheaper A10Gs.
 
-### 4. Backend Service
+### 4. backend service
 
 Assembles the full context:
 
@@ -821,11 +1137,11 @@ Full Context (up to 128K tokens for GPT-4o)
 
 If conversation history is too long, oldest messages get truncated. The backend tokenizes the full context with tiktoken, checks it against the context window limit, and estimates billing.
 
-### 5. Safety Layer (Input)
+### 5. safety layer (input)
 
 Before the expensive model sees anything, a fast lightweight classifier checks the prompt for hate speech, self-harm, illegal content, and jailbreak attempts. Runs in milliseconds. If flagged, the request is rejected here - no GPU time wasted on the big model.
 
-### 6. Inference Cluster
+### 6. inference cluster
 
 Two distinct phases for every request:
 
@@ -843,7 +1159,7 @@ Model Parallelism:
   Node 2: [GPU4] [GPU5] [GPU6] [GPU7]  <- Layers 49-96
 ```
 
-### 7. Streaming Back
+### 7. streaming back
 
 Each token streams back via SSE as it's generated:
 
@@ -854,9 +1170,9 @@ data: {"choices":[{"delta":{"content":" architecture"}}]}
 data: [DONE]
 ```
 
-For a 500-token response at 50 tokens/sec: 10 seconds total. Without streaming you stare at a blank screen for 10 seconds. With streaming you start reading after ~20ms (first token). That's why ChatGPT feels fast even when generating long answers.
+For a 500-token response at 50 tokens/sec: 10 seconds total. Without streaming you stare at a blank screen for 10 seconds. With streaming you start reading after ~20ms (first token).
 
-### 8. Post-Processing
+### 8. post-processing
 
 After generation: detokenize (token IDs back to text), strip control tokens, normalize whitespace, count tokens for billing.
 
@@ -871,9 +1187,9 @@ After generation: detokenize (token IDs back to text), strip control tokens, nor
 }
 ```
 
-The backend intercepts this, runs the tool, injects the result back into context, and the model generates its final answer. This is the foundation of AI agents - models that can take actions, not just produce text. For how retrieval fits into this (RAG, vector search, chunking), see [rag](/tech/2026/01/27/rag.html).
+The backend intercepts this, runs the tool, injects the result back into context, and the model generates its final answer. That's what makes an AI agent: it takes actions in a loop, not just text in response to text. For how retrieval fits into this (RAG, vector search, chunking), see [rag](/tech/2026/01/27/rag.html).
 
-### Output Safety Layer
+### output safety layer
 
 Output moderation runs in parallel with streaming, not after it. While the model is generating tokens 10-20, the safety classifier is checking tokens 1-9. If a violation appears mid-stream, the partially-delivered response gets cut and the client receives an error chunk. That parallel design is why output moderation adds only ~8ms of overhead to TTFT rather than to total response time.
 
@@ -884,7 +1200,7 @@ The `finish_reason` field in every API response tells you what stopped generatio
 
 If you're building on the API and users report truncated responses, `finish_reason` is the first thing to check.
 
-### Logging and Observability
+### logging and observability
 
 Every request emits structured metrics at each layer:
 
@@ -905,7 +1221,7 @@ safety_flagged:   false
 
 **TTFT (Time to First Token)** and **TPS (Tokens Per Second)** are the two numbers anyone running inference cares about. TTFT measures how quickly you start responding - dominated by prefill and queue wait. TPS measures throughput during decode - dominated by model size, quantization, and GPU memory bandwidth. Optimizing one doesn't automatically improve the other: disaggregated serving exists because prefill and decode respond to different hardware improvements.
 
-### Full Latency Breakdown
+### full latency breakdown
 
 For a typical GPT-4o request ("Explain the transformer architecture", ~400 token response):
 
@@ -924,9 +1240,9 @@ TTFT (Time to First Token):     ~127ms
 Total wall-clock:               ~4150ms
 ```
 
-The bottleneck is decode. Making it faster (quantization, speculative decoding, better hardware) is the primary focus of inference optimization.
+The bottleneck is decode. Quantization, speculative decoding, and better hardware all target decode throughput.
 
-### Cost vs Latency Tradeoffs
+### cost vs latency tradeoffs
 
 Every production decision is a trade between these three:
 
@@ -944,9 +1260,9 @@ Output tokens cost 2-3x more than input tokens at most providers - the model gen
 
 ---
 
-## Inference Optimizations
+## inference optimizations
 
-### KV Cache
+### KV cache
 
 Without caching: at decode step n, recompute K/V for all n previous tokens every step. O(n^2) work.
 
@@ -1039,7 +1355,7 @@ The cache lives in GPU VRAM. Long conversations consume more VRAM because the ca
 
 **PagedAttention (vLLM)**: manages the KV cache like OS virtual memory. Instead of allocating a large contiguous block per sequence (which wastes memory when sequences vary in length), vLLM stores KV in fixed-size pages and maps them with a page table. Allows 2-4x higher batch sizes for the same GPU memory.
 
-### Continuous Batching
+### continuous batching
 
 Naive static batching: fill a batch, wait for all requests to finish, start the next batch. One long request holds everyone else.
 
@@ -1061,7 +1377,74 @@ Continuous batching (vLLM):
 
 Without continuous batching: GPU utilization 20-30%. With it: 80-90%.
 
-### Quantization
+<div class="cbatch-viz">
+  <p class="anim-label">Static vs continuous batching: GPU slot utilization over time &rarr;</p>
+
+  <p class="cbt-heading">Static batching &mdash; entire batch waits for slowest request</p>
+  <div class="cbt-grid">
+    <div class="cbt-row"><span class="cbt-lbl">Slot 1</span><div class="cbt-track"><div class="cbt-blk cbt-a" style="flex:1.0">A</div><div class="cbt-idle" style="flex:0.8">idle</div><div class="cbt-blk cbt-d" style="flex:1.0">D</div></div></div>
+    <div class="cbt-row"><span class="cbt-lbl">Slot 2</span><div class="cbt-track"><div class="cbt-blk cbt-b" style="flex:1.5">B (long)</div><div class="cbt-idle" style="flex:0.3">idle</div><div class="cbt-blk cbt-e" style="flex:1.0">E</div></div></div>
+    <div class="cbt-row"><span class="cbt-lbl">Slot 3</span><div class="cbt-track"><div class="cbt-blk cbt-c" style="flex:0.5">C</div><div class="cbt-idle cbt-waste" style="flex:1.5">wasted &uarr; waiting for B</div></div></div>
+  </div>
+
+  <p class="cbt-heading" style="margin-top:16px">Continuous batching &mdash; new request fills slot the moment one finishes</p>
+  <div class="cbt-grid">
+    <div class="cbt-row"><span class="cbt-lbl">Slot 1</span><div class="cbt-track"><div class="cbt-blk cbt-a cba1" style="flex:1.0">A</div><div class="cbt-blk cbt-d cba2" style="flex:1.0">D</div><div class="cbt-blk cbt-g cba3" style="flex:0.8">G</div></div></div>
+    <div class="cbt-row"><span class="cbt-lbl">Slot 2</span><div class="cbt-track"><div class="cbt-blk cbt-b cba1" style="flex:1.5">B</div><div class="cbt-blk cbt-e cba2" style="flex:1.0">E</div><div class="cbt-blk cbt-h cba3" style="flex:0.7">H</div></div></div>
+    <div class="cbt-row"><span class="cbt-lbl">Slot 3</span><div class="cbt-track"><div class="cbt-blk cbt-c cba1" style="flex:0.5">C</div><div class="cbt-blk cbt-f cba2" style="flex:1.2">F</div><div class="cbt-blk cbt-i cba3" style="flex:1.0">I</div></div></div>
+  </div>
+  <p class="cbt-note">No gaps. GPU always working. This is what vLLM implements.</p>
+</div>
+
+<style>
+.cbatch-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.cbt-heading {
+  font-family: monospace;
+  font-size: 12px;
+  color: #888;
+  margin: 0 0 8px 0;
+}
+.cbt-grid { display: flex; flex-direction: column; gap: 4px; }
+.cbt-row { display: flex; align-items: center; gap: 8px; }
+.cbt-lbl { font-family: monospace; font-size: 11px; color: #555; width: 44px; flex-shrink: 0; }
+.cbt-track { display: flex; flex: 1; gap: 2px; height: 32px; }
+.cbt-blk {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 700;
+  flex: 1;
+}
+.cbt-idle {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; font-family: monospace; font-size: 10px; font-weight: 400;
+  flex: 1;
+  background: #0d0d0d; border: 1px dashed #222; color: #333;
+}
+.cbt-waste { color: #5a2a2a; border-color: #3a1515; background: #130a0a; }
+.cbt-a { background: #1a2a3b; border: 1px solid #2a4a6b; color: #a8c7fa; }
+.cbt-b { background: #1a3b2a; border: 1px solid #2a6b4a; color: #a8fac4; }
+.cbt-c { background: #3b2a1a; border: 1px solid #6b4a2a; color: #fac4a8; }
+.cbt-d { background: #2a1a3b; border: 1px solid #4a2a6b; color: #c4a8fa; }
+.cbt-e { background: #3b3b1a; border: 1px solid #6b6b2a; color: #fafaa8; }
+.cbt-f { background: #3b1a2a; border: 1px solid #6b2a4a; color: #faa8c4; }
+.cbt-g { background: #1a3b3b; border: 1px solid #2a6b6b; color: #a8fafa; }
+.cbt-h { background: #2a3b1a; border: 1px solid #4a6b2a; color: #c4faa8; }
+.cbt-i { background: #3b1a3b; border: 1px solid #6b2a6b; color: #faa8fa; }
+.cbt-a, .cbt-b, .cbt-c, .cbt-d, .cbt-e, .cbt-f, .cbt-g, .cbt-h, .cbt-i { }
+.cba1 { opacity: 0; animation: fadeUp 0.4s 0.1s forwards; }
+.cba2 { opacity: 0; animation: fadeUp 0.4s 0.7s forwards; }
+.cba3 { opacity: 0; animation: fadeUp 0.4s 1.3s forwards; }
+.cbt-note {
+  color: #666; font-size: 12px; margin: 10px 0 0;
+  opacity: 0; animation: fadeUp 0.3s 1.8s forwards;
+}
+</style>
+
+### quantization
 
 Default weights are float32 (4 bytes/param). Reducing precision cuts memory and speeds up inference:
 
@@ -1100,7 +1483,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
-### Speculative Decoding
+### speculative decoding
 
 Each decode step requires one full forward pass through the large model. At 100 tokens/sec for a 4000ms response, the large model is the bottleneck.
 
@@ -1195,11 +1578,118 @@ If a draft token is wrong, the rest get discarded and the large model takes over
 }
 </style>
 
-### Flash Attention
+### flash attention
 
 Standard attention builds the full `seq x seq` attention matrix in slow HBM (GPU main memory). For a 4096-token sequence with 128-dim heads: 4096 x 4096 = 128MB per head per layer, written and re-read multiple times.
 
 Flash Attention tiles the computation. Breaks Q, K, V into blocks, computes attention in tiles that fit in fast SRAM, keeps a running softmax and weighted sum, never writes the full matrix to HBM. Same mathematical output, far less memory traffic.
+
+<div class="flash-viz">
+  <p class="anim-label">Standard attention vs Flash Attention: where the matrix lives</p>
+  <div class="flash-compare">
+    <div class="flash-side">
+      <p class="flash-side-lbl">Standard attention</p>
+      <div class="flash-grid" id="flash-std-grid"></div>
+      <p class="flash-mem-lbl hmem-lbl">HBM (slow DRAM) &mdash; O(N&sup2;) memory</p>
+    </div>
+    <div class="flash-side">
+      <p class="flash-side-lbl">Flash Attention</p>
+      <div class="flash-grid" id="flash-fa-grid"></div>
+      <p class="flash-mem-lbl smem-lbl">SRAM (on-chip, fast) &mdash; O(N) memory</p>
+    </div>
+  </div>
+  <p class="flash-note">Left: full NxN matrix written to slow HBM every layer. Right: 2x2 tiles computed one at a time in fast SRAM, result accumulated, matrix never materialized.</p>
+</div>
+
+<script>
+window._anims = window._anims || {};
+(function(){
+  var flashTimers=[];
+  window._anims.flash = function(){
+    flashTimers.forEach(clearTimeout); flashTimers=[];
+    var N=4;
+    var stdG=document.getElementById("flash-std-grid");
+    var faG=document.getElementById("flash-fa-grid");
+    if(!stdG||!faG) return;
+    stdG.innerHTML=''; faG.innerHTML='';
+    var stdCells=[], faCells=[];
+    for(var r=0;r<N;r++){
+      for(var c=0;c<N;c++){
+        var s=document.createElement("div"); s.className="fcell"; stdG.appendChild(s); stdCells.push(s);
+        var f=document.createElement("div"); f.className="fcell"; faG.appendChild(f); faCells.push(f);
+      }
+    }
+    flashTimers.push(setTimeout(function(){
+      stdCells.forEach(function(c){ c.className="fcell fcell-hbm"; });
+    },400));
+    var tileSize=2, t=0, tileDelay=500;
+    for(var tr=0;tr<N;tr+=tileSize){
+      for(var tc=0;tc<N;tc+=tileSize){
+        (function(row,col,d){
+          flashTimers.push(setTimeout(function(){
+            var idxs=[];
+            for(var dr=0;dr<tileSize;dr++) for(var dc=0;dc<tileSize;dc++) idxs.push((row+dr)*N+(col+dc));
+            idxs.forEach(function(i){ faCells[i].className="fcell fcell-sram"; });
+            setTimeout(function(){ idxs.forEach(function(i){ faCells[i].className="fcell fcell-done"; }); },350);
+          },d));
+        })(tr,tc,t*tileDelay+700);
+        t++;
+      }
+    }
+  };
+})();
+</script>
+
+<style>
+.flash-viz {
+  background: #0f1923;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.flash-compare {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  margin: 14px 0 8px;
+}
+.flash-side { flex: 1; max-width: 180px; }
+.flash-side-lbl {
+  font-family: monospace;
+  font-size: 12px;
+  color: #888;
+  margin: 0 0 8px;
+  text-align: center;
+}
+.flash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+.fcell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: #111820;
+  border: 1px solid #1a2230;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.fcell-hbm { background: #3b1a1a; border-color: #6b2a2a; }
+.fcell-sram { background: #1a3b2a; border-color: #2a6b4a; box-shadow: 0 0 5px #2a6b4a80; }
+.fcell-done { background: #1a2a1a; border-color: #2a3b2a; }
+.flash-mem-lbl {
+  font-family: monospace;
+  font-size: 11px;
+  margin: 8px 0 0;
+  text-align: center;
+}
+.hmem-lbl { color: #8a4a4a; }
+.smem-lbl { color: #4a8a4a; }
+.flash-note {
+  color: #666;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+</style>
 
 Benefits: O(seq) memory instead of O(seq^2), better GPU memory bandwidth utilization. For 4k-16k token sequences, Flash Attention 2 runs 2-4x faster than standard attention. Flash Attention 3 pushes further on H100s with async pipeline execution across warp groups.
 
@@ -1222,9 +1712,9 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ---
 
-## Engineering Tricks at Scale
+## engineering tricks at scale
 
-### Prompt Caching
+### prompt caching
 
 The system prompt ("You are a helpful assistant...") is identical for every request in a deployment. Computing its KV cache from scratch every time wastes compute.
 
@@ -1241,9 +1731,9 @@ With prompt caching:
   Request 2: load cached + compute [user(80 tokens)]  -> 80 tokens prefill
 ```
 
-OpenAI charges 50% less for cached input tokens. Anthropic caches for 5 minutes. Saves both cost and latency since prefill is compute-bound.
+OpenAI charges 50% less for cached input tokens. Anthropic caches for 5 minutes. Saves both cost and latency since prefill is compute-bound. Free money if your system prompt is long.
 
-### Model Routing
+### model routing
 
 Not every question needs GPT-4. "What's 2+2?" doesn't need the same compute as "Write a distributed cache in Rust."
 
@@ -1259,7 +1749,7 @@ Query                   -> Model             -> Cost
 
 Companies report 40-60% cost reduction from routing alone.
 
-### Semantic Caching
+### semantic caching
 
 If 1000 users ask "What is the capital of France?" within an hour, there's no reason to run inference 1000 times.
 
@@ -1273,9 +1763,9 @@ User: "What's the capital of France?"
   -> return cached response (0ms inference)
 ```
 
-Dangerous for creative or personalized queries - you don't want everyone getting the same poem.
+Breaks for creative or personalized queries: two users asking for a poem should get different answers, not a cache hit.
 
-### Prefix Sharing (RadixAttention)
+### prefix sharing (RadixAttention)
 
 In multi-turn conversation, every new message re-sends the entire conversation history. The KV cache for previous turns was already computed.
 
@@ -1289,7 +1779,7 @@ Turn 3: [system + user_1 + ... + assistant_2 + user_3]   -> more reuse
 
 In long multi-turn conversations, this skips 80-90% of prefill computation.
 
-### Disaggregated Serving
+### disaggregated serving
 
 Prefill and decode have different hardware requirements:
 - Prefill is compute-bound (lots of matrix math, GPU cores matter)
@@ -1309,13 +1799,13 @@ Decode Pool (bandwidth-optimized):
 
 Neither pool gets bottlenecked by the other's workload. Each scales independently.
 
-### Chunked Prefill
+### chunked prefill
 
 For very long inputs (32k+ tokens), prefill can take seconds and blocks the entire GPU.
 
 Break the input into chunks (e.g., 2048 tokens each) and interleave prefill chunks with decode steps from other requests. Prevents long prompts from creating latency spikes for everyone else in the batch.
 
-### Graceful Degradation Under Load
+### graceful degradation under load
 
 When traffic spikes (viral tweet about ChatGPT), the system can't crash:
 
@@ -1330,7 +1820,7 @@ Critical      "We're experiencing high demand"
 
 Priority queuing: paying API customers get priority over free-tier ChatGPT users.
 
-### Quick Reference
+### quick reference
 
 | Problem | Trick | Savings |
 |---------|-------|---------|
@@ -1345,51 +1835,169 @@ Priority queuing: paying API customers get priority over free-tier ChatGPT users
 
 ---
 
-## Evaluation
+## evaluation
 
-Evaluating LLMs is harder than it looks.
+Perplexity (cross-entropy loss on held-out text) tracks how well a model predicts unseen text. Useful for comparing checkpoints during training. Useless for predicting whether the model gives good answers.
 
-**Perplexity**: average cross-entropy loss on held-out text. Lower = model assigns higher probability to actual text. Useful for comparing model versions during training.
+The standard benchmarks - MMLU (57-subject multiple choice), HumanEval (164 Python problems run against test cases), GSM8K (math word problems) - share the same failure mode: once a benchmark matters, labs optimize for it. Training data accumulates benchmark-adjacent content. Checkpoints get selected by score. GPT-4 hit 86.4% on MMLU at launch; models trained on GPT-4's public outputs score higher. The number goes up without the capability following.
 
-**Task benchmarks**:
-- MMLU (Massive Multitask Language Understanding): 57 subjects from elementary math to law
-- HumanEval: code generation, run the code to check correctness
-- GSM8K: grade-school math word problems with verifiable answers
+Chatbot Arena avoids this by having real users compare two anonymous models on their actual tasks. No fixed test set. ELO from millions of blind comparisons. When Arena rankings disagree with benchmark rankings, Arena is usually right.
 
-**Human evaluation**: annotators rate model outputs for helpfulness, safety, and quality. Expensive but captures what benchmarks miss (tone, style, whether the answer is actually useful).
-
-**LMArena (Chatbot Arena)**: users see two anonymous responses and pick which they prefer. ELO ranking from millions of pairwise comparisons. The least gameable evaluation that exists.
-
-Benchmarks are easy to overfit. A model that scores 90% on MMLU might still give terrible answers in production. Human evals and arena rankings catch things benchmarks don't.
+Human evaluation (annotators rating outputs on helpfulness rubrics) is what RLHF trains on. It's also slow, expensive, and systematically biased: annotators prefer longer and more confident answers, so models learn to sound helpful. For open-ended questions there's no ground truth, and that bias compounds across training.
 
 ---
 
-## The Full Picture
+## the full picture
 
 From a URL in a web crawl to a token in your browser: crawl the web, clean it, tokenize it, train a transformer to predict next tokens, fine-tune it to follow instructions, serve it through a layered production system, and stream each token back as it's generated.
 
-Pretraining is where the money is - $50-100M+ and months on thousands of GPUs. SFT and RLHF run for a few weeks and cost a few million at most. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
+Pretraining costs $50-100M+ and runs for months on thousands of GPUs. SFT and RLHF run for a few weeks and cost a few million at most. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
 
-Next-token prediction on 13 trillion tokens is a simple objective. The weights that result encode facts, reasoning patterns, and enough of a world model to pass the bar exam. The model has no mechanism to distinguish plausible continuations from true ones - hallucination isn't a bug, it's the natural behavior of a predictor that ran out of signal.
+Next-token prediction on 13 trillion tokens is a simple objective. The weights that result encode facts, reasoning patterns, and enough of a world model to pass the bar exam. The model generates the most probable continuation regardless of truth. When training data is sparse on a topic, plausible text and true text look identical to the predictor - so it confabulates.
 
 ---
 
-## Further Reading
+## further reading
 
 **Papers**: [InstructGPT](https://arxiv.org/abs/2203.02155) (RLHF in practice), [LLaMA 3](https://arxiv.org/abs/2407.21783) (training at scale), [vLLM/PagedAttention](https://arxiv.org/abs/2309.06180) (inference at scale), [FlashAttention-2](https://arxiv.org/abs/2307.08691) (memory-efficient attention)
+
+**Articles**: [Quantization explained](https://ngrok.com/blog/quantization) (ngrok - INT4/INT8 quantization in practice)
 
 **Hands-on**: [Karpathy - Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxruWIwMSOWxAywIRyoiOWHaXY), [makemore](https://github.com/karpathy/makemore), [Hugging Face NLP course](https://huggingface.co/learn/nlp-course)
 
 ---
 
-## 30-Second Interview Cheat Sheet
+## summary
 
-- **Pretraining**: predict next token on huge text, no labels, model learns language and knowledge
-- **Post-training**: SFT = (instruction, response) pairs; RLHF = human rankings + reward model + PPO. Shapes behavior, doesn't add knowledge.
-- **Attention**: Q,K,V per token. Score = Q·K^T/sqrt(d), softmax, weighted sum of V. Learned retrieval.
-- **KV cache**: prefill fills the cache once. Decode reuses K,V for previous tokens, only computes for new token. O(n^2) to O(n). GQA shrinks the cache by sharing K,V across head groups.
-- **Quantization**: store weights in INT8/INT4. PTQ = round after training; GPTQ/AWQ = calibrate. QLoRA = 4-bit base + LoRA for fine-tuning.
-- **Flash Attention**: tiled attention that avoids materializing the full seq x seq matrix in slow memory. O(seq) memory.
-- **Speculative decoding**: small draft model generates candidates, large model verifies all in one pass. 2-3x faster.
-- **Decoding**: greedy = argmax. Beam = keep top-k paths. Top-p = sample from smallest set that covers p probability mass. Temperature = scale logits before softmax.
-- **Why stream**: same total time, but user sees first token in ~100-200ms instead of waiting for full response.
+Pretraining predicts the next token on trillions of tokens of internet text. The supervision signal is the text itself. The weights that emerge encode language, facts, and reasoning patterns, because those are what make text predictable. Models hallucinate for the same reason: they generate the most plausible continuation, and plausible is not the same as true.
+
+Post-training shapes how the model uses what it learned. SFT teaches response format using (instruction, response) pairs. RLHF uses a reward model trained on human preference rankings to steer behavior via PPO. DPO does the same thing without the reward model or RL loop - directly maximizing the likelihood of preferred responses relative to rejected ones.
+
+Attention computes dot products between query and key vectors, applies softmax to get weights, then takes a weighted sum of value vectors. Every token attends to every previous token. Multi-head attention runs this in parallel with different projections, letting different heads specialize on syntax, coreference, and other relationship types.
+
+The KV cache saves the key and value vectors for all previous tokens so decode doesn't recompute them each step. Without it, decode is O(n^2) in sequence length. With it, O(n) per step. GQA groups heads to share K/V matrices, shrinking the cache by 4-8x with minimal quality loss.
+
+Quantization stores weights in INT8 or INT4 instead of FP32. A 7B model in INT4 fits in 3.5GB instead of 14GB. PTQ rounds after training; GPTQ/AWQ calibrate per-layer to minimize output error. QLoRA fine-tunes quantized models by training low-rank adapters in higher precision while keeping the base frozen.
+
+Flash Attention tiles the Q/K/V computation to stay in fast on-chip SRAM rather than writing the full NxN attention matrix to slow HBM. Mathematically identical output. O(N) memory instead of O(N^2). 2-4x faster for sequences above 4k tokens.
+
+Speculative decoding runs a small draft model to generate candidate tokens, then verifies all of them with the large model in a single forward pass via rejection sampling. 2-3x speedup with no quality change, because text is predictable enough that the small model gets most tokens right.
+
+TTFT (Time to First Token) and TPS (Tokens Per Second) are the two metrics that determine perceived quality. Prefill time and queue wait drive TTFT. Model size and GPU memory bandwidth drive TPS. Streaming hides most of the total latency by delivering the first token in ~100-200ms while generation continues in the background.
+
+<style>
+.anim-replay-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #111820;
+  border: 1px solid #2a4a6b;
+  color: #6a9acb;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+  line-height: 1.5;
+  z-index: 10;
+}
+.anim-replay-btn:hover { opacity: 1; color: #a8c7fa; border-color: #4a7acb; }
+.token-animation, .attn-viz, .rlhf-loop, .topp-viz, .pipeline-viz, .spec-viz,
+.cbatch-viz, .autogen-viz, .ctx-win-viz, .moe-viz, .flash-viz, .kv-viz {
+  position: relative;
+}
+.token { transition: transform 0.15s; }
+.token:hover { transform: scale(1.1); cursor: default; }
+</style>
+
+<script>
+(function(){
+  window._anims = window._anims || {};
+
+  window._anims.kvcache = function(){
+    var c=document.getElementById("dtokens");
+    var n=document.getElementById("kvnote");
+    if(!c) return;
+    c.innerHTML='';
+    if(n){ n.textContent=''; n.style.opacity='0'; }
+    ["The"," capital"," of"," France"," is"," Paris","."].forEach(function(t,i){
+      setTimeout(function(){
+        var el=document.createElement("span");
+        el.className="kv-token"; el.textContent=t; el.style.animationDelay="0s";
+        c.appendChild(el);
+        if(i===6) setTimeout(function(){ if(n){ n.textContent="Cache grows with each new token. Longer context = more VRAM."; n.style.opacity="1"; } },400);
+      },800*(i+1));
+    });
+  };
+
+  function resetCSS(container){
+    var items=[];
+    container.querySelectorAll('*').forEach(function(el){
+      var a=window.getComputedStyle(el).animationName;
+      if(a && a!=='none'){ items.push(el); el.style.animation='none'; }
+    });
+    void container.offsetWidth;
+    items.forEach(function(el){ el.style.animation=''; });
+  }
+
+  var fnMap={
+    'autogen-viz': function(){ if(window._anims.autogen) window._anims.autogen(); },
+    'ctx-win-viz': function(){ if(window._anims.ctxwin)  window._anims.ctxwin();  },
+    'moe-viz':     function(){ if(window._anims.moe)     window._anims.moe();     },
+    'flash-viz':   function(){ if(window._anims.flash)   window._anims.flash();   },
+    'kv-viz':      function(){ if(window._anims.kvcache) window._anims.kvcache(); },
+  };
+
+  function getReplayFn(el){
+    for(var k in fnMap){ if(el.classList.contains(k)) return fnMap[k]; }
+    return null;
+  }
+
+  function addReplayBtn(container, fn){
+    if(container.querySelector('.anim-replay-btn')) return;
+    var btn=document.createElement('button');
+    btn.className='anim-replay-btn';
+    btn.textContent='↺ replay';
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      if(typeof fn==='function') fn();
+      else resetCSS(container);
+    });
+    container.appendChild(btn);
+  }
+
+  function init(){
+    var sel='.token-animation,.attn-viz,.rlhf-loop,.topp-viz,.pipeline-viz,.spec-viz,.cbatch-viz,.autogen-viz,.ctx-win-viz,.moe-viz,.flash-viz,.kv-viz';
+    var containers=document.querySelectorAll(sel);
+
+    if('IntersectionObserver' in window){
+      var triggered=new Set();
+      var obs=new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          var c=entry.target;
+          if(entry.isIntersecting && !triggered.has(c)){
+            triggered.add(c);
+            var fn=getReplayFn(c);
+            if(fn) fn(); else resetCSS(c);
+          }
+        });
+      },{threshold:0.25,rootMargin:'0px 0px -40px 0px'});
+      containers.forEach(function(c){ obs.observe(c); });
+    } else {
+      containers.forEach(function(c){ var fn=getReplayFn(c); if(fn) fn(); });
+    }
+
+    containers.forEach(function(c){
+      addReplayBtn(c, getReplayFn(c) || function(){ resetCSS(c); });
+    });
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',init);
+  } else {
+    init();
+  }
+})();
+</script>

@@ -10,7 +10,7 @@ description: "The residual connection solved deep learning in 2015. Ten years la
 
 Quick context about resnets: neural networks learn by [backpropagating](/tech/2025/10/25/nn.html) gradients through layers. The deeper the network, the more times those gradients get multiplied by small numbers (sigmoid derivatives, weight matrices). After enough layers, [gradients shrink to zero](/tech/2026/01/21/math.html) - early layers stop learning entirely. This is the vanishing gradient problem, and it's why stacking more layers didn't work for a long time.
 
-ResNet fixed this in 2015. Then everyone moved on. This post is about what happens when you actually look at the fix ten years later.
+ResNet fixed this in 2015. Then everyone moved on. Ten years later, Moonshot AI looked at the fix.
 
 ---
 
@@ -31,27 +31,27 @@ In 2015, He et al. trained plain (no skip connections) convolutional networks of
 | Plain-44 | 11.22% |
 | Plain-56 | 13.58% |
 
-More layers, *worse* accuracy. And this isn't overfitting - the training error is also higher for deeper networks. The optimizer can't find a good solution. Gradients vanish or explode as they backpropagate through dozens of layers, and the network degrades.
+More layers, *worse* accuracy. And this isn't overfitting - the training error is also higher for deeper networks. Gradients vanish as they backpropagate through dozens of layers, and the optimizer can't find a good solution.
 
 ![Side by side comparison of plain vs residual networks during training](/assets/images/attn_res/side_by_side.png)
 
-This is the degradation problem. The theoretical capacity is there. The optimizer can't reach it.
+The degradation problem: theoretical capacity is there, but the optimizer can't reach it.
 
 ---
 
 ## the fix: skip connections
 
-The insight from He et al. (2015): don't make the network learn the full mapping $H(x)$ directly. Instead, learn the *residual* $F(x) = H(x) - x$, and reconstruct the output as:
+The insight from He et al. (2015): learn the *residual* $F(x) = H(x) - x$ rather than the full mapping $H(x)$ directly, then reconstruct the output as:
 
 $$H(x) = F(x) + x$$
 
-That's a skip connection. The input $x$ bypasses the convolutional layers entirely and gets added to the output. Express lane past the computation.
+That's a skip connection. The input $x$ bypasses the convolutional layers and gets added directly to the output.
 
 <video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/skip_connection_poster.jpg">
   <source src="/assets/images/attn_res/skip_connection.mp4" type="video/mp4">
 </video>
 
-Why this works: if a layer is useless, the network just learns $F(x) = 0$ and the data passes through unchanged. Adding more layers can never make things worse - the worst case is identity. The optimizer starts from "do nothing" and learns to improve from there.
+If a layer is useless, the network learns $F(x) = 0$ and the data passes through unchanged. Adding more layers can never make things worse - the worst case is identity. The optimizer starts from "do nothing" and improves from there.
 
 ```python
 class BasicBlock(nn.Module):
@@ -93,11 +93,11 @@ Same architectures, same training setup - just add skip connections:
 | Plain-56 | 13.58% |
 | ResNet-56 | 6.41% |
 
-Plain-56 was the worst model. ResNet-56 is the best. Skip connections don't just fix the degradation problem - they let deeper networks actually use their capacity. Within a year, He et al. won ImageNet with a 152-layer ResNet. That was unthinkable before skip connections.
+Plain-56 was the worst model. ResNet-56 is the best. Skip connections fix the degradation problem and let deeper networks use their capacity. Within a year, He et al. won ImageNet with a 152-layer ResNet. That was unthinkable before skip connections.
 
 The full implementation with training code, plots, and all ResNet variants: [deep-residual-learning-pytorch](https://github.com/samitmohan/deep-residual-learning-pytorch)
 
-`x = x + F(x)` became the default wiring of deep learning. ResNets, transformers, diffusion models - all of them. Nobody touched it again for ten years.
+`x = x + F(x)` became the default wiring for ResNets, transformers, and diffusion models alike. Nobody touched it for ten years.
 
 ---
 
@@ -152,19 +152,19 @@ Output: `72 -> 227 -> 725 -> 7241 -> 730954`
   <source src="/assets/images/attn_res/norm_growth.mp4" type="video/mp4">
 </video>
 
-10,000x growth. Not because any layer is doing something insane - you're just dumping 64 outputs into a running sum and never normalizing.
+10,000x growth. No single layer is doing anything extreme - the problem is 64 outputs dumped into a running sum with no normalization.
 
 ### 2. information dilution
 
 > imagine a meeting with 64 people. everyone speaks for exactly one minute. at the end you write a summary but you're forced to weight everyone equally.
 
-That's standard residuals. After 64 layers, each layer contributes ~1.5% of the final hidden state. Layer 47 found a critical pattern between two tokens? Too bad, same weight as layer 3 which copied the embedding.
+That's standard residuals. After 64 layers, each layer contributes ~1.5% of the final hidden state. Layer 47 found a critical pattern between two tokens. Same weight as layer 3, which just copied the embedding.
 
 <video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/dilution_poster.jpg">
   <source src="/assets/images/attn_res/dilution.mp4" type="video/mp4">
 </video>
 
-The deeper your network, the less any individual layer matters. A 128-layer model doesn't give each layer twice the influence - it gives each layer *half*.
+The deeper your network, the less any individual layer matters. A 128-layer model gives each layer half the influence of a 64-layer model.
 
 <style>
 .dilution-widget{background:var(--bg-code,#f1f3f6);border-radius:8px;padding:16px 20px;margin:1rem 0;font-family:var(--font-mono,'JetBrains Mono',monospace)}
@@ -199,15 +199,13 @@ The attention output is bounded. But you're adding that bounded output to `x`, w
 
 Last few layers of a 64-layer prenorm transformer contribute almost nothing. Bounded output, unbounded accumulator.
 
-PreNorm solved gradient flow. Did not solve dilution. Made it worse.
+PreNorm solved gradient flow but not dilution. It made dilution worse.
 
 ---
 
 ## the fix: attention over depth
 
-Instead of `weight = 1.0` for everything, let the network **learn** the weights.
-
-How? Same way we learn everything else - attention. But instead of attending over sequence positions (the usual kind), attend over **depth**. Each block boundary looks at all previous checkpoint outputs and decides which ones matter.
+Fix: let the network **learn** the weights. Use attention - but instead of attending over sequence positions, attend over **depth**. Each block boundary looks at all previous checkpoint outputs and decides which ones matter.
 
 <video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/weights_comparison_poster.jpg">
   <source src="/assets/images/attn_res/weights_comparison.mp4" type="video/mp4">
@@ -232,7 +230,7 @@ Where:
 - $\alpha_{i \to l} = \text{softmax}\left(\frac{w_l \cdot v_i}{\sqrt{d}}\right)$ - learned attention weight
 - $w_l$ is a **learned parameter vector** per layer (not input-dependent)
 
-RMSNorm here is subtle but important: it ensures scores depend on the *direction* of each layer's output, not its magnitude. Without it, deeper layers (with bigger norms) would dominate the softmax.
+RMSNorm ensures scores depend on the *direction* of each layer's output, not its magnitude. Without it, deeper layers with bigger norms would dominate the softmax.
 
 <video autoplay loop muted playsinline preload="metadata" poster="/assets/images/attn_res/depth_attn_poster.jpg">
   <source src="/assets/images/attn_res/depth_attn.mp4" type="video/mp4">
@@ -431,7 +429,7 @@ He constructs a simple experiment - interpolate between a structured linear task
 
 Why? The zero-init trick that makes AttnRes safe also makes it dumb at the start. When $w = 0$, all weights are uniform: $h_l = \frac{1}{l}\left(h_0 + \sum_{i=1}^{l-1} v_i\right)$. That's pure averaging. The model has to learn its way out of this averaging regime before it can do anything useful. For memorization - where you need every layer to contribute maximally different signal - that averaging phase is a tax you never fully recover from.
 
-There's a deeper trade-off here: **stability vs expressivity**. Softmax bounds the weights (they sum to 1), which stabilizes training but caps how much any single layer can contribute. Standard residuals let layers contribute unbounded signal - messier gradients, but more raw capacity for brute-force memorization.
+The trade-off is **stability vs expressivity**. Softmax bounds the weights (they sum to 1), which stabilizes training but caps how much any single layer can contribute. Standard residuals let layers contribute unbounded signal - messier gradients, but more raw capacity for brute-force memorization.
 
 At 4 blocks the methods are roughly equivalent. At 30 blocks the gap widens in both directions. Depth amplifies whatever advantage each method has on its preferred task type.
 
@@ -455,7 +453,7 @@ The line `x = x + self.attn(self.norm1(x))` stays the same. The change is one le
 
 ## what else are we not questioning?
 
-The residual weight was 1.0 for a decade. What else is hiding in plain sight? Softmax temperature is always 1/sqrt(d). Positional encodings are always added, never concatenated. Layer count is always uniform across the model. Somewhere in there is another 30-line patch worth +7.5 on GPQA. We just need to look at the bigger picture; these frontier labs have too many stanford smart asses who can see this a little more clearly than I can :P
+The residual weight was 1.0 for a decade. Softmax temperature is always 1/sqrt(d). Positional encodings are always added, never concatenated. Layer count is always uniform across the model. Somewhere in there is another 30-line patch worth +7.5 on GPQA. The frontier labs have more people looking at this than I do, and they're clearly finding things - but the search space is open to anyone.
 
 ---
 

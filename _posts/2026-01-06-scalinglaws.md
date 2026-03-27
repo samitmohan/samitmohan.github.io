@@ -7,7 +7,7 @@ tokens: "~1.2k"
 description: "Maybe intelligence is just a lot of compute applied to a lot of data having a lot of parameters. OpenAI wrote a paper on this."
 ---
 
-What can LLMs do that classical ML can't? At scale, how do LLMs differ from traditional ML? What does this mean for the future of AI? Does more data mean better results? OpenAI wrote a paper just on this, it's called [**Scaling Laws for Neural Language Models**](https://arxiv.org/pdf/2001.08361) in 2020.
+OpenAI wrote a paper on what happens to model performance as you scale parameters, data, and compute. It's called [**Scaling Laws for Neural Language Models**](https://arxiv.org/pdf/2001.08361), 2020.
 
 -----
 
@@ -53,7 +53,7 @@ where *N* = number of parameters, *D* = dataset size (tokens), *C* = compute bud
 
 This was the first idea of scaling laws in the 1970s
 
-- We also need to train on enough data which is very important (GPT3 was undertrained) 
+- Training on enough data matters: GPT-3 was undertrained.
 - Chinchilla (half parameter size of GPT3 (70b) but 4x data -> performed better)
 
 <style>
@@ -173,14 +173,14 @@ How does data composition affect model performance (not just size) -> data compo
 
 ![datacomposition](/assets/images/scaling_laws/dc.webp){: loading="lazy"}
 
-Another question to look for:
+More questions on data:
 
 - We have finite data, how does repeating examples affect scaling?
         - Up to 4 epochs repeating data is almost as good as new but after that it shows rapidly diminishing returns.
 - Given that repeated data is less valuable -> data selection should adapt to scale.
 - **Repeat high quality data OR include new data (trade-off)**
 
-### How can we design a huge LM? What to pick?
+### how to design a huge LM
 
 - **Architecture:** LSTM vs Transformer (Transformer loss decreases as we increase parameters (MOE is the only thing better than vanilla transformer))
 - **Optimiser:** Adam is much better than SGD as we increase epochs (adaptive learning rate (basically takes steps automatically instead of a fixed size))
@@ -246,7 +246,7 @@ Each one:
 
 > Parameters are representational capacity, not intelligence (misconception)
 
-*Why parameters alone are not enough?* : We need enough training (on enough data with good compute)
+Parameters alone aren't enough. The model also needs enough training data and compute.
 
 If:
 
@@ -264,17 +264,17 @@ Hence: Big models need big data.
 
 ### Recap
 
-- Scaling laws describe how the performance of large language models (LLMs) improves predictably as you increase certain factors. These factors are the size of the model (measured in parameters), the size of the training dataset, and the amount of compute used for training
-- Increase the number of parameters in a model without also scaling the dataset or compute, you’ll hit diminishing returns. The same goes for the other factors. Scaling one without the others doesn’t work
-- Shift to GPUs was a breakthrough, allowing researchers to scale up both model size and dataset size. Transformers have made this even better.
+- Scaling laws describe how LLM performance improves predictably as you increase parameters, dataset size, or training compute.
+- Scale parameters without also scaling data and compute and you hit diminishing returns. Each factor depends on the others.
+- The shift to GPUs let researchers scale both model size and dataset size simultaneously. Transformers made that even more efficient.
 
-In practice, you’re always budget-constrained, so you pick which of the three knobs to turn: parameters, data, or compute. You *can* have all three - there’s no impossibility theorem here - but nobody has infinite money. The Chinchilla paper showed that most labs were turning the wrong knob. They were making models too big and not training them long enough on enough data. Chinchilla (70B params, 4x the data of GPT-3) outperformed the much larger GPT-3 by allocating the compute budget more wisely.
+You’re always budget-constrained, so you pick which of the three knobs to turn: parameters, data, or compute. You can turn all three - there’s no impossibility theorem - but nobody has infinite money. The Chinchilla paper showed most labs were turning the wrong knob. They were making models too big and not training them on enough data. Chinchilla (70B params, 4x the data of GPT-3) outperformed the much larger GPT-3 by allocating the compute budget more wisely.
 
 > Loss ~ f(parameters, data, compute) - all three matter, but how you balance them matters more.
 
 Different labs make different bets on this tradeoff. ChatGPT scales up parameters and broad data with massive compute - optimizing for generality. DeepSeek goes the other way: fewer parameters, higher-quality data, and more inference-time compute - optimizing for reasoning efficiency. Both obey the same scaling laws, they just allocate their budgets differently.
 
-### Limitations of Scaling Laws + Future
+### limitations and future
 
 But we are going out of data:
 
