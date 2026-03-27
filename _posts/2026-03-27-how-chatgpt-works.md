@@ -9,8 +9,6 @@ description: "from raw internet text to a streaming response in your browser - p
 
 You press Enter. Between that and the first token appearing in your browser: 13 trillion tokens of training data, 96 transformer layers, a reward model trained on human rankings, a KV cache growing token by token in GPU VRAM, and a continuous batching scheduler keeping H100s at 85% utilization. This post covers all of it.
 
-You won't pretrain from scratch. You'll care about fine-tuning, RAG, and prompts. You still need the full picture for interviews, for reasoning about cost, and for working with people who do train models.
-
 ---
 
 ## The Data
@@ -243,6 +241,8 @@ The causal mask fills future positions with -inf before softmax. Each token only
 
 **Multi-head attention**: run 8-16 attention operations in parallel with different weight matrices. Different heads learn different relationships - subject-verb agreement, coreference, syntactic structure. Concatenate and project back.
 
+For a deeper look at how residual connections and attention interact across layers, see [from residual connections to attention residuals](/tech/2026/03/18/attention-residuals.html).
+
 ![Transformer architecture](/assets/images/chatgpt/archTrans.png){: loading="lazy"}
 
 <div class="attn-viz">
@@ -314,11 +314,11 @@ Three stopping conditions:
 
 ## Pretraining
 
-Take 15 trillion tokens of cleaned text. Feed sequences into the transformer. At each position, predict the next token. Cross-entropy loss against the actual token. Backprop. Repeat.
+Take 15 trillion tokens of cleaned text. Feed sequences into the transformer. At each position, predict the next token. Cross-entropy loss against the actual token. Backprop. Repeat. (If you want to understand how backprop and the tensor operations underneath this actually work, [building pytorch from scratch](/tech/2026/03/11/minitorch.html) walks through it.)
 
 No labels, no human annotation. The supervision signal is the text itself.
 
-The model learns whatever is predictable in human-written text: grammar, facts, reasoning patterns, code structure, mathematical notation. To predict well, it has to learn the structure of language.
+The model learns whatever is predictable in human-written text: grammar, facts, reasoning patterns, code structure, mathematical notation.
 
 **GPT-2** as a concrete example:
 - Dataset: WebText - 40GB, 8 million Reddit-linked documents with 3+ upvotes
@@ -327,11 +327,23 @@ The model learns whatever is predictable in human-written text: grammar, facts, 
 - Cost: ~$43,000-$50,000 in 2019, about a week on V100 GPUs
 - Today: you can replicate GPT-2 training on a single 16GB GPU in a few hours with modern code
 
-GPT-4 scale: trillions of tokens, thousands of H100s, months. Training runs at this scale cost $50-100M+. The exact numbers aren't public.
+GPT-4 scale: trillions of tokens, thousands of H100s, months. Training runs at this scale cost $50-100M+. GPT-4 reportedly uses a Mixture of Experts (MoE) architecture - 8 expert FFN layers per block, 2 active per token. Total parameter count ~1.76 trillion, but only ~220 billion activate for any given token. You get the capacity of a 1.76T model at the inference cost of a ~220B model. The exact numbers aren't public.
 
 What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation.
 
+### Pretraining is Compression
+
+There's a deeper way to read what just happened. Shannon proved that optimal prediction and optimal compression are the same algorithm: a model that assigns probability p to the next token can compress text to -log2(p) bits per token. Better prediction = smaller file.
+
+Marcus Hutter took this seriously. The [Hutter Prize](http://prize.hutter1.net/) offers €500,000 to whoever compresses 1GB of English Wikipedia below a target size. The prize isn't really about compression - it's a bet that compression = intelligence. To compress English text well, you need to model it: grammar, syntax, world facts, coreference, causal structure. A lookup table won't do it. You need a predictor that generalizes.
+
+This is exactly what pretraining produces. Llama 3 70B achieves roughly 1.0-1.3 bits/character on natural English text. Shannon's 1951 estimate for the entropy of English was ~1 bit/character. Modern LLMs are approaching the theoretical limit of how well you can predict English.
+
+The weights don't store the internet. They store what predicts the internet. That's why the model knows "The Eiffel Tower is in Paris" without having memorized that specific string - it learned the statistical structure that makes "Paris" the right continuation. And it's why the model hallucinates: it's generating the most probable continuation, not retrieving stored facts. When training data is sparse on a topic, plausible-sounding text and true text are indistinguishable to the predictor.
+
 OpenAI's GPT-4 pretraining run reportedly cost over $100M. The alignment phase that turned it into ChatGPT cost a fraction of that - a few weeks of SFT and RLHF on a model that already knew everything.
+
+How much data and how large a model to train? That's the Chinchilla question - covered in detail in [scaling laws](/tech/2026/01/06/scalinglaws.html).
 
 ![Pretraining vs post-training overview](/assets/images/chatgpt/preandpost.png){: loading="lazy"}
 
@@ -387,7 +399,7 @@ Four steps:
 
 ![PPO training loop](/assets/images/chatgpt/ppo.png){: loading="lazy"}
 
-Pretraining gives capability. Post-training shapes behavior. RLHF doesn't teach new facts - it reshapes how the model uses what it already knows.
+The knowledge is already in the weights from pretraining. Post-training shapes how the model applies it - RLHF steers, it doesn't teach.
 
 <div class="rlhf-loop">
   <p class="anim-label">RLHF training loop</p>
@@ -1191,7 +1203,7 @@ Standard attention builds the full `seq x seq` attention matrix in slow HBM (GPU
 
 Flash Attention tiles the computation. Breaks Q, K, V into blocks, computes attention in tiles that fit in fast SRAM, keeps a running softmax and weighted sum, never writes the full matrix to HBM. Same mathematical output, far less memory traffic.
 
-Benefits: O(seq) memory instead of O(seq^2), better GPU memory bandwidth utilization. For long contexts (16k+ tokens): meaningful speedup. Flash Attention 2/3 further improve parallelism over heads and sequence dimensions.
+Benefits: O(seq) memory instead of O(seq^2), better GPU memory bandwidth utilization. For 4k-16k token sequences, Flash Attention 2 runs 2-4x faster than standard attention. Flash Attention 3 pushes further on H100s with async pipeline execution across warp groups.
 
 **Sparse/Structured Attention** for very long contexts: full attention at 128k tokens is prohibitive even with Flash Attention. Options:
 - Sliding window: each position attends only to the last w positions. O(seq) compute instead of O(seq^2).
@@ -1213,8 +1225,6 @@ model = AutoModelForCausalLM.from_pretrained(
 ---
 
 ## Engineering Tricks at Scale
-
-The model is one piece. Most of the engineering is everything around it.
 
 ### Prompt Caching
 
@@ -1339,7 +1349,7 @@ Priority queuing: paying API customers get priority over free-tier ChatGPT users
 
 ## Evaluation
 
-How do you know if a model got better?
+Evaluating LLMs is harder than it looks.
 
 **Perplexity**: average cross-entropy loss on held-out text. Lower = model assigns higher probability to actual text. Useful for comparing model versions during training.
 
@@ -1360,9 +1370,9 @@ Benchmarks are easy to overfit. A model that scores 90% on MMLU might still give
 
 From a URL in a web crawl to a token in your browser: crawl the web, clean it, tokenize it, train a transformer to predict next tokens, fine-tune it to follow instructions, serve it through a layered production system, and stream each token back as it's generated.
 
-Pretraining is where the money is - $50-100M+ and months on thousands of GPUs. SFT and alignment are weeks and comparatively cheap. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
+Pretraining is where the money is - $50-100M+ and months on thousands of GPUs. SFT and RLHF run for a few weeks and cost a few million at most. The ongoing engineering challenge is inference: routing, batching, caching, safety, streaming, and observability for millions of concurrent users.
 
-The model compresses patterns from training data into weights, then uses those weights to continue token sequences. That's enough to write code, explain concepts, and hold a conversation - but the model has no mechanism to distinguish plausible continuations from true ones.
+Next-token prediction on 13 trillion tokens is a simple objective. The weights that result encode facts, reasoning patterns, and enough of a world model to pass the bar exam. The model has no mechanism to distinguish plausible continuations from true ones - hallucination isn't a bug, it's the natural behavior of a predictor that ran out of signal.
 
 ---
 
