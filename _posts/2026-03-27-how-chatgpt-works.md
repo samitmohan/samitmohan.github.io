@@ -351,8 +351,6 @@ How much data and how large a model to train? That's the Chinchilla question - c
 
 ## Post-Training: Making It an Assistant
 
-The base model is a very good autocomplete engine. Two training stages convert it into something that follows instructions and aligns to human preferences.
-
 ### SFT (Supervised Fine-Tuning)
 
 Curate 10,000-100,000 examples of (prompt, ideal response). Continue training with the same loss function at a much smaller learning rate. The model learns to respond in a useful format.
@@ -873,7 +871,7 @@ After generation: detokenize (token IDs back to text), strip control tokens, nor
 }
 ```
 
-The backend intercepts this, runs the tool, injects the result back into context, and the model generates its final answer. This is the foundation of AI agents - models that can take actions, not just produce text.
+The backend intercepts this, runs the tool, injects the result back into context, and the model generates its final answer. This is the foundation of AI agents - models that can take actions, not just produce text. For how retrieval fits into this (RAG, vector search, chunking), see [rag](/tech/2026/01/27/rag.html).
 
 ### Output Safety Layer
 
