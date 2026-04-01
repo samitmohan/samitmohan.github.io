@@ -286,14 +286,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // --- 6. Scroll Animations ---
 
-  // 6a. Home page staggered post entrance
-  var homePostItems = document.querySelectorAll('.home .post-item');
-  if (homePostItems.length) {
-    homePostItems.forEach(function(item, index) {
-      item.classList.add('post-stagger');
-      item.style.animationDelay = (index * 0.08) + 's';
-    });
-  }
 
 
   // --- 7. Share Buttons (event delegation) ---

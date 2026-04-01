@@ -1119,30 +1119,4 @@ h4:hover .anchor-link {
    Scroll Animations
    ======================================== */
 
-/* Home page staggered entrance */
-.post-item.post-stagger {
-  opacity: 0;
-  animation: postSlideUp 0.5s ease forwards;
-}
-
-@keyframes postSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .post-item.post-stagger {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-    transition: none !important;
-  }
-}
 

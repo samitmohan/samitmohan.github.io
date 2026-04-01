@@ -6,7 +6,7 @@ layout: home
   <img src="assets/images/photo.webp" alt="Samit" class="profile-image" width="150" height="150">
   <div class="profile-content">
     <p>
-      i work in computer vision, building real time AI pipelines with an innate passion for intelligent systems
+        probably doing matrix multiplications
     </p>
     <p>
         building <a href="https://aiengg.dev/">aiengg.dev</a> and <a href="https://interviewready.io/">interviewready.io </a>
