@@ -9,8 +9,6 @@ description: "Random things I've learnt over the years which transform Python fr
 
 How to write more pythonic (god I hate this word) code
 
-Random things I've learnt over the years which transform Python from "it works" to "it's beautiful"
-
 ---
 
 ## *args and **kwargs
@@ -60,8 +58,6 @@ def dispatch(operator, x, y):
 result = dispatch("mul", 2, 8)  # 16
 ```
 
-**Functional programming patterns:**
-
 ```python
 numbers = [1, 2, 3, 4, 5]
 
@@ -85,7 +81,7 @@ even_numbers = list(filter(lambda n: n % 2 == 0, numbers))
 
 #### pre-requisite: decorators
 
-Decorators let you modify function behavior without changing the original code. Good for wrapper functions: modify behavior of a callable through a closure without touching the original.
+Decorators wrap a function through a closure, modifying its behavior without changing the source.
 
 ```python
 def uppercase(func):

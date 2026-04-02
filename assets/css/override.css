@@ -244,9 +244,7 @@ img { opacity: var(--img-opacity); }
   background-color: var(--bg-header);
   border-top-color: var(--border-header-top);
   border-bottom-color: var(--border-header-bottom);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.dark-mode .site-header { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 
 .site-title, .site-title:visited { color: var(--text); }
 .site-title { font-weight: 700; font-size: 1.2rem; }
@@ -555,127 +553,6 @@ pre code.hljs { padding: 0; background: transparent; }
 }
 
 /* ========================================
-   Project cards (legacy - inert)
-   ======================================== */
-
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-
-/* Featured row - top projects get more space */
-.project-card.featured {
-  grid-column: span 1;
-  border-width: 2px;
-  border-color: var(--accent);
-}
-
-@media screen and (min-width: 700px) {
-  .project-grid.has-featured {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.project-card {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px 22px;
-  transition: all 0.2s ease-in-out;
-  background-color: var(--bg-card);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  will-change: transform;
-}
-
-.project-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px var(--shadow-card);
-  border-color: var(--accent);
-}
-
-.project-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.project-title { margin: 0; font-size: 1.05rem; font-weight: 600; }
-.project-title a { text-decoration: none; color: var(--text); }
-.project-title a:hover { color: var(--accent); }
-
-.project-tag {
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 12px;
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-}
-
-.tag-ml { background: var(--tag-ml-bg); color: var(--tag-ml-text); }
-.tag-cv { background: var(--tag-cv-bg); color: var(--tag-cv-text); }
-.tag-cuda { background: var(--tag-cuda-bg); color: var(--tag-cuda-text); }
-.tag-tools { background: var(--tag-tools-bg); color: var(--tag-tools-text); }
-.tag-sys { background: var(--tag-sys-bg); color: var(--tag-sys-text); }
-.tag-dsa { background: var(--tag-dsa-bg); color: var(--tag-dsa-text); }
-
-.project-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  flex-grow: 1;
-}
-
-.project-lang {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: auto;
-  padding-top: 4px;
-}
-
-.project-lang::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
-  background-color: var(--accent);
-}
-
-/* Upcoming projects - dimmed dashed style */
-.project-card.upcoming {
-  border-style: dashed;
-  border-color: var(--border);
-  opacity: 0.55;
-  transition: all 0.2s ease-in-out;
-}
-
-.project-card.upcoming:hover {
-  opacity: 0.8;
-  transform: translateY(-2px);
-  box-shadow: none;
-  border-color: var(--text-muted);
-}
-
-.upcoming-divider {
-  grid-column: 1 / -1;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 12px 0 4px;
-  border-top: 1px dashed var(--border);
-  margin-top: 8px;
-  letter-spacing: 0.3px;
-}
-
-/* ========================================
    Theme toggle
    ======================================== */
 .theme-toggle {
@@ -850,50 +727,6 @@ table td {
 h2:hover .anchor-link, h3:hover .anchor-link, h4:hover .anchor-link { color: var(--anchor-hover); }
 
 /* Reading progress bar - removed */
-
-/* ========================================
-   Back to top button
-   ======================================== */
-.back-to-top {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
-  z-index: 999;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  will-change: opacity;
-}
-
-.back-to-top.visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-.back-to-top:hover {
-  transform: translateY(-2px);
-}
-
-.back-to-top svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 /* ========================================
    Table of Contents

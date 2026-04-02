@@ -9,7 +9,9 @@
       "WebFetch(domain:explained.ai)",
       "WebFetch(domain:x.com)",
       "WebFetch(domain:www.udemy.com)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:karpathy.github.io)",
+      "WebFetch(domain:growingswe.com)"
     ]
   }
 }

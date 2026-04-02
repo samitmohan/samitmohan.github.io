@@ -8,6 +8,8 @@ math: true
 description: "The residual connection solved deep learning in 2015. Ten years later, Moonshot AI noticed it's been sabotaging deep networks the whole time. The fix is 30 lines of PyTorch."
 ---
 
+> **TL;DR:** ResNet's skip connections fixed vanishing gradients in 2015 by having layers learn the residual F(x) = H(x) - x instead of the full mapping. In deep transformers, that same additive pattern dilutes the attention signal as the network scales. Moonshot AI's fix rescales the residual branch - a small code change with a measurable gain on deep models.
+
 Quick context about resnets: neural networks learn by [backpropagating](/tech/2025/10/25/nn.html) gradients through layers. The deeper the network, the more times those gradients get multiplied by small numbers (sigmoid derivatives, weight matrices). After enough layers, [gradients shrink to zero](/tech/2026/01/21/math.html) - early layers stop learning entirely. This is the vanishing gradient problem, and it's why stacking more layers didn't work for a long time.
 
 ResNet fixed this in 2015. Then everyone moved on. Ten years later, Moonshot AI looked at the fix.
@@ -185,7 +187,7 @@ function updateDilution(){var n=parseInt(document.getElementById('layer-slider')
 
 ### 3. prenorm makes it worse
 
-You'd think prenorm fixes this - it normalizes input before each sub-layer:
+Prenorm should fix this - it normalizes input before each sub-layer:
 
 ```python
 x = x + self.attn(self.norm1(x))  # norm bounds the input

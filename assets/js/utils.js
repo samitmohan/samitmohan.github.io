@@ -219,14 +219,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // --- 4. Back to Top Button ---
-  var backToTop = document.createElement('button');
-  backToTop.className = 'back-to-top';
-  backToTop.title = 'Back to top';
-  backToTop.setAttribute('aria-label', 'Scroll back to top');
-  backToTop.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>';
-  document.body.appendChild(backToTop);
-
   var scrollTicking = false;
   var tocLinks = document.querySelectorAll('.toc-wrapper .toc-list a');
   var hasToc = tocLinks.length > 0;
@@ -253,20 +245,10 @@ document.addEventListener("DOMContentLoaded", function() {
           });
         }
 
-        if (window.scrollY > 500) {
-          backToTop.classList.add('visible');
-        } else {
-          backToTop.classList.remove('visible');
-        }
-
         scrollTicking = false;
       });
       scrollTicking = true;
     }
-  });
-
-  backToTop.addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   // --- 5. Callout/Admonition Detection ---

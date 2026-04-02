@@ -619,7 +619,7 @@ class Linear(Module):
 
 The autograd engine handles the backward pass automatically - `@` and `+` already have backward closures.
 
-The weight initialization matters more than you'd think. I first tried `np.random.randn` with no scaling. The MLP "trained"; 60% accuracy on MNIST. It was that activations were dying in the forward pass because the initial weights were way too large for ReLU. The fix:
+I first tried `np.random.randn` with no scaling. The MLP "trained"; 60% accuracy on MNIST. It was that activations were dying in the forward pass because the initial weights were way too large for ReLU. The fix:
 
 - **Kaiming init**: scale by $\sqrt{2/\text{fan\_in}}$. The factor of 2 compensates for ReLU killing half the signal.
 - **Xavier init**: scale by $\sqrt{2/(\text{fan\_in} + \text{fan\_out})}$. Better for sigmoid/tanh.
