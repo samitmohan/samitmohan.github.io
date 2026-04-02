@@ -9,7 +9,7 @@ layout: home
         probably doing matrix multiplications
     </p>
     <p>
-        building <a href="https://aiengg.dev/">aiengg.dev</a> and <a href="https://interviewready.io/">interviewready.io </a>
+        computer vision @ <a href="https://beltech.ai">beltech.ai</a>, building <a href="https://aiengg.dev/">aiengg.dev</a> and <a href="https://interviewready.io/">interviewready.io </a>
     </p>
   </div>
 </div>
