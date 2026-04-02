@@ -10,8 +10,6 @@ description: "Building pytorch from scratch in ~1300 lines - reverse-mode autogr
 
 > **TL;DR:** PyTorch operations build a computation graph by attaching _backward closures to tensors. .backward() topologically sorts the graph and fires each closure in reverse. 
 
-**what this covers:** reverse-mode autograd, module system, conv2d with im2col, optimizers - ~1,300 lines of Python + NumPy. trains MNIST (95% MLP, 96% CNN). no C++, no CUDA, just closures and numpy arrays.
-
 This started when I wanted to learn deep learning, first step was to learn PyTorch; only way to learn something is to build it from scratch.
 
 *Prerequisites:* python, calculus (chain rule), some pytorch. if not, read [neural networks](/tech/2025/10/25/nn.html), [tensor library](/tech/2026/01/07/torch.html), and [backprop math](/tech/2026/01/21/math.html) first.

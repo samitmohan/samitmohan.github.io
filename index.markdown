@@ -11,8 +11,5 @@ layout: home
     <p>
         building <a href="https://aiengg.dev/">aiengg.dev</a> and <a href="https://interviewready.io/">interviewready.io </a>
     </p>
-    <p>
-      
-    </p>
   </div>
 </div>

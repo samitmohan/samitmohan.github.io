@@ -191,7 +191,6 @@ body .site-header,
 body .site-footer,
 body .site-nav,
 body .post-content,
-body .project-card,
 body blockquote,
 body .search-input,
 body .theme-toggle,
@@ -346,39 +345,39 @@ img { opacity: var(--img-opacity); }
 }
 
 /* ========================================
-   Post list (homepage)
+   Post list (homepage) - flat style
    ======================================== */
-.post-date { color: var(--text-muted); font-size: 0.9em; margin-bottom: 10px; }
-.post-summary { color: var(--text); line-height: 1.6; margin: 0; }
-
-.post-list { margin-top: 30px; }
-
-.post-item {
-  margin-bottom: 20px;
-  padding: 20px;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  transition: box-shadow 0.2s ease;
+.post-list-flat {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
 }
-.post-item:hover { box-shadow: 0 2px 8px var(--shadow-card); }
-.post-item:last-child { border-bottom: none; }
-.post-item .post-date {
-  color: var(--accent);
-  font-size: 0.7em;
-  font-weight: 500;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+
+.post-list-flat li {
+  display: flex;
+  gap: 1.5em;
+  padding: 4px 0;
+  align-items: baseline;
 }
-.post-item .post-title { margin: 0 0 2px 0; font-size: 1.8em; line-height: 1.3; }
-.post-item .post-title a { color: var(--link); text-decoration: none; }
-.post-item .post-title a:hover { text-decoration: underline; }
-.post-item .post-meta { color: var(--text-muted); font-size: 0.85em; margin-bottom: 6px; font-style: italic; }
-.post-item .post-summary { color: var(--text); font-size: 1em; line-height: 1.6; margin: 0; }
+
+.post-date-flat {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  min-width: 6.5em;
+  flex-shrink: 0;
+}
+
+.post-list-flat a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.post-list-flat a:hover {
+  color: var(--link);
+}
 
 @media screen and (max-width: 600px) {
-  .post-item .post-title { font-size: 1.4em; }
   .post_navi { flex-wrap: wrap; }
   .post_navi-item { width: 100%; padding: 0.5em 0; }
 }
@@ -512,7 +511,51 @@ pre code.hljs { padding: 0; background: transparent; }
 /* Code language badge - disabled */
 
 /* ========================================
-   Project cards
+   Projects page
+   ======================================== */
+.proj-cat {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.6px;
+  margin-top: 1.8em;
+  margin-bottom: 0.3em;
+}
+
+.proj-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.proj-list li {
+  padding: 3px 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.proj-list a {
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.proj-list a:hover {
+  color: var(--link);
+}
+
+.proj-divider {
+  margin: 2.2em 0 1.2em;
+}
+
+.proj-wip {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ========================================
+   Project cards (legacy - inert)
    ======================================== */
 
 .project-grid {

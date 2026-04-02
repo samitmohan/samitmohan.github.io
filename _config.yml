@@ -11,7 +11,6 @@ show_excerpts: false
 
 header_pages:
   - projects.markdown
-  - search.html
 
 twitter_username: samitmohan
 github_username: samitmohan
