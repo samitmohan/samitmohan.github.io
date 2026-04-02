@@ -15,6 +15,7 @@ description: "resources."
 
 ## must:
 
+- [Karpathy zero to hero](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)
 - [LLM Architectures](https://sebastianraschka.com/llm-architecture-gallery/): implement all; hand-written notes; git repo and a blog to support.
 - [Claude Course](https://www.udemy.com/course/ai-engineer-course/learn/lecture/54967113#overview): how to get great at claude
 - Fine Tuning, RAG, Agents, LLMOps google tabs
