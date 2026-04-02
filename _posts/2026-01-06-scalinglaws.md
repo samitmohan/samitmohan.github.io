@@ -11,7 +11,7 @@ OpenAI wrote a paper on what happens to model performance as you scale parameter
 
 -----
 
-## Scaling Laws
+## scaling laws
 
 ![sl](/assets/images/scaling_laws/scaling_laws.webp)
 
@@ -31,8 +31,6 @@ Scaling Laws Paper says validation and test loss decreases as parameter and numb
 
 **IDEA:** Do all experimentations on small model with less compute -> Nail the big model in one-go.
 
-> Scaling laws are very natural thing to think about for data -> as we increase size of data/model -> we expect certain behaviour out of the model.
-
 Kaplan et al. (2020) quantified this with three power law equations:
 
 $$L(N) \sim N^{-0.076}$$
@@ -42,12 +40,6 @@ $$L(D) \sim D^{-0.095}$$
 $$L(C) \sim C^{-0.050}$$
 
 where *N* = number of parameters, *D* = dataset size (tokens), *C* = compute budget (FLOPs), and *L* = cross-entropy loss. Loss decreases as a power law as you add more parameters, data, or compute, but the small exponents mean you get diminishing returns: each 10x increase in any factor yields only a modest drop in loss.
-
-*Questions we should ask ourselves:*
-
-- Data vs performance (Are there simple rules that determine how data affects performance?)
-- Data vs model size (Do we train on more data or bigger models)
-- Hyper parameters vs performance (How should we set hyperparameter on big models)
 
 **Maybe intelligence -> lot of compute applied to lot of data having lot of parameters.**
 
@@ -188,7 +180,7 @@ More questions on data:
 - **Batch Size:** batch size increase -> gradient steps increase (past certain point -> diminishing returns (bias dominates instead of learning deeper features)
   - Critical BatchSize: minimum number of steps for target loss (compute increase -> steps can stay the same (BS fixed))
 
-### Side note
+### side note
 
 > What even are parameters
 
@@ -262,7 +254,7 @@ Hence: Big models need big data.
 
 > Compute ∝ Parameters ∝ Training ∝ Tokens
 
-### Recap
+### recap
 
 - Scaling laws describe how LLM performance improves predictably as you increase parameters, dataset size, or training compute.
 - Scale parameters without also scaling data and compute and you hit diminishing returns. Each factor depends on the others.

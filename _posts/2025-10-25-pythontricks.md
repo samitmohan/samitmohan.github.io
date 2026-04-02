@@ -36,7 +36,7 @@ printer(name="samit", age=22) # name - samit, age - 22
 
 ```
 
-### Lambda Functions: Single expression functions
+### lambda functions: single expression functions
 
 Helpful when you want to sort a sequence by some arbitrary computed key.
 
@@ -81,9 +81,9 @@ even_numbers = list(filter(lambda n: n % 2 == 0, numbers))
 ```
 
 
-### LRU Cache: Dynamic Programming what??
+### lru cache: dynamic programming what??
 
-#### Pre-requisite: Decorators
+#### pre-requisite: decorators
 
 Decorators let you modify function behavior without changing the original code. Good for wrapper functions: modify behavior of a callable through a closure without touching the original.
 
@@ -153,7 +153,7 @@ input_numbers = list(map(int, input("Enter numbers: ").split()))
 
 The `map()` function is lazy (memory-efficient) and often more readable than list comprehensions for simple transformations. Helpful when you're doing competitive programming (don't).
 
-### More math stuff
+### more math stuff
 
 ```python
 from itertools import permutations, combinations
@@ -174,7 +174,7 @@ pairs = list(combinations(numbers, 2))  # [(1,2), (1,3), (1,4), (2,3), (2,4), (3
 perm_pairs = list(permutations(numbers, 2))  # [(1, 2), (1, 3), (1, 4), (2, 1), (2, 3), (2, 4), (3, 1), (3, 2), (3, 4), (4, 1), (4, 2), (4, 3)]
 ```
 
-### Don't use nested loops when you can use itertools
+### don't use nested loops when you can use itertools
 
 ```python
 from itertools import product, chain, combinations
@@ -585,7 +585,7 @@ Tuples are pre-computed at compile time. Lists are built at runtime.
 
 ---
 
-## Conclusion
+## conclusion
 
 Zen of Python:
 

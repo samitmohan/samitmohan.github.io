@@ -19,7 +19,7 @@ These are some of my favourite questions to ask in interviews and I wish we move
 
 ---
 
-## Q: What is the complexity of matrix multiplication? Write it. How can you optimise it?
+## Q: what is the complexity of matrix multiplication? write it. how can you optimise it?
 
 > O(n^3)
 
@@ -76,7 +76,7 @@ print(f"numpy (BLAS) {n}x{n}: {time.time() - start:.4f}s")
 
 ---
 
-## Q: Given a function that generates a random number between 0 and 1 (uniformly distributed), calculate Pi.
+## Q: given a function that generates a random number between 0 and 1 (uniformly distributed), calculate pi.
 
 > first response when I ask this is "what??"
 
@@ -113,7 +113,7 @@ Where I found this problem -> [Joma Tech](https://www.youtube.com/watch?v=pvimAM
 
 ---
 
-## Q: What happens when you enter www.google.com and press enter?
+## Q: what happens when you enter www.google.com and press enter?
 
 > This was inspired by this [repo](https://github.com/alex/what-happens-when) I read long time ago
 
@@ -165,7 +165,7 @@ I like explanations that start from first principles at the hardware level, what
 
 ---
 
-## Q: How does CUDA work? What is Flash Attention?
+## Q: how does CUDA work? what is Flash Attention?
 
 > a must for any deep learning interview, do you just call torch.device("cuda") or do you know what happens
 
@@ -205,7 +205,7 @@ Same triple loop. The CPU does N^2 iterations of the outer two loops sequentiall
 
 ---
 
-## Q: Implement a GPT from scratch. No libraries.
+## Q: implement a GPT from scratch. no libraries.
 
 > ~200 lines. No `nn.Module`, no `loss.backward()`, no CUDA kernels.
 
@@ -214,13 +214,13 @@ I put together a [visual walkthrough](/assets/images/interview/microgpt_config.p
 <img src="/assets/images/interview/microgpt_architecture.png" alt="MicroGPT GPT Architecture - decoder-only transformer pipeline from token input to next-token prediction" style="max-width:100%">
 *The `gpt()` function as a pipeline: embedding lookup, RMSNorm, multi-head attention with residual, MLP with residual, lm_head projection, softmax.*
 
-### Autograd: Why It Matters
+### autograd: why it matters
 
 Autograd - automatic differentiation - is the engine that makes neural networks trainable. The core idea: every mathematical operation you perform during the forward pass gets recorded in a computational graph. When you're done and you have a loss value, you walk that graph backwards to compute how much each parameter contributed to the error. That's backpropagation, and it's nothing more than the chain rule applied systematically.
 
 In PyTorch, this is hidden behind `loss.backward()`. You never see the graph. You never see the gradients flowing. MicroGPT rips that abstraction away by implementing autograd at the scalar level.
 
-### The Value Class: Building the Computational Graph
+### the value class: building the computational graph
 
 The `Value` class is the foundation of everything. Each `Value` wraps a single floating-point number and tracks three things:
 
@@ -240,7 +240,7 @@ This builds a DAG - a directed acyclic graph - where every node is a scalar and 
 
 In PyTorch, we write `x = torch.randn(10, 10, requires_grad=True)`. In MicroGPT, we initialize a list of 100 individual `Value` objects. This makes the chain rule visceral: calling `backward()` literally traverses the history of every addition and multiplication.
 
-### The Chain Rule and DAG Traversal
+### the chain rule and DAG traversal
 
 Here is the key insight. If you have a chain of operations like `loss = f(g(h(w)))`, then:
 
@@ -267,11 +267,11 @@ That's the entire backward pass. No magic. Just: sort the graph, walk it backwar
 </video>
 *Forward pass builds the DAG, backward pass propagates gradients through it.*
 
-#### What is a Gradient, Practically?
+#### what is a gradient, practically?
 
 If you've forgotten your multivariable calculus: a gradient is just a "nudge." If a weight has a gradient of `0.5`, it means that if we increase that weight by a tiny amount, the loss will increase by half that amount. Our goal is to nudge every weight in the *opposite* direction of its gradient to minimize the loss.
 
-### Wiring vs. Modules
+### wiring vs. modules
 
 MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehensions to implement the math.
 
@@ -280,7 +280,7 @@ MicroGPT doesn't use `nn.Module`. Instead, it uses raw Python list comprehension
 - **Activation**: Instead of `nn.ReLU()`, it's a manual `max(0, x)` wrapper inside the `Value` class.
 - **Normalisation**: `rmsnorm(x)` is a custom function calculating the root mean square of a list of scalars manually.
 
-### Sequential Training and the KV Cache
+### sequential training and the KV cache
 
 This is the most significant departure from standard PyTorch training.
 
@@ -292,7 +292,7 @@ This is the most significant departure from standard PyTorch training.
 <img src="/assets/images/interview/microgpt_attention.png" alt="Multi-head attention - Q,K,V projections split into 4 heads, scaled dot-product attention with KV cache" style="max-width:100%">
 *4 heads x 4 dimensions = 16 total. Each head independently attends over the KV cache, then results are concatenated and projected through Wo.*
 
-### Adam from Scratch
+### Adam from scratch
 
 In PyTorch, we call `optimizer.step()`. MicroGPT manually tracks:
 
@@ -305,7 +305,7 @@ It then updates `param.data` directly. This proves that Adam is just an adaptive
 <img src="/assets/images/interview/microgpt_training.png" alt="Training loop - tokenize, forward pass, cross-entropy loss, backward pass, Adam optimizer update, zero gradients" style="max-width:100%">
 *One complete training step: tokenize name, forward through gpt(), compute cross-entropy loss, backward(), Adam update with LR decay, zero gradients.*
 
-### The Gradient Journey
+### the gradient journey
 
 When we call `loss.backward()`, we are executing a chain reaction of local derivatives.
 
@@ -317,7 +317,7 @@ Imagine the very last operation: `loss = total_loss / batch_size`.
 
 This continues until we reach the **Token Embeddings**. In MicroGPT, we can literally print `state_dict['wte'][10][5].grad` to see how much the 5th dimension of the 10th token's embedding contributed to the error of a specific name like "Andre-j".
 
-### Numerical Stability: The `max_logit` Trick
+### numerical stability: the `max_logit` trick
 
 In the `softmax` function, you'll see:
 `max_logit = max(l.data for l in logits)`
@@ -326,12 +326,12 @@ In the `softmax` function, you'll see:
 **Why?**
 The exponential function `e^x` grows catastrophically fast. If a logit is `100`, `e^100` is ~2.6e43, which will overflow a floating-point number. By subtracting the maximum value, the largest value becomes `e^0 = 1`, and everything else becomes a small fraction between `0` and `1`. Since softmax is translation-invariant ($Softmax(x) = Softmax(x - c)$), the math remains identical, but the code stops crashing.
 
-### Embedding + Positional Encoding
+### embedding + positional encoding
 
 <img src="/assets/images/interview/microgpt_embedding.png" alt="Embedding and positional encoding - wte token lookup table and wpe position lookup table, element-wise addition" style="max-width:100%">
 *wte (27x16) encodes what the token IS, wpe (16x16) encodes where the token SITS. Both are learnable - no sin/cos here.*
 
-### The Code (200 Lines)
+### the code (200 lines)
 
 The code below is my own implementation, clocking in at just over 200 lines. It is designed to be read line-by-line, without the abstraction of modern deep learning frameworks. If you can walk through this code and explain every gradient, you know how a transformer works.
 

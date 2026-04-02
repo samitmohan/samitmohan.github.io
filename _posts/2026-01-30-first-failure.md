@@ -19,7 +19,7 @@ Still solved **100+ problems** though.
 
 ![100pr](/assets/images/failure/100pr.webp){: loading="lazy"}
 
-## Why I'm Done
+## why i'm done
 
 DeepML is solid, but:
 
@@ -27,7 +27,7 @@ DeepML is solid, but:
 - Runtime is painfully slow
 - The "1 problem/day" pressure was killing the fun
 
-## New Resolution
+## new resolution
 
 Chill the f out:
 

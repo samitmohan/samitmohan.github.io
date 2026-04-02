@@ -589,7 +589,7 @@ The rest is what you'd expect: `state_dict()` / `load_state_dict()` for serializ
 
 ## 6. layers
 
-### Linear
+### linear
 
 Matrix multiply plus bias:
 
@@ -628,7 +628,7 @@ Switching to Kaiming init jumped accuracy from ~60% to ~95%. Three characters of
 
 Activation layers (ReLU, Sigmoid, Tanh) are one-line wrappers around the functional versions so they can slot into `Sequential`. Nothing interesting there.
 
-### Dropout
+### dropout
 
 **Dropout** randomly zeros out elements during training to prevent overfitting. The implementation uses the **inverted dropout** pattern:
 

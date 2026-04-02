@@ -5,16 +5,16 @@ permalink: /projects/
 ---
 
 <ul class="proj-list">
-  <li><a href="https://samitmohan.github.io/minitorch/">minitorch</a> — pytorch from scratch: autodiff, modules, cuda</li>
-  <li><a href="https://github.com/samitmohan/deep-residual-learning-pytorch">resnet</a> — he et al. 2015 cifar-10 reproduction. numbers match</li>
-  <li><a href="https://github.com/samitmohan/ML">ml algorithms</a> — microgpt in 218 lines, lstms, attention, autograd</li>
-  <li><a href="https://github.com/samitmohan/resume-parser">resume parser</a> — nlp resume screening, built before chatgpt made it trivial</li>
-  <li><a href="https://github.com/samitmohan/tennis-analysis/tree/master">tennis analyser</a> — yolo + resnet on match footage. velocity, heatmaps</li>
-  <li><a href="https://github.com/samitmohan/rag-for-blogs">personal-rag</a> — rag over my blog posts, runs on free render tier</li>
-  <li><a href="https://github.com/samitmohan/minicode">mini-code</a> — my claude code clone</li>
-  <li><a href="https://github.com/samitmohan/spotify-mcp">spotify mcp</a> — control spotify through claude</li>
-  <li><a href="https://github.com/samitmohan/Automated-Journal">python journal</a> — distilbert mood tracking, probably overkill</li>
-  <li><a href="https://samitmohan.github.io/interviews/">dsa algorithms</a> — 400+ problems, 12 data structures from scratch</li>
+  <li><a href="https://samitmohan.github.io/minitorch/">minitorch</a> - wanted to learn pytorch, best way to learn something is to build it</li>
+  <li><a href="https://github.com/samitmohan/deep-residual-learning-pytorch">resnet</a> - loved this paper, so jealous i didn't come up with it, had to reimplement it along with results.</li>
+  <li><a href="https://github.com/samitmohan/ML">ml algorithms</a> - documentation of my ml learnings</li>
+  <li><a href="https://github.com/samitmohan/resume-parser">resume parser</a> — nlp resume screening, built pre gippity</li>
+  <li><a href="https://github.com/samitmohan/tennis-analysis/tree/master">tennis analyser</a> — yolo + resnet on match footage with some physics. i love tennis.</li>
+  <li><a href="https://github.com/samitmohan/rag-for-blogs">personal-rag</a> - rag over my blog posts, self obsession</li>
+  <li><a href="https://github.com/samitmohan/minicode">mini-code</a> - claude code clone with no libraries</li>
+  <li><a href="https://github.com/samitmohan/spotify-mcp">spotify mcp</a> - control spotify through claude</li>
+  <li><a href="https://github.com/samitmohan/Automated-Journal">python journal</a> - mood tracking, mental health college project </li>
+  <li><a href="https://samitmohan.github.io/interviews/">dsa algorithms</a> - interview prep documentation</li>
 </ul>
 
 <hr class="proj-divider">
