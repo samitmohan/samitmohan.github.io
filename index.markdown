@@ -8,8 +8,5 @@ layout: home
     <p>
         probably doing matrix multiplications
     </p>
-    <p>
-        building <a href="https://beltech.ai">beltech.ai</a>,  <a href="https://aiengg.dev/">aiengg.dev</a> and <a href="https://interviewready.io/">interviewready.io </a>
-    </p>
   </div>
 </div>

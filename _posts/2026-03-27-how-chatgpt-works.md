@@ -7,7 +7,44 @@ tokens: "~12k"
 description: "from raw internet text to a streaming response in your browser - pretraining, alignment, inference, and everything in between"
 ---
 
-You press Enter. Between that and the first token appearing in your browser: 13 trillion tokens of training data, 96 transformer layers, a reward model trained on human rankings, a KV cache growing token by token in GPU VRAM, and a continuous batching scheduler keeping H100s at 85% utilization. This post covers all of it.
+<style>
+:root {
+  --cg-bg: #0f1923;
+  --cg-bg-alt: #1a1a2e;
+  --cg-border: #1a2a3b;
+  --cg-muted: #888;
+  --cg-muted2: #666;
+  --cg-muted3: #555;
+  --cg-muted4: #444;
+  --cg-blue: #a8c7fa;
+  --cg-blue-bg: #1a2a3b;
+  --cg-blue-border: #2a4a6b;
+  --cg-green: #a8fac4;
+  --cg-green-bg: #1a3b2a;
+  --cg-green-border: #2a6b4a;
+  --cg-yellow: #fafaa8;
+  --cg-yellow-bg: #3b3b1a;
+  --cg-yellow-border: #6b6b2a;
+  --cg-purple: #c4a8fa;
+  --cg-purple-bg: #2a1a3b;
+  --cg-purple-border: #4a2a6b;
+  --cg-pink: #faa8c4;
+  --cg-pink-bg: #3b1a2a;
+  --cg-pink-border: #6b2a4a;
+  --cg-teal: #a8fafa;
+  --cg-teal-bg: #1a3b3b;
+  --cg-teal-border: #2a6b6b;
+  --cg-orange: #fac4a8;
+  --cg-orange-bg: #3b2a1a;
+  --cg-orange-border: #6b4a2a;
+  --cg-red-bg: #3b1a1a;
+  --cg-red-border: #6b2a2a;
+}
+</style>
+
+> **TL;DR:** Pretraining on 13T tokens produces a next-token predictor. SFT redirects it to follow instructions. RLHF aligns it to human preference. At inference: KV cache, continuous batching, and token sampling turn a probability distribution into a streaming response.
+
+You press Enter. Between that and the first token appearing in your browser: 13 trillion tokens of training data, 96 transformer layers, a reward model trained on human rankings, a KV cache growing token by token in GPU VRAM, and a continuous batching scheduler keeping H100s at 85% utilization.
 
 ---
 
@@ -113,9 +150,7 @@ print(len(tokens))    # 5
 
 ![Inference phase tokenization](/assets/images/chatgpt/inferencetokenisation.png){: loading="lazy"}
 
-You can explore token splits interactively at [tiktokenizer.vercel.app](https://tiktokenizer.vercel.app/):
-
-![TikTokenizer playground](/assets/images/chatgpt/tiktokeniser.png){: loading="lazy"}
+Explore token splits interactively at [tiktokenizer.vercel.app](https://tiktokenizer.vercel.app/).
 
 Fewer tokens per sentence = less compute per request. Token efficiency is a real cost lever at scale.
 
@@ -135,14 +170,14 @@ Fewer tokens per sentence = less compute per request. Token efficiency is a real
 
 <style>
 .token-animation {
-  background: #1a1a2e;
+  background: var(--cg-bg-alt);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
   font-family: monospace;
 }
 .anim-label {
-  color: #888;
+  color: var(--cg-muted);
   font-size: 13px;
   margin: 0 0 14px 0;
 }
@@ -161,7 +196,7 @@ Fewer tokens per sentence = less compute per request. Token efficiency is a real
   animation: fadeUp 0.3s forwards;
 }
 .token-count {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 12px 0 0 0;
   opacity: 0;
@@ -260,7 +295,7 @@ For a deeper look at how residual connections and attention interact across laye
 
 <style>
 .attn-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -276,20 +311,20 @@ For a deeper look at how residual connections and attention interact across laye
   font-family: monospace;
   font-size: 14px;
   font-weight: 600;
-  border: 1px solid #2a4a6b;
-  color: #a8c7fa;
-  background: #1a2a3b;
+  border: 1px solid var(--cg-blue-border);
+  color: var(--cg-blue);
+  background: var(--cg-blue-bg);
   opacity: 0;
   animation: fadeUp 0.25s forwards;
 }
 #atk0 { animation-delay: 0.1s; }
-#atk1 { animation-delay: 0.3s; background: #1a3b2a; border-color: #2a6b4a; color: #a8fac4; }
-#atk2 { animation-delay: 0.5s; background: #3b2a1a; border-color: #6b4a2a; color: #fac4a8; }
+#atk1 { animation-delay: 0.3s; background: var(--cg-green-bg); border-color: var(--cg-green-border); color: var(--cg-green); }
+#atk2 { animation-delay: 0.5s; background: var(--cg-orange-bg); border-color: var(--cg-orange-border); color: var(--cg-orange); }
 #atk3 { animation-delay: 0.7s; }
-#atk4 { animation-delay: 0.9s; background: #1a2a3b; border-color: #2a4a6b; color: #a8c7fa; }
-#atk5 { animation-delay: 1.1s; background: #2a1a3b; border-color: #4a2a6b; color: #c4a8fa; }
+#atk4 { animation-delay: 0.9s; background: var(--cg-blue-bg); border-color: var(--cg-blue-border); color: var(--cg-blue); }
+#atk5 { animation-delay: 1.1s; background: var(--cg-purple-bg); border-color: var(--cg-purple-border); color: var(--cg-purple); }
 .attn-caption {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 12px 0 0 0;
   opacity: 0;
@@ -357,7 +392,7 @@ window._anims = window._anims || {};
 
 <style>
 .ctx-win-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -365,7 +400,7 @@ window._anims = window._anims || {};
 .ctx-win-outer {
   height: 36px;
   background: #070c10;
-  border: 1px solid #1a2a3b;
+  border: 1px solid var(--cg-border);
   border-radius: 4px;
   overflow: hidden;
   margin: 12px 0 6px;
@@ -396,10 +431,10 @@ window._anims = window._anims || {};
   justify-content: space-between;
   font-family: monospace;
   font-size: 11px;
-  color: #555;
+  color: var(--cg-muted3);
 }
 .ctx-win-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 10px 0 0;
   transition: color 0.6s;
@@ -482,7 +517,7 @@ window._anims = window._anims || {};
 
 <style>
 .moe-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -490,9 +525,9 @@ window._anims = window._anims || {};
 .moe-top { text-align: center; margin-bottom: 10px; }
 .moe-token-box {
   display: inline-block;
-  background: #1a2a3b;
-  border: 1px solid #2a4a6b;
-  color: #a8c7fa;
+  background: var(--cg-blue-bg);
+  border: 1px solid var(--cg-blue-border);
+  color: var(--cg-blue);
   font-family: monospace;
   font-size: 13px;
   font-weight: 700;
@@ -527,20 +562,20 @@ window._anims = window._anims || {};
   transition: background 0.35s, border-color 0.35s, color 0.35s, box-shadow 0.35s;
 }
 .moe-active {
-  background: #1a3b2a !important;
-  border-color: #2a6b4a !important;
-  color: #a8fac4 !important;
+  background: var(--cg-green-bg) !important;
+  border-color: var(--cg-green-border) !important;
+  color: var(--cg-green) !important;
   box-shadow: 0 0 10px #1a4a2a80;
 }
 .moe-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 12px 0 0;
   font-family: monospace;
 }
 </style>
 
-What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation. That's all pretraining does. The surprising part is how far that gets you.
+What comes out: a very good autocomplete. Feed it "The capital of France is" and it outputs "Paris" with high probability. Feed it a half-written function and it completes it. Ask it a question and it continues your text instead of answering - the base model has no concept of question vs answer. It learned text continuation.
 
 ### pretraining is compression
 
@@ -600,12 +635,6 @@ Four steps:
 
 **Step 4**: Use PPO to update the SFT model to maximize reward model scores, with a KL-divergence penalty to stop it drifting too far from the SFT starting point
 
-![Training reward model](/assets/images/chatgpt/training_reward.png){: loading="lazy"}
-
-![Reward model visualization](/assets/images/chatgpt/reward2.png){: loading="lazy"}
-
-![Scores](/assets/images/chatgpt/scores.png){: loading="lazy"}
-
 ![PPO training loop](/assets/images/chatgpt/ppo.png){: loading="lazy"}
 
 <div class="rlhf-loop">
@@ -627,7 +656,7 @@ Four steps:
 
 <style>
 .rlhf-loop {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -655,12 +684,12 @@ Four steps:
   opacity: 0;
   animation: fadeUp 0.2s forwards;
 }
-.rs1 { background: #1a2a3b; color: #a8c7fa; border: 1px solid #2a4a6b; animation-delay: 0.2s; }
-.rs2 { background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a; animation-delay: 0.6s; }
-.rs3 { background: #3b3b1a; color: #fafaa8; border: 1px solid #6b6b2a; animation-delay: 1.0s; }
-.rs4 { background: #2a1a3b; color: #c4a8fa; border: 1px solid #4a2a6b; animation-delay: 1.4s; }
-.rs5 { background: #3b1a2a; color: #faa8c4; border: 1px solid #6b2a4a; animation-delay: 1.8s; }
-.rs6 { background: #1a3b3b; color: #a8fafa; border: 1px solid #2a6b6b; animation-delay: 2.2s; }
+.rs1 { background: var(--cg-blue-bg); color: var(--cg-blue); border: 1px solid var(--cg-blue-border); animation-delay: 0.2s; }
+.rs2 { background: var(--cg-green-bg); color: var(--cg-green); border: 1px solid var(--cg-green-border); animation-delay: 0.6s; }
+.rs3 { background: var(--cg-yellow-bg); color: var(--cg-yellow); border: 1px solid var(--cg-yellow-border); animation-delay: 1.0s; }
+.rs4 { background: var(--cg-purple-bg); color: var(--cg-purple); border: 1px solid var(--cg-purple-border); animation-delay: 1.4s; }
+.rs5 { background: var(--cg-pink-bg); color: var(--cg-pink); border: 1px solid var(--cg-pink-border); animation-delay: 1.8s; }
+.rs6 { background: var(--cg-teal-bg); color: var(--cg-teal); border: 1px solid var(--cg-teal-border); animation-delay: 2.2s; }
 .ra1 { animation-delay: 0.4s; }
 .ra2 { animation-delay: 0.8s; }
 .ra3 { animation-delay: 1.2s; }
@@ -678,19 +707,15 @@ Four steps:
 
 ### DPO: a simpler alternative to PPO
 
-PPO requires maintaining four models simultaneously: the policy being trained, a frozen reference for the KL penalty, the reward model, and a value function. The optimization loop is fragile and sensitive to hyperparameters.
-
 DPO (Direct Preference Optimization) reframes alignment as supervised learning. Given a preferred response `y_w` and a rejected response `y_l` for the same prompt, the loss is:
 
 ```text
 loss = -log σ(β · (log π(y_w|x)/π_ref(y_w|x) - log π(y_l|x)/π_ref(y_l|x)))
 ```
 
-This increases the likelihood of preferred responses relative to the reference policy while decreasing the likelihood of rejected ones. No reward model. No RL loop. The reward is implicit in the policy itself.
+No reward model. No RL loop. The reward is implicit in the policy itself. Same preference data as RLHF, half the implementation complexity. Llama 3, Mistral, Phi-3, and most open-weight models now use DPO variants (ORPO, SimPO) rather than PPO.
 
-Same preference data as RLHF, half the implementation complexity. Llama 3, Mistral, Phi-3, and most open-weight models now use DPO variants (ORPO, SimPO) rather than PPO.
-
-The tradeoff: DPO is less stable on very large preference datasets and more sensitive to data quality. PPO still dominates for reasoning models where RL on verifiable rewards is the primary signal - that's where a proper reward function exists and RL can find solutions humans wouldn't label.
+PPO requires four models simultaneously: policy, frozen reference, reward model, and value function - fragile optimization, sensitive to hyperparameters. DPO is less stable on very large preference datasets and more sensitive to data quality, so PPO still dominates for reasoning models where RL on verifiable rewards is the primary signal.
 
 ### thinking models
 
@@ -785,7 +810,7 @@ window._anims = window._anims || {};
 
 <style>
 .autogen-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -800,14 +825,14 @@ window._anims = window._anims || {};
   line-height: 2;
 }
 .ag-tok { border-radius: 3px; }
-.ag-p { background: #1a2a3b; color: #a8c7fa; padding: 2px 5px; margin-right: 1px; }
+.ag-p { background: var(--cg-blue-bg); color: var(--cg-blue); padding: 2px 5px; margin-right: 1px; }
 .ag-g {
-  background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a;
+  background: var(--cg-green-bg); color: var(--cg-green); border: 1px solid var(--cg-green-border);
   padding: 2px 6px; margin-left: 1px;
   opacity: 0; animation: fadeUp 0.3s forwards;
 }
 .ag-cursor { color: #a8c7fa; animation: blink 0.9s infinite; margin-left: 2px; }
-.ag-note { color: #666; font-size: 12px; margin: 10px 0 0; }
+.ag-note { color: var(--cg-muted2); font-size: 12px; margin: 10px 0 0; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 </style>
 
@@ -930,7 +955,7 @@ Decoding strategy comparison:
 
 <style>
 .topp-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -962,7 +987,7 @@ Decoding strategy comparison:
   left: 50%;
   transform: translateX(-50%);
   font-size: 11px;
-  color: #888;
+  color: var(--cg-muted);
   white-space: nowrap;
   font-family: monospace;
 }
@@ -974,7 +999,7 @@ Decoding strategy comparison:
 .b5 { animation-delay: 0.5s; }
 .b6 { animation-delay: 0.6s; }
 .topp-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 28px 0 0 0;
   opacity: 0;
@@ -1013,7 +1038,7 @@ One request, start to finish.
 
 <style>
 .pipeline-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -1042,18 +1067,18 @@ One request, start to finish.
   opacity: 0.7;
 }
 .ps-arrow {
-  color: #444;
+  color: var(--cg-muted4);
   font-size: 18px;
   opacity: 0;
   animation: fadeUp 0.2s forwards;
 }
-.ps1 { background: #1a2a3b; color: #a8c7fa; border: 1px solid #2a4a6b; animation-delay: 0.1s; }
-.ps2 { background: #1a3b2a; color: #a8fac4; border: 1px solid #2a6b4a; animation-delay: 0.4s; }
-.ps3 { background: #3b2a1a; color: #fac4a8; border: 1px solid #6b4a2a; animation-delay: 0.7s; }
-.ps4 { background: #2a1a3b; color: #c4a8fa; border: 1px solid #4a2a6b; animation-delay: 1.0s; }
+.ps1 { background: var(--cg-blue-bg); color: var(--cg-blue); border: 1px solid var(--cg-blue-border); animation-delay: 0.1s; }
+.ps2 { background: var(--cg-green-bg); color: var(--cg-green); border: 1px solid var(--cg-green-border); animation-delay: 0.4s; }
+.ps3 { background: var(--cg-orange-bg); color: var(--cg-orange); border: 1px solid var(--cg-orange-border); animation-delay: 0.7s; }
+.ps4 { background: var(--cg-purple-bg); color: var(--cg-purple); border: 1px solid var(--cg-purple-border); animation-delay: 1.0s; }
 .ps5 { background: #3b1a1a; color: #faafa8; border: 1px solid #6b2a2a; animation-delay: 1.3s; }
-.ps6 { background: #1a3b3b; color: #a8fafa; border: 1px solid #2a6b6b; animation-delay: 1.6s; }
-.ps7 { background: #3b3b1a; color: #fafaa8; border: 1px solid #6b6b2a; animation-delay: 1.9s; }
+.ps6 { background: var(--cg-teal-bg); color: var(--cg-teal); border: 1px solid var(--cg-teal-border); animation-delay: 1.6s; }
+.ps7 { background: var(--cg-yellow-bg); color: var(--cg-yellow); border: 1px solid var(--cg-yellow-border); animation-delay: 1.9s; }
 .ps-arrow:nth-child(2)  { animation-delay: 0.25s; }
 .ps-arrow:nth-child(4)  { animation-delay: 0.55s; }
 .ps-arrow:nth-child(6)  { animation-delay: 0.85s; }
@@ -1305,7 +1330,7 @@ The cache lives in GPU VRAM. Long conversations consume more VRAM because the ca
 
 <style>
 .kv-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -1317,9 +1342,9 @@ The cache lives in GPU VRAM. Long conversations consume more VRAM because the ca
   margin: 12px 0 8px;
 }
 .prefill-block {
-  background: #1a3b2a;
-  border: 1px solid #2a6b4a;
-  color: #a8fac4;
+  background: var(--cg-green-bg);
+  border: 1px solid var(--cg-green-border);
+  color: var(--cg-green);
   padding: 5px 12px;
   border-radius: 4px;
   font-family: monospace;
@@ -1332,9 +1357,9 @@ The cache lives in GPU VRAM. Long conversations consume more VRAM because the ca
   margin-top: 4px;
 }
 .kv-token {
-  background: #1a2a3b;
-  border: 1px solid #2a4a6b;
-  color: #a8c7fa;
+  background: var(--cg-blue-bg);
+  border: 1px solid var(--cg-blue-border);
+  color: var(--cg-blue);
   padding: 5px 10px;
   border-radius: 4px;
   font-family: monospace;
@@ -1343,7 +1368,7 @@ The cache lives in GPU VRAM. Long conversations consume more VRAM because the ca
   animation: fadeUp 0.3s forwards;
 }
 .kv-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 10px 0 0 0;
   opacity: 0;
@@ -1398,7 +1423,7 @@ Without continuous batching: GPU utilization 20-30%. With it: 80-90%.
 
 <style>
 .cbatch-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -1406,12 +1431,12 @@ Without continuous batching: GPU utilization 20-30%. With it: 80-90%.
 .cbt-heading {
   font-family: monospace;
   font-size: 12px;
-  color: #888;
+  color: var(--cg-muted);
   margin: 0 0 8px 0;
 }
 .cbt-grid { display: flex; flex-direction: column; gap: 4px; }
 .cbt-row { display: flex; align-items: center; gap: 8px; }
-.cbt-lbl { font-family: monospace; font-size: 11px; color: #555; width: 44px; flex-shrink: 0; }
+.cbt-lbl { font-family: monospace; font-size: 11px; color: var(--cg-muted3); width: 44px; flex-shrink: 0; }
 .cbt-track { display: flex; flex: 1; gap: 2px; height: 32px; }
 .cbt-blk {
   display: flex; align-items: center; justify-content: center;
@@ -1425,13 +1450,13 @@ Without continuous batching: GPU utilization 20-30%. With it: 80-90%.
   background: #0d0d0d; border: 1px dashed #222; color: #333;
 }
 .cbt-waste { color: #5a2a2a; border-color: #3a1515; background: #130a0a; }
-.cbt-a { background: #1a2a3b; border: 1px solid #2a4a6b; color: #a8c7fa; }
-.cbt-b { background: #1a3b2a; border: 1px solid #2a6b4a; color: #a8fac4; }
-.cbt-c { background: #3b2a1a; border: 1px solid #6b4a2a; color: #fac4a8; }
-.cbt-d { background: #2a1a3b; border: 1px solid #4a2a6b; color: #c4a8fa; }
-.cbt-e { background: #3b3b1a; border: 1px solid #6b6b2a; color: #fafaa8; }
-.cbt-f { background: #3b1a2a; border: 1px solid #6b2a4a; color: #faa8c4; }
-.cbt-g { background: #1a3b3b; border: 1px solid #2a6b6b; color: #a8fafa; }
+.cbt-a { background: var(--cg-blue-bg); border: 1px solid var(--cg-blue-border); color: var(--cg-blue); }
+.cbt-b { background: var(--cg-green-bg); border: 1px solid var(--cg-green-border); color: var(--cg-green); }
+.cbt-c { background: var(--cg-orange-bg); border: 1px solid var(--cg-orange-border); color: var(--cg-orange); }
+.cbt-d { background: var(--cg-purple-bg); border: 1px solid var(--cg-purple-border); color: var(--cg-purple); }
+.cbt-e { background: var(--cg-yellow-bg); border: 1px solid var(--cg-yellow-border); color: var(--cg-yellow); }
+.cbt-f { background: var(--cg-pink-bg); border: 1px solid var(--cg-pink-border); color: var(--cg-pink); }
+.cbt-g { background: var(--cg-teal-bg); border: 1px solid var(--cg-teal-border); color: var(--cg-teal); }
 .cbt-h { background: #2a3b1a; border: 1px solid #4a6b2a; color: #c4faa8; }
 .cbt-i { background: #3b1a3b; border: 1px solid #6b2a6b; color: #faa8fa; }
 .cbt-a, .cbt-b, .cbt-c, .cbt-d, .cbt-e, .cbt-f, .cbt-g, .cbt-h, .cbt-i { }
@@ -1439,7 +1464,7 @@ Without continuous batching: GPU utilization 20-30%. With it: 80-90%.
 .cba2 { opacity: 0; animation: fadeUp 0.4s 0.7s forwards; }
 .cba3 { opacity: 0; animation: fadeUp 0.4s 1.3s forwards; }
 .cbt-note {
-  color: #666; font-size: 12px; margin: 10px 0 0;
+  color: var(--cg-muted2); font-size: 12px; margin: 10px 0 0;
   opacity: 0; animation: fadeUp 0.3s 1.8s forwards;
 }
 </style>
@@ -1525,7 +1550,7 @@ If a draft token is wrong, the rest get discarded and the large model takes over
 
 <style>
 .spec-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -1538,7 +1563,7 @@ If a draft token is wrong, the rest get discarded and the large model takes over
 .spec-label {
   font-family: monospace;
   font-size: 12px;
-  color: #666;
+  color: var(--cg-muted2);
   width: 90px;
   flex-shrink: 0;
 }
@@ -1556,9 +1581,9 @@ If a draft token is wrong, the rest get discarded and the large model takes over
   opacity: 0;
   animation: fadeUp 0.25s forwards;
 }
-.accepted { background: #1a3b2a; border: 1px solid #2a6b4a; color: #a8fac4; }
+.accepted { background: var(--cg-green-bg); border: 1px solid var(--cg-green-border); color: var(--cg-green); }
 .rejected  { background: #3b1a1a; border: 1px solid #6b2a2a; color: #faa8a8; }
-.corrected { background: #3b2a1a; border: 1px solid #6b4a2a; color: #fac4a8; }
+.corrected { background: var(--cg-orange-bg); border: 1px solid var(--cg-orange-border); color: var(--cg-orange); }
 .st1  { animation-delay: 0.2s; }
 .st2  { animation-delay: 0.5s; }
 .st3  { animation-delay: 0.8s; }
@@ -1570,7 +1595,7 @@ If a draft token is wrong, the rest get discarded and the large model takes over
 .st9  { animation-delay: 2.4s; }
 .st10 { animation-delay: 2.6s; }
 .spec-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 14px 0 0 0;
   opacity: 0;
@@ -1642,7 +1667,7 @@ window._anims = window._anims || {};
 
 <style>
 .flash-viz {
-  background: #0f1923;
+  background: var(--cg-bg);
   border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
@@ -1657,7 +1682,7 @@ window._anims = window._anims || {};
 .flash-side-lbl {
   font-family: monospace;
   font-size: 12px;
-  color: #888;
+  color: var(--cg-muted);
   margin: 0 0 8px;
   text-align: center;
 }
@@ -1674,7 +1699,7 @@ window._anims = window._anims || {};
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .fcell-hbm { background: #3b1a1a; border-color: #6b2a2a; }
-.fcell-sram { background: #1a3b2a; border-color: #2a6b4a; box-shadow: 0 0 5px #2a6b4a80; }
+.fcell-sram { background: var(--cg-green-bg); border-color: var(--cg-green-border); box-shadow: 0 0 5px #2a6b4a80; }
 .fcell-done { background: #1a2a1a; border-color: #2a3b2a; }
 .flash-mem-lbl {
   font-family: monospace;
@@ -1685,7 +1710,7 @@ window._anims = window._anims || {};
 .hmem-lbl { color: #8a4a4a; }
 .smem-lbl { color: #4a8a4a; }
 .flash-note {
-  color: #666;
+  color: var(--cg-muted2);
   font-size: 12px;
   margin: 10px 0 0;
 }
