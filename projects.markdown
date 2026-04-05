@@ -19,4 +19,4 @@ permalink: /projects/
 
 <hr class="proj-divider">
 
-<p class="proj-wip">working on: flash attention kernel, mini-gpt, transformers in cuda, llama2, autoresearch, llmcouncil, stable diffusion, multimodal vision, shelfml, sql-model, ai chatbot, shazam</p>
+<p class="proj-wip">working on: flash attention kernel, mini-gpt, transformers in cuda, llama2, autoresearch for vision, stable diffusion</p>
