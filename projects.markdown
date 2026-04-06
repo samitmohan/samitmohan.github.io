@@ -18,5 +18,3 @@ permalink: /projects/
 </ul>
 
 <hr class="proj-divider">
-
-<p class="proj-wip">working on: flash attention kernel, mini-gpt, transformers in cuda, llama2, autoresearch for vision, stable diffusion</p>
