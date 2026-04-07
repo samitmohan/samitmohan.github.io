@@ -15,6 +15,8 @@ header_pages:
 twitter_username: samitmohan
 github_username: samitmohan
 linkedin_username: samit-mohan
+spotify_url: ""      # e.g. https://open.spotify.com/user/yourname
+resume_url: ""       # e.g. /assets/resume.pdf or external link
 
 
 markdown: kramdown

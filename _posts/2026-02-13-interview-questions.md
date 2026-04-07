@@ -562,5 +562,3 @@ for _ in range(10):
 *The complete MicroGPT architecture on one page. Every concept maps 1:1 to a line in the code above.*
 
 > I also sometimes ask silly questions like speed of light, what is 13 in binary etc.. just to check their fluency with these numbers and in general fluency with computers is what gets you hired, not passion.
-
----

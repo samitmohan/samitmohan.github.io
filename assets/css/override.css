@@ -294,6 +294,26 @@ img { opacity: var(--img-opacity); }
 .footer-link svg {
   display: block;
 }
+
+.footer-link-spotify:hover {
+  color: #1db954 !important;
+}
+
+.footer-link-resume {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 9px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.footer-link-resume:hover {
+  border-color: var(--accent);
+  color: var(--accent) !important;
+}
 @media screen and (max-width: 600px) {
   .footer-content {
     flex-direction: column;

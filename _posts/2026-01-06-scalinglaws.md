@@ -43,7 +43,7 @@ where *N* = number of parameters, *D* = dataset size (tokens), *C* = compute bud
 
 **Maybe intelligence -> lot of compute applied to lot of data having lot of parameters.**
 
-This was the first idea of scaling laws in the 1970s
+Scaling relationships between model size and performance have been observed since the early days of neural networks, but Kaplan et al. (2020) was the first rigorous quantification for large language models.
 
 - Training on enough data matters: GPT-3 was undertrained.
 - Chinchilla (half parameter size of GPT3 (70b) but 4x data -> performed better)

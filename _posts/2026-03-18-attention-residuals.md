@@ -457,6 +457,8 @@ The line `x = x + self.attn(self.norm1(x))` stays the same. The change is one le
 
 The residual weight was 1.0 for a decade. Softmax temperature is always 1/sqrt(d). Positional encodings are always added, never concatenated. Layer count is always uniform across the model. Somewhere in there is another 30-line patch worth +7.5 on GPQA. The frontier labs have more people looking at this than I do, and they're clearly finding things - but the search space is open to anyone.
 
+I didn't benchmark this myself - the numbers above are Moonshot's internal runs on 7B-70B models trained on 15T tokens. The paper reports 1.25x compute savings to match baseline and +7.5 GPQA-Diamond at 70B scale. At small scale the gains will be smaller and possibly invisible. If your model is under ~8 layers deep, the dilution problem doesn't exist yet, and neither does the benefit. Worth wiring in from the start anyway - the overhead is trivial and you'll want it when depth grows.
+
 ---
 
 ## references

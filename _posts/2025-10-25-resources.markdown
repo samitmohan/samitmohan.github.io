@@ -1,10 +1,10 @@
 ---
 layout: post
-title:  "resources"
+title:  "what i'm learning"
 date:   2025-06-28 14:06:04 +0530
 categories: goals
 tokens: "~1.5k"
-description: "resources."
+description: "books, courses, papers, and projects i want to get through."
 ---
 
 i want to be the very best, like no one ever was.
