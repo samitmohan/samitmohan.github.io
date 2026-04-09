@@ -15,6 +15,7 @@ permalink: /projects/
   <li><a href="https://samitmohan.github.io/interviews/">dsa algorithms</a> - interview prep documentation</li>
   <li><a href="https://github.com/samitmohan/Automated-Journal">automated journal</a> - daily journaling cli</li>
   <li><a href="https://github.com/samitmohan/resume-parser">resume parser</a> - nlp resume screening, built pre gippity</li>
+  <li><a href="https://github.com/samitmohan/mathLM">mathLM</a> - gpt with GQA, ROPE, Sparse MOE, SWIGLU, KV Cache, SFT trained on OpenWebMath</li>
 </ul>
 
 <hr class="proj-divider">
