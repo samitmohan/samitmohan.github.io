@@ -2,6 +2,7 @@
 layout: post
 title:  "first failure of 2026: solving 100+ deep learning questions"
 date:   2026-01-30 14:06:04 +0530
+published: false
 categories: fun
 tokens: "~0.2k"
 description: "Made it 20 days into my '1 ML problem per day' resolution before a concert in bombay killed my streak. Still solved 100+ though."
