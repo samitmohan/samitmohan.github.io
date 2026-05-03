@@ -40,43 +40,103 @@ description: "your GPU is mostly idle during text generation. the entire inferen
 
 I wrote about [what happens when you press submit on ChatGPT](/tech/2026/03/27/how-chatgpt-works.html) covering pretraining, alignment, and inference at a high level. This post goes deeper on the inference side. How do you take a trained model and serve it to millions of users without going bankrupt on GPU bills?
 
-The answers involve OS-style virtual memory for attention caches, tiled matrix multiplication in on-chip SRAM, small models that guess ahead for big models, and turning 32-bit floats into 4-bit integers without the model going stupid.
+The answers involve OS-style virtual memory for attention caches, tiled matrix multiplication in on-chip SRAM, small models that guess ahead for big models, and turning 32-bit floats into 4-bit integers without destroying output quality.
 
 ---
 
 ## the iron triangle
 
-Three forces fight each other in every inference system:
+At batch=1, a single H100 pushes 200 tokens per second through an 8B model. At batch=128: 25,000 tokens per second, same GPU, same hourly rate. Per-token cost drops 128x.
 
-<div class="diag">
-<svg viewBox="0 0 500 380" style="max-width:460px">
-  <defs>
-    <style>
-      .tri-label { font-family: monospace; font-size: 16px; font-weight: 700; }
-      .tri-sub { font-family: monospace; font-size: 11px; fill: var(--inf-muted, #888); }
-      .tri-edge { stroke: var(--inf-muted, #888); stroke-width: 1.5; stroke-dasharray: 6,4; fill: none; }
-      .tri-trade { font-family: monospace; font-size: 10px; fill: var(--inf-orange, #f08c4b); }
-    </style>
-  </defs>
-  <line x1="250" y1="60" x2="80" y2="310" class="tri-edge"/>
-  <line x1="80" y1="310" x2="420" y2="310" class="tri-edge"/>
-  <line x1="420" y1="310" x2="250" y2="60" class="tri-edge"/>
-  <circle cx="250" cy="55" r="32" fill="var(--inf-blue, #4f9ef8)" opacity="0.9"/>
-  <text x="250" y="60" text-anchor="middle" class="tri-label" fill="#111">Latency</text>
-  <circle cx="80" cy="310" r="32" fill="var(--inf-green, #4caf78)" opacity="0.9"/>
-  <text x="80" y="315" text-anchor="middle" class="tri-label" fill="#111">Cost</text>
-  <circle cx="420" cy="310" r="32" fill="var(--inf-purple, #a78bfa)" opacity="0.9"/>
-  <text x="420" y="315" text-anchor="middle" class="tri-label" fill="#111">Thru-put</text>
-  <text x="145" y="175" class="tri-trade" transform="rotate(-55,145,175)">optimize one</text>
-  <text x="250" y="335" text-anchor="middle" class="tri-trade">pick two</text>
-  <text x="355" y="175" class="tri-trade" transform="rotate(55,355,175)">sacrifice one</text>
-</svg>
-<div class="diag-caption">Pick two. Sacrifice one.</div>
+The constraint: 128 concurrent requests each carry a KV cache - the attention state from all previous tokens. At 4K context, that's 64GB of KV cache fighting for space alongside model weights. Memory runs out before compute does.
+
+If you've scaled web services, this tension is familiar. Connection pools, request buffers, memory pressure - same dynamics, different hardware. Drag the batch size and watch:
+
+<style>
+.iron-widget{background:var(--inf-bg);border:1px solid var(--inf-border);border-radius:10px;padding:20px;margin:1.2rem 0}
+.iron-widget label{font-size:13px;display:block;margin-bottom:4px;color:var(--inf-muted);font-family:monospace}
+.iron-widget input[type=range]{width:100%;margin:4px 0 16px}
+.iron-grp{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--inf-muted);font-family:monospace;margin:12px 0 4px;opacity:0.7}
+.iron-row{display:flex;align-items:center;gap:10px;margin:6px 0;font-family:monospace;font-size:13px}
+.iron-name{width:90px;color:var(--inf-muted);text-align:right;flex-shrink:0;font-size:12px}
+.iron-bar-outer{flex:1;height:16px;background:var(--inf-border);border-radius:8px;overflow:hidden}
+.iron-bar-inner{height:100%;border-radius:8px;transition:width 0.3s,background 0.3s}
+.iron-val{width:140px;color:var(--inf-text);font-weight:600;font-size:12px;flex-shrink:0}
+.iron-note{font-size:12px;color:var(--inf-green);font-family:monospace;margin-top:10px;opacity:0.9}
+.iron-insight{font-size:13px;margin-top:12px;padding:10px 14px;border-left:3px solid var(--inf-orange);background:var(--inf-bg);border-radius:0 5px 5px 0;font-family:monospace;color:var(--inf-muted);min-height:36px}
+</style>
+<div class="iron-widget">
+  <label>Concurrent requests (batch size): <strong id="iron-batch">1</strong></label>
+  <input type="range" min="1" max="256" value="1" id="iron-batch-slider" oninput="updateIron()">
+  <div class="iron-grp">what improves</div>
+  <div class="iron-row">
+    <div class="iron-name">Throughput</div>
+    <div class="iron-bar-outer"><div class="iron-bar-inner" id="iron-tput-bar"></div></div>
+    <div class="iron-val" id="iron-tput-val"></div>
+  </div>
+  <div class="iron-row">
+    <div class="iron-name">Cost / token</div>
+    <div class="iron-bar-outer"><div class="iron-bar-inner" id="iron-cost-bar"></div></div>
+    <div class="iron-val" id="iron-cost-val"></div>
+  </div>
+  <div class="iron-grp">what gets worse</div>
+  <div class="iron-row">
+    <div class="iron-name">Time to first</div>
+    <div class="iron-bar-outer"><div class="iron-bar-inner" id="iron-ttft-bar"></div></div>
+    <div class="iron-val" id="iron-ttft-val"></div>
+  </div>
+  <div class="iron-row">
+    <div class="iron-name">GPU memory</div>
+    <div class="iron-bar-outer"><div class="iron-bar-inner" id="iron-vram-bar"></div></div>
+    <div class="iron-val" id="iron-vram-val"></div>
+  </div>
+  <div class="iron-note">TPOT holds at ~5ms regardless of batch. Decode is memory-bound: the GPU reads the full model for every token, no matter how many requests share the read.</div>
+  <div class="iron-insight" id="iron-insight"></div>
+  <div style="font-size:11px;color:var(--inf-muted);font-family:monospace;margin-top:8px;opacity:0.6">Model: 8B params, FP16, single H100 80GB, 4K context</div>
 </div>
+<script>
+function updateIron(){
+  var B=parseInt(document.getElementById('iron-batch-slider').value);
+  document.getElementById('iron-batch').textContent=B;
+  var tput=B*200;
+  var tputPct=Math.min(tput/52000*100,100);
+  document.getElementById('iron-tput-bar').style.width=tputPct+'%';
+  document.getElementById('iron-tput-bar').style.background='var(--inf-green)';
+  document.getElementById('iron-tput-val').textContent=tput.toLocaleString()+' tok/s';
+  var cost=4.0/B;
+  var costPct=Math.min(cost/4.1*100,100);
+  var cc=cost>2?'var(--inf-red)':cost>0.3?'var(--inf-orange)':'var(--inf-green)';
+  document.getElementById('iron-cost-bar').style.width=costPct+'%';
+  document.getElementById('iron-cost-bar').style.background=cc;
+  document.getElementById('iron-cost-val').textContent='$'+(cost<0.1?cost.toFixed(3):cost.toFixed(2))+'/M tokens';
+  var ttft=10+2*B;
+  var ttftPct=Math.min(ttft/550*100,100);
+  var tc=ttft<100?'var(--inf-green)':ttft<300?'var(--inf-orange)':'var(--inf-red)';
+  document.getElementById('iron-ttft-bar').style.width=ttftPct+'%';
+  document.getElementById('iron-ttft-bar').style.background=tc;
+  document.getElementById('iron-ttft-val').textContent=ttft+'ms';
+  var vram=21+B*0.5;
+  var vramPct=Math.min(vram/80*100,100);
+  var vc=vram<55?'var(--inf-green)':vram<72?'var(--inf-orange)':'var(--inf-red)';
+  var vl=vram.toFixed(0)+'GB / 80GB';
+  if(vram>80) vl=vram.toFixed(0)+'GB / 80GB — OOM';
+  document.getElementById('iron-vram-bar').style.width=vramPct+'%';
+  document.getElementById('iron-vram-bar').style.background=vc;
+  document.getElementById('iron-vram-val').textContent=vl;
+  var msg='';
+  if(B<=2) msg='The GPU loads 16GB of weights to produce '+B+' token(s), then waits. You are renting a datacenter GPU for one conversation.';
+  else if(B<=16) msg='Weight reads amortized across '+B+' requests. Cost already $'+cost.toFixed(2)+'/M. GPU still has headroom.';
+  else if(vram<72) msg='High throughput, low cost, VRAM within budget. Production systems aim for this zone.';
+  else if(vram<80) msg='Approaching VRAM limit. KV cache is '+(vram-21).toFixed(0)+'GB. A few more requests trigger eviction or OOM.';
+  else msg='KV cache exceeds VRAM. You need PagedAttention, KV quantization, or more GPUs. Every technique in this post pushes this wall further out.';
+  document.getElementById('iron-insight').textContent=msg;
+}
+updateIron();
+</script>
 
-Optimize for latency (dedicate resources per request) and cost climbs. Optimize for throughput (pack requests into batches) and per-request latency suffers. Cut cost (smaller model, fewer GPUs) and both degrade.
+Batching is free throughput - until memory says stop. The entire inference optimization stack exists to push that memory wall further out, letting you pack more requests per GPU without blowing latency SLOs.
 
-Four metrics define how you measure progress:
+Four metrics track where your system sits in this tradeoff:
 
 - **TTFT** (Time to First Token): time before the user sees output. The prefill phase drives this.
 - **TPOT** (Time per Output Token): time between consecutive tokens during decode. Memory bandwidth drives this.
@@ -322,7 +382,8 @@ The fix for this ratio: **batching**. With batch=32, you still read 140GB of wei
   <label>Model size (billions): <strong id="tpot-params">70</strong></label>
   <input type="range" min="1" max="405" value="70" id="tpot-params-slider" oninput="updateTPOT()">
   <label>Precision bytes: <strong id="tpot-bpp">2</strong> (FP16)</label>
-  <input type="range" min="0.5" max="4" step="0.5" value="2" id="tpot-bpp-slider" oninput="updateTPOT()">
+  <input type="range" min="0.5" max="4" step="0.5" value="2" id="tpot-bpp-slider" list="tpot-prec-list" oninput="updateTPOT()">
+  <datalist id="tpot-prec-list"><option value="0.5"><option value="1"><option value="2"><option value="4"></datalist>
   <label>Batch size: <strong id="tpot-batch">1</strong></label>
   <input type="range" min="1" max="128" value="1" id="tpot-batch-slider" oninput="updateTPOT()">
   <label>GPU: H100 (3.35 TB/s bandwidth, 990 TFLOPS FP16)</label>
@@ -336,7 +397,7 @@ function updateTPOT(){
   document.getElementById('tpot-params').textContent=p;
   document.getElementById('tpot-bpp').textContent=bpp;
   document.getElementById('tpot-batch').textContent=B;
-  var precLabel={0.5:'INT4',1:'INT8',1.5:'FP12',2:'FP16',2.5:'BF16+',3:'FP24',3.5:'FP28',4:'FP32'};
+  var precLabel={0.5:'INT4',1:'INT8',2:'FP16',4:'FP32'};
   if(precLabel[bpp]) document.getElementById('tpot-bpp').textContent=bpp+' ('+precLabel[bpp]+')';
   var weightGB=p*1e9*bpp/1e9;
   var bw=3.35e12; // bytes/s
@@ -499,7 +560,7 @@ Many requests share a common prefix: system prompts, few-shot examples, shared c
 
 ### kv cache tiers
 
-Not all KV cache entries need the fastest memory. A tiered storage hierarchy trades access speed for capacity:
+Not all KV cache entries need the fastest memory. Same idea as a CDN edge / origin / cold storage hierarchy, but for GPU memory:
 
 | Tier | Storage | Bandwidth | Use |
 |------|---------|-----------|-----|
@@ -615,7 +676,7 @@ Model designers reduce attention cost at the architecture level:
 
 Each GPU kernel reads inputs from HBM, computes, and writes results back to HBM. Three separate kernels (LayerNorm, Linear, GeLU) mean three round-trips through HBM: 6 memory operations total.
 
-A **fused kernel** combines all three operations into one kernel that reads once, computes all three in SRAM, and writes once. Memory traffic drops by ~3x. Same math, fewer bus rides.
+A **fused kernel** combines all three operations into one kernel that reads once, computes all three in SRAM, and writes once. Memory traffic drops by ~3x. Same math, fewer bus rides. Database engineers will recognize this: a query planner fusing a scan + filter + projection into one pass over the data instead of materializing intermediate results. Same principle, different hardware.
 
 <div class="inf-video">
 <video autoplay loop muted playsinline preload="none" poster="/assets/images/inference/inference_kernel_fusion_poster.jpg">
@@ -710,7 +771,7 @@ QAT produces better results than PTQ at 4-bit and below, but requires training c
 .quant-widget .quant-label{width:120px;font-size:12px;color:var(--inf-muted)}
 </style>
 <div class="quant-widget">
-  <div style="font-family:monospace;font-size:14px;font-weight:600;color:var(--inf-text);margin-bottom:8px">Qwen 3.5 9B - Quality vs Speed (ngrok benchmarks)</div>
+  <div style="font-family:monospace;font-size:14px;font-weight:600;color:var(--inf-text);margin-bottom:8px">Qwen 3.5 9B - Quality vs Speed (representative benchmarks)</div>
   <div class="quant-row">
     <div class="quant-bits">BF16</div>
     <div class="quant-bar-outer"><div class="quant-bar-inner" style="width:100%;background:var(--inf-green)"></div></div>
@@ -756,7 +817,7 @@ Mixed-precision strategies keep sensitive layers at higher precision and aggress
 
 ## speculative decoding: guessing ahead
 
-Use a small model to guess ahead, verify all guesses in one big-model pass.
+Use a small model to guess ahead, verify all guesses in one big-model pass. CPU branch prediction, but for language: predict the likely next tokens, execute speculatively, flush and retry on misprediction.
 
 <div class="diag">
 <style>
@@ -894,7 +955,7 @@ Collect N requests, pad all sequences to the same length, process as a single ba
 
 ### continuous batching
 
-At every decode step, check if any request is done. When one finishes, slot in a new request from the queue. The batch stays full. The GPU stays busy. 2-5x throughput improvement over static batching.
+At every decode step, check if any request is done. When one finishes, slot in a new request from the queue. The batch stays full. The GPU stays busy. 2-5x throughput improvement over static batching. If you've built web servers: continuous batching is to static batching what an event loop (Node.js, asyncio) is to a thread-per-request model. Don't wait for the slowest request to finish before admitting new work.
 
 <div class="diag">
 <svg viewBox="0 0 720 310" style="max-width:700px">
@@ -940,7 +1001,7 @@ At every decode step, check if any request is done. When one finishes, slot in a
 
 But there's a subtler problem: **prefill piracy**. A long-prompt request enters the batch. Its prefill takes 500ms of compute. During that time, every decode-phase request in the batch stalls.
 
-**Chunked prefill** breaks long prefills into 512-token chunks, interleaving decode steps between them. No single request monopolizes the GPU. The long prefill takes slightly longer overall, but latency spikes for everyone else disappear.
+**Chunked prefill** breaks long prefills into 512-token chunks, interleaving decode steps between them. No single request monopolizes the GPU. The long prefill takes slightly longer overall, but latency spikes for everyone else disappear. Same principle as preemptive scheduling in an OS kernel: no single process should starve others.
 
 ---
 
@@ -1054,38 +1115,21 @@ If you're deploying an LLM and need to make it faster/cheaper, optimize in this 
 
 ## inference-time compute scaling
 
-Training-time scaling (bigger models, more data) shows diminishing returns. Frontier models train at **~100x beyond Chinchilla-optimal** token counts. The economics make this rational: RL post-training and user inference mean compute spending splits ~1:1:1 across pre-training, RL generation, and serving. Over-training the base model (more tokens, smaller model) reduces inference cost per token, and inference is where the money goes. Inference-time scaling invests more compute per query to get better answers from a fixed model.
+Instead of training a bigger model, spend more compute per query at serving time. The cost shows up as more tokens generated (CoT), more forward passes (search), or both.
 
 ### chain-of-thought
 
-The simplest form: prompt the model to reason step-by-step before answering. CoT costs more tokens (more decode time and KV cache) but improves accuracy on reasoning tasks: math, code, logic.
+Prompt the model to reason step-by-step before answering. CoT costs more tokens (more decode time and KV cache) but improves accuracy on reasoning tasks: math, code, logic.
 
 The tradeoff: a CoT response generating 500 reasoning tokens before the answer costs 5-10x more than a direct answer. Reserve CoT for high-value queries.
 
-### reward models
-
-A reward model scores candidate outputs:
-
-- **Outcome Reward Model (ORM)**: scores the final answer. Binary: right or wrong.
-- **Process Reward Model (PRM)**: scores each reasoning step. Identifies where the chain of thought goes wrong. More expensive to train (requires step-level labels) but enables tree search.
-
 ### search strategies
 
-Given a reward model, you can search for better outputs:
+A **reward model** scores candidate outputs - either the final answer (ORM) or each reasoning step (PRM). Given a reward model, you can search for better outputs:
 
-- **Best-of-N**: generate N independent responses, score each, return the best. Simple, parallelizable, wasteful (N forward passes).
-- **Beam search**: maintain K active beams, extend each by one step, prune to K best using the PRM.
-- **MCTS** (Monte Carlo Tree Search): explore the solution space as a tree. Each node is a reasoning step. UCB balances exploration vs exploitation. DeepSeek-R1 and AlphaProof use MCTS-style approaches.
-
-### deepseek-r1 and grpo
-
-DeepSeek-R1 uses **Group Relative Policy Optimization** (GRPO):
-1. Generate multiple responses per prompt.
-2. Score each with a reward model.
-3. Compute advantage relative to the group mean (no value model needed, unlike PPO).
-4. Update the policy to favor above-average responses.
-
-The resulting model generates long chains of reasoning, self-corrects, and explores multiple solution paths.
+- **Best-of-N**: generate N independent responses, score each, return the best. Simple, parallelizable, costs N forward passes.
+- **Beam search**: maintain K active beams, extend each by one step, prune to K best.
+- **MCTS**: explore the solution space as a tree. Each node is a reasoning step. DeepSeek-R1 and AlphaProof use this approach.
 
 ### when to scale inference compute
 
@@ -1143,7 +1187,11 @@ At 1M requests/day with avg 500 input + 200 output tokens:
 
 15x cheaper in hardware alone. But engineering salaries, oncall burden, and infrastructure maintenance are real costs that don't appear on the cloud bill. The true crossover depends on your team size and ops maturity.
 
-**API pricing leaks infrastructure secrets.** Decode tokens cost 3-5x more than prefill tokens at OpenAI, Anthropic, and Google. This tells you the system is memory-bandwidth-constrained during decode. Context pricing breakpoints at ~200K tokens reveal where providers switch from KV cache fitting in GPU memory to spilling to slower tiers. Cache hit discounts (50-90% cheaper at some providers) reveal the storage-vs-recompute tradeoff: it's cheaper to keep your KV cache warm than to recompute it.
+### what api pricing reveals about infrastructure
+
+Decode tokens cost 3-5x more than prefill tokens at OpenAI, Anthropic, and Google. This tells you the system is memory-bandwidth-constrained during decode. Context pricing breakpoints at ~200K tokens reveal where providers switch from KV cache fitting in GPU memory to spilling to slower tiers. Cache hit discounts (50-90% cheaper at some providers) reveal the storage-vs-recompute tradeoff: it's cheaper to keep your KV cache warm than to recompute it.
+
+If you read the pricing page of any inference provider, you're reading a map of their hardware constraints.
 
 ---
 
@@ -1220,13 +1268,13 @@ Running inference on the end user's device. Zero network latency, no server cost
 
 **Diffusion LLMs.** Generate all tokens in parallel over T denoising steps. A 1000-token response takes the same number of steps as a 10-token response. If T < output_length, diffusion beats autoregressive. Open problem: text is discrete (tokens), not continuous (pixels). Adapting diffusion to discrete spaces requires either embedding tokens into continuous space or developing discrete diffusion processes.
 
-**Multi-token prediction.** Train the model to predict 2-4 tokens per forward pass using multiple output heads. Meta published this. Each step produces multiple tokens. Combines with speculative decoding: the model's own predictions serve as the draft.
+**Multi-token prediction.** Train the model to predict 2-4 tokens per forward pass using multiple output heads. Each step produces multiple tokens. Combines with speculative decoding: the model's own predictions serve as the draft.
 
 **Mixture of Depths.** Standard transformers process every token through every layer. MoD adds a learned router that skips layers for easy tokens. Compute scales with input difficulty, not just sequence length.
 
-**Hardware frontiers.** Groq LPU: SRAM-only architecture (no HBM), all model weights in on-chip SRAM. Eliminates the memory bandwidth bottleneck for decode. Limited by total SRAM capacity (~230MB). Photonic computing: light instead of electrons for matrix multiplication. Near-zero energy matrix multiply at the speed of light in theory. Still in the lab.
+**Hardware frontiers.** Groq LPU: SRAM-only architecture (no HBM), all model weights in on-chip SRAM. Eliminates the memory bandwidth bottleneck for decode. Limited by total SRAM capacity (~230MB).
 
-Inference cost falls ~10x per year through hardware improvements, quantization, architectural innovations, and serving optimizations.
+Inference cost has dropped sharply over the past two years through hardware improvements, quantization, architectural innovations, and serving optimizations. The exact rate varies by model size and workload, but the trajectory is steep enough that "too expensive to run" today often becomes viable within a year.
 
 ---
 
@@ -1341,16 +1389,16 @@ This reports P50/P90/P99 TTFT, TPOT, throughput, and goodput. Run it before and 
 
 Key papers:
 
-- **Dao et al., 2022** - FlashAttention (tiling + online softmax)
-- **Kwon et al., 2023** - PagedAttention / vLLM (OS virtual memory for KV cache)
-- **Leviathan et al., 2023** - Speculative decoding (rejection sampling proof)
-- **Xiao et al., 2023** - SmoothQuant (activation-to-weight difficulty migration)
-- **Lin et al., 2023** - AWQ (activation-aware weight quantization)
-- **Frantar et al., 2023** - GPTQ (Hessian-based post-training quantization)
-- **Xiao et al., 2024** - StreamingLLM (attention sinks for infinite context)
-- **Gu & Dao, 2024** - Mamba (linear-time sequence modeling)
-- **DeepSeek-AI, 2024** - DeepSeek-V3 (MLA + MoE at scale)
-- **Li et al., 2024** - EAGLE (speculative sampling with hidden states)
+- [**Dao et al., 2022**](https://arxiv.org/abs/2205.14135) - FlashAttention (tiling + online softmax)
+- [**Kwon et al., 2023**](https://arxiv.org/abs/2309.06180) - PagedAttention / vLLM (OS virtual memory for KV cache)
+- [**Leviathan et al., 2023**](https://arxiv.org/abs/2211.17192) - Speculative decoding (rejection sampling proof)
+- [**Xiao et al., 2023**](https://arxiv.org/abs/2211.10438) - SmoothQuant (activation-to-weight difficulty migration)
+- [**Lin et al., 2023**](https://arxiv.org/abs/2306.00978) - AWQ (activation-aware weight quantization)
+- [**Frantar et al., 2023**](https://arxiv.org/abs/2210.17323) - GPTQ (Hessian-based post-training quantization)
+- [**Xiao et al., 2024**](https://arxiv.org/abs/2309.17453) - StreamingLLM (attention sinks for infinite context)
+- [**Gu & Dao, 2024**](https://arxiv.org/abs/2312.00752) - Mamba (linear-time sequence modeling)
+- [**DeepSeek-AI, 2024**](https://arxiv.org/abs/2412.19437) - DeepSeek-V3 (MLA + MoE at scale)
+- [**Li et al., 2024**](https://arxiv.org/abs/2401.15077) - EAGLE (speculative sampling with hidden states)
 
 Tools:
 
