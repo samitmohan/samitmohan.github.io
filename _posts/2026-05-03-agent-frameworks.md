@@ -38,7 +38,7 @@ description: "every agent framework is just a disagreement about how much to tru
 
 > **TL;DR:** An agent is an LLM in a loop with tools. Every framework disagrees about how much of that loop to hard-code vs. let the model decide. The landscape went from chains (2022) to stateful graphs (2024) to model-driven harnesses (2025). MCP won as the integration standard. Pick your framework based on how much you trust the model and how much you need to debug.
 
-A reading guide to LangChain, LangGraph, n8n, Agno, and the broader agent landscape as of May 2026.
+A reading guide to LangChain, LangGraph, n8n, Agno, and the broader agent landscape in 2026.
 
 ## table of contents
 
@@ -47,7 +47,7 @@ A reading guide to LangChain, LangGraph, n8n, Agno, and the broader agent landsc
 2. [the core mental models](#the-core-mental-models)
 3. [the frameworks, one by one](#the-frameworks-one-by-one)
 4. [the protocol layer](#the-protocol-layer-underneath-all-of-this)
-5. [where things are right now](#where-things-actually-are-right-now-may-2026)
+5. [where things are right now](#where-things-actually-are-right-now)
 6. [how to actually choose](#how-to-actually-choose)
 
 ---
@@ -503,7 +503,7 @@ A second important development at this layer is what Anthropic has been calling 
 
 ---
 
-## where things actually are right now, May 2026
+## where things actually are right now
 
 Four things define the field right now.
 
