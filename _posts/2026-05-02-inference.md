@@ -337,7 +337,7 @@ The fix for this ratio: **batching**. With batch=32, you still read 140GB of wei
   <input type="range" min="1" max="405" value="70" id="tpot-params-slider" oninput="updateTPOT()">
   <label>Precision bytes: <strong id="tpot-bpp">2</strong> (FP16)</label>
   <input type="range" min="0.5" max="4" step="0.5" value="2" id="tpot-bpp-slider" list="tpot-prec-list" oninput="updateTPOT()">
-  <datalist id="tpot-prec-list"><option value="0.5"><option value="1"><option value="2"><option value="4"></datalist>
+  <datalist id="tpot-prec-list"><option value="0.5"></option><option value="1"></option><option value="2"></option><option value="4"></option></datalist>
   <label>Batch size: <strong id="tpot-batch">1</strong></label>
   <input type="range" min="1" max="128" value="1" id="tpot-batch-slider" oninput="updateTPOT()">
   <label>GPU: H100 (3.35 TB/s bandwidth, 990 TFLOPS FP16)</label>
