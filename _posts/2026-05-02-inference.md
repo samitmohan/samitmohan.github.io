@@ -311,53 +311,7 @@ Tensor parallelism uses NVLink (fast, within a node). Pipeline parallelism uses 
 
 ## the roofline: why your gpu is bored
 
-Every GPU has two resources: compute (FLOPS) and memory bandwidth (bytes/second). The **roofline model** tells you which one you're bottlenecked on.
-
-<style>
-.roofline-widget{background:var(--inf-bg);border:1px solid var(--inf-border);border-radius:10px;padding:20px;margin:1.2rem 0}
-.roofline-widget label{font-size:13px;display:block;margin-bottom:4px;color:var(--inf-muted);font-family:monospace}
-.roofline-widget input[type=range]{width:100%;margin:4px 0}
-.roofline-widget .result{font-size:16px;font-weight:600;margin-top:12px;font-family:monospace;color:var(--inf-text)}
-.roofline-widget .result .bound{padding:2px 8px;border-radius:4px;font-size:14px}
-.roofline-widget .result .mem-bound{background:var(--inf-red);color:#111}
-.roofline-widget .result .compute-bound{background:var(--inf-green);color:#111}
-</style>
-<div class="roofline-widget">
-  <label>Arithmetic Intensity (ops/byte): <strong id="rf-ai">62</strong></label>
-  <input type="range" min="1" max="600" value="62" id="rf-ai-slider" oninput="updateRoofline()">
-  <label>GPU: H100 SXM (990 TFLOPS FP16, 3.35 TB/s HBM)</label>
-  <div class="result">
-    <div>Ridge point: <strong>295 ops/byte</strong></div>
-    <div style="margin-top:8px">Your workload: <span id="rf-result"></span></div>
-    <div style="margin-top:4px;font-size:13px;color:var(--inf-muted)" id="rf-detail"></div>
-  </div>
-</div>
-<script>
-function updateRoofline(){
-  var ai=parseInt(document.getElementById('rf-ai-slider').value);
-  document.getElementById('rf-ai').textContent=ai;
-  var ridge=295;
-  var res=document.getElementById('rf-result');
-  var det=document.getElementById('rf-detail');
-  if(ai<ridge){
-    var perf=(3.35e12*ai/1e12).toFixed(1);
-    res.innerHTML='<span class="bound mem-bound">MEMORY-BOUND</span> at '+ai+' ops/byte';
-    det.textContent='Achievable: '+perf+' TFLOPS ('+((ai/ridge)*100).toFixed(0)+'% of peak). GPU compute is underutilized.';
-  } else {
-    res.innerHTML='<span class="bound compute-bound">COMPUTE-BOUND</span> at '+ai+' ops/byte';
-    det.textContent='Achievable: 990 TFLOPS (at peak). Memory bandwidth has headroom.';
-  }
-}
-updateRoofline();
-</script>
-
-<div class="inf-video">
-<video autoplay loop muted playsinline preload="none" poster="/assets/images/inference/inference_roofline_poster.jpg">
-  <source src="/assets/images/inference/inference_roofline.mp4" type="video/mp4">
-</video>
-</div>
-
-**Arithmetic intensity** = FLOPs / bytes moved. Below the ridge point: memory-bound. Above it: compute-bound. LLM prefill sits around 200-300 ops/byte (compute-bound). LLM decode sits around 1-10 ops/byte (memory-bound, ~3% GPU utilization).
+**Arithmetic intensity** = FLOPs / bytes moved. If your workload does few operations per byte loaded, you're memory-bound. LLM prefill sits around 200-300 ops/byte (compute-bound). LLM decode sits around 1-10 ops/byte (memory-bound, the GPU is idle most of the time).
 
 ### the byte budget for a single decode step
 
@@ -645,21 +599,7 @@ FlashAttention (Dao et al., 2022) never builds the full matrix. Instead:
 2. For each Q block, iterate over K, V blocks. Compute attention scores **in SRAM**, never writing the intermediate matrix to HBM.
 3. **Online softmax** makes this possible. Standard softmax needs the max over the entire row before normalizing. The online softmax algorithm maintains running statistics (max and sum) that update as each block arrives. The final result is exact.
 
-The online softmax trick:
-
-$$m_{new} = \max(m_{old}, \max(S_b))$$
-
-$$\ell_{new} = \ell_{old} \cdot e^{m_{old} - m_{new}} + \sum e^{S_b - m_{new}}$$
-
-Memory drops from O(N^2) to O(N). IO complexity drops from O(N^2 d) to O(N^2 d^2 / M) where M is SRAM size. Same exact output, fewer memory trips.
-
-### flashattention 1/2/3
-
-| Version | Key Feature |
-|---------|-------------|
-| FlashAttention 1 | Tiling + online softmax |
-| FlashAttention 2 | Better parallelism, fewer non-matmul FLOPs |
-| FlashAttention 3 | Hopper: WGMMA, TMA, FP8, async pipelining |
+Memory drops from O(N^2) to O(N). Same exact output, fewer memory trips. FlashAttention is now the default in every major inference engine.
 
 ### reducing kv heads: mqa, gqa, mla
 
@@ -708,56 +648,19 @@ A 70B model at FP32 is 280GB. At FP16, 140GB. At INT4, 35GB. Fewer bits = less m
 
 BF16 keeps FP32's 8-bit exponent, trading mantissa bits for range. LLM weights span several orders of magnitude, so range matters more than decimal precision.
 
-### how quantization works
+### what to use
 
-**Symmetric**: divide by the max absolute value to get a scale factor. Simple, wastes range when values skew away from zero.
+Post-Training Quantization: quantize a trained model without retraining. Three options, in order of "try this first":
 
-**Asymmetric**: use the full min-max range with a scale and zero-point offset:
+| Method | Bits | Quality loss | Calibration | When to use |
+|--------|------|-------------|-------------|-------------|
+| **FP8 dynamic** | 8 | <1% ppl | None (runtime) | Hopper+ with VRAM to spare. Zero effort, near-lossless. |
+| **AWQ** | 4 | ~5% ppl | Minutes | **Default for 4-bit.** Fits large models on consumer GPUs. Used in the code examples below. |
+| **GPTQ** | 4-3 | ~5% ppl | Hours | When AWQ weights aren't available, or you need 3-bit. |
 
-```python
-# Asymmetric quantization
-scale = (max_val - min_val) / (qmax - qmin)
-zero = qmin - round(min_val / scale)
+AWQ and GPTQ produce similar quality at 4-bit. AWQ calibrates faster and has slightly better ecosystem support in vLLM/SGLang. Most quantized models on HuggingFace ship in one or both formats. QuIP# pushes to 2-bit using random orthogonal transforms - research frontier, not yet production-standard.
 
-# Dequantize
-v_float = (v_quant - zero) * scale
-```
-
-**Block-wise**: a single scale for the full model destroys accuracy. A few outlier weights force an enormous range, crushing precision everywhere else. Block-wise quantization applies separate scale/zero to chunks of 32-256 parameters, containing the damage.
-
-### the outlier problem
-
-Weights are well-behaved: near-Gaussian, easy to quantize. **Activations are not.** In large LLMs (>6.7B params), a small number of channels (<1% of dimensions) produce values 100x larger than the rest. Per-tensor quantization sets the scale to cover these outliers, cramming 99% of values into a tiny fraction of the quantization range.
-
-<div class="inf-video">
-<video autoplay loop muted playsinline preload="none" poster="/assets/images/inference/inference_quantization_poster.jpg">
-  <source src="/assets/images/inference/inference_quantization.mp4" type="video/mp4">
-</video>
-</div>
-
-Three solutions:
-
-**LLM.int8()** (Dettmers et al.): extract outlier channels (>6 standard deviations), compute them at FP16, quantize the rest to INT8. Mixed-precision within each matrix multiply.
-
-**SmoothQuant** (Xiao et al.): migrate the quantization difficulty from activations to weights. Multiply activations by a per-channel smoothing factor s, divide weights by the same factor. After smoothing, activations have smaller dynamic range (easy to quantize) and weights have slightly larger range (still tractable). Both sides become INT8-friendly.
-
-**FP8 dynamic quantization**: compute per-tensor scale at runtime. FP8's wider dynamic range handles moderate outliers without special treatment. The default approach on Hopper+.
-
-### ptq methods
-
-Post-Training Quantization: quantize a trained model without retraining.
-
-- **GPTQ** (Frantar et al.): layer-by-layer weight quantization. Quantize weights and update remaining weights to compensate for the error using the inverse Hessian. Optimal given the calibration data.
-- **AWQ** (Lin et al.): activation-aware weight quantization. Measures activation magnitudes to identify which weight channels matter most, then preserves those at higher effective precision via per-channel scaling before quantization.
-- **QuIP#** (Chee et al.): random orthogonal transforms (incoherence processing) make all weight channels equal in importance before quantization. Strong results at 2-bit.
-
-### qat: quantization-aware training
-
-QAT inserts fake quantization operations into the training loop so the model learns weight distributions that survive low-bit compression.
-
-The core problem: quantization (rounding to discrete values) has zero gradient. The **Straight-Through Estimator (STE)** passes gradients through the rounding operation unchanged during backpropagation. Forward pass rounds; backward pass pretends rounding didn't happen.
-
-QAT produces better results than PTQ at 4-bit and below, but requires training compute.
+**W4A16 vs W8A8**: W4A16 (4-bit weights, FP16 activations) saves memory and speeds up decode. W8A8 (INT8 weights + activations) reduces latency for both prefill and decode but needs hardware support. If you're memory-constrained, W4A16. If you're latency-constrained with VRAM headroom, W8A8.
 
 ### accuracy vs speed
 
@@ -795,23 +698,6 @@ QAT produces better results than PTQ at 4-bit and below, but requires training c
 </div>
 
 8-bit: lossless for all practical purposes. 4-bit: ~2x faster, ~5% quality drop. Below 4-bit: the model falls off a cliff.
-
-### which method to pick
-
-1. Does the model fit in VRAM at FP16? **No** -> AWQ or GPTQ 4-bit.
-2. Latency-critical? **Yes** -> W8A8 (INT8 weights + activations) or FP8 dynamic.
-3. Memory-bound decode bottleneck? **Yes** -> W4A16 (4-bit weights, FP16 activations).
-4. Maximum compression? -> GPTQ 3-bit or QuIP# 2-bit, benchmark quality on your eval set.
-
-### sensitivity hierarchy
-
-Layers differ in quantization sensitivity. From most to least sensitive:
-1. First and last transformer blocks (embedding/output interface)
-2. Attention Q, K projections (errors compound through softmax)
-3. Attention V, O projections
-4. Feedforward layers (most tolerant)
-
-Mixed-precision strategies keep sensitive layers at higher precision and aggressively quantize the rest.
 
 ---
 
@@ -865,25 +751,7 @@ Use a small model to guess ahead, verify all guesses in one big-model pass. CPU 
 </video>
 </div>
 
-### the math
-
-The acceptance criterion guarantees **identical output** to the target model alone. Not an approximation.
-
-For each position, let p(x) = target model probability, q(x) = draft model probability:
-
-$$\text{Accept token } x \text{ with probability: } \min\left(1, \frac{p(x)}{q(x)}\right)$$
-
-If rejected, sample from:
-
-$$\text{norm}\left(\max(0, p(x) - q(x))\right)$$
-
-When q(x) <= p(x) (draft model underestimates), the system always accepts. When q(x) > p(x) (draft overestimates), acceptance drops proportionally. The rejection distribution compensates exactly.
-
-If the draft model's average acceptance rate is $$\alpha$$:
-
-$$\text{Expected tokens per step} = \frac{1}{1 - \alpha}$$
-
-At $$\alpha = 0.8$$ (80% acceptance), each step yields ~5 tokens. For predictable text ("The Eiffel Tower is located in..."), the small model nails it. For creative generation with high temperature, acceptance drops and it's not worth it.
+The acceptance criterion guarantees **identical output** to the target model alone - not an approximation. At 80% acceptance rate, each verification step yields ~5 tokens. For predictable text ("The Eiffel Tower is located in..."), the small model nails it. For creative generation with high temperature, acceptance drops.
 
 <style>
 .spec-widget{background:var(--inf-bg);border:1px solid var(--inf-border);border-radius:10px;padding:20px;margin:1.2rem 0}
@@ -1074,26 +942,9 @@ When a token needs expert 7 on GPU 2, the system sends that token's hidden state
 
 ## mixture of experts
 
-MoE replaces dense feedforward layers with many smaller expert networks plus a learned router. Each token routes through only a few experts (e.g., 8 of 128), keeping the active parameter count per token at a fraction of the total. This changes the parallelism calculus: instead of splitting one dense matrix across GPUs (AllReduce), you distribute entire expert networks (All-to-All).
+MoE replaces dense feedforward layers with many smaller expert networks plus a learned router. Each token activates only a few experts (e.g., 8 of 128), so per-token compute stays low even with massive total parameter counts. DeepSeek-V3: 671B total parameters, 37B active per token.
 
-- The router (a small network) picks which experts to activate at each layer.
-- Qwen3 MoE: 128 experts per layer, router picks 8 per token across 94 layers.
-- For single-request inference, MoE works well: few active parameters, low memory bandwidth.
-- In batched inference, different requests activate different experts, so most parameters stay active unless you use expert parallelism.
-
-Models under 8B parameters gain little from MoE. Domain-specific models (tab completion) act as one effective expert, negating the sparsity benefit.
-
-The tradeoff: total parameters increase (DeepSeek-V3 has 671B total, 37B active per token), requiring more VRAM even though per-token compute stays low. You need the full model in memory even if each token only uses 5% of it.
-
-### deepseek-v3's mla: compressing the kv cache
-
-DeepSeek-V3 introduced **Multi-Latent Attention (MLA)**, which compresses the KV cache by projecting keys and values into a low-dimensional latent space:
-
-1. During prefill, compute K, V from the hidden state, then **compress** them via a down-projection: $$c_t = W_{dkv} \cdot [K_t; V_t]$$
-2. Store only the compressed latent $$c_t$$ in the KV cache (dimension ~512 vs ~4096+ for standard KV).
-3. During decode, reconstruct K, V from the latent: $$K_t = W_{uk} \cdot c_t$$, $$V_t = W_{uv} \cdot c_t$$.
-
-KV cache shrinks by 8-16x. The reconstruction adds compute, but since decode is memory-bound, the extra FLOPs are free: the GPU has spare compute cycles. MLA trades cheap compute for expensive memory.
+The inference tradeoff: you need the full model in VRAM even though each token only uses ~5% of it. In batched inference, different requests activate different experts, so most parameters stay active. MoE models use expert parallelism (All-to-All communication) instead of tensor parallelism (AllReduce).
 
 ---
 
@@ -1110,32 +961,6 @@ If you're deploying an LLM and need to make it faster/cheaper, optimize in this 
 <strong>5. Consider speculative decoding.</strong> If your workload has predictable outputs (code completion, factual QA), spec decode gives 2-3x speedup.<br><br>
 <strong>6. Disaggregate prefill and decode.</strong> Worth it at scale (100+ GPUs). Overkill for small deployments.
 </div>
-
----
-
-## inference-time compute scaling
-
-Instead of training a bigger model, spend more compute per query at serving time. The cost shows up as more tokens generated (CoT), more forward passes (search), or both.
-
-### chain-of-thought
-
-Prompt the model to reason step-by-step before answering. CoT costs more tokens (more decode time and KV cache) but improves accuracy on reasoning tasks: math, code, logic.
-
-The tradeoff: a CoT response generating 500 reasoning tokens before the answer costs 5-10x more than a direct answer. Reserve CoT for high-value queries.
-
-### search strategies
-
-A **reward model** scores candidate outputs - either the final answer (ORM) or each reasoning step (PRM). Given a reward model, you can search for better outputs:
-
-- **Best-of-N**: generate N independent responses, score each, return the best. Simple, parallelizable, costs N forward passes.
-- **Beam search**: maintain K active beams, extend each by one step, prune to K best.
-- **MCTS**: explore the solution space as a tree. Each node is a reasoning step. DeepSeek-R1 and AlphaProof use this approach.
-
-### when to scale inference compute
-
-Inference-time scaling helps most on **verifiable tasks** with clear right/wrong answers: math, code, logic. The reward model can reliably score solutions.
-
-It helps less on **open-ended tasks** (creative writing, summarization) where "better" is subjective. Medical diagnosis? Worth 10x compute for 5% better accuracy. Chatbot small-talk? No.
 
 ---
 
@@ -1239,15 +1064,6 @@ Standard attention scales O(N^2) with sequence length. At 128K tokens, a single 
 **Ring Attention**: distribute the sequence across D devices in a ring. Each device holds a chunk of Q. K, V chunks rotate around the ring. At each step, each device computes local attention and passes its K, V chunk to the next device. After D steps, every device has attended to the full sequence. Memory per device: O(N/D). Context length scales linearly with GPU count.
 
 **RoPE extensions**: Rotary Position Embeddings encode position information. Extending beyond training length requires adjusting the frequency basis. YaRN and NTK-aware scaling do this without fine-tuning.
-
-### state-space models
-
-SSMs (Mamba, S4) replace attention with a recurrent formulation:
-- **Compute**: O(N) per step (linear, not quadratic)
-- **Memory**: O(1) per step (fixed state, no growing KV cache)
-- **Weakness**: weaker at precise retrieval over long contexts (needle-in-a-haystack tasks)
-
-**Hybrid architectures** (NVIDIA Nemotron, Jamba) alternate transformer blocks (strong retrieval) with SSM blocks (fast long-context). 80-90% of transformer quality at a fraction of long-context cost.
 
 ### edge inference
 
