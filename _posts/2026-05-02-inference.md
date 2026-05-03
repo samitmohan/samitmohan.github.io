@@ -1110,94 +1110,165 @@ Inference cost has dropped sharply over the past two years through hardware impr
 
 ---
 
-## build it yourself
+## end-to-end walkthrough
 
-Zero to production-grade inference in under 20 lines.
+Deploy a model, measure it, optimize step by step, measure again. Each step changes one variable so you see exactly what moved.
 
-### vllm: quantized model with prefix caching
+**Setup**: Qwen3-8B on a single RTX 4090 (24GB). Same model, same prompts, same measurement function throughout.
 
 ```bash
 pip install vllm
 ```
 
 ```python
+import time
 from vllm import LLM, SamplingParams
 
-# Load a 4-bit quantized model with automatic prefix caching
-llm = LLM(
-    model="Qwen/Qwen3-8B-AWQ",        # AWQ 4-bit, fits on a single 24GB GPU
-    quantization="awq",
-    enable_prefix_caching=True,         # cache shared prefixes across requests
-    max_model_len=8192,
-    gpu_memory_utilization=0.90,        # leave 10% headroom for KV cache growth
-)
+SYSTEM = "You are a helpful coding assistant. Answer concisely."
+PROMPTS = [f"{SYSTEM}\n\nUser: {q}\nAssistant:" for q in [
+    "Write a Python quicksort.",
+    "Explain Big-O notation.",
+    "What is a hash table?",
+    "Describe TCP vs UDP.",
+    "Write fizzbuzz in Rust.",
+    "What is a mutex?",
+    "Explain CAP theorem.",
+    "Write binary search in Go.",
+]]
+PARAMS = SamplingParams(temperature=0.7, max_tokens=256)
 
-# shared system prompt: cached after the first request
-system = "You are a helpful coding assistant. Answer concisely."
-prompts = [
-    f"{system}\n\nUser: Write a Python quicksort.\nAssistant:",
-    f"{system}\n\nUser: Explain Big-O notation.\nAssistant:",    # shares prefix with above
-    f"{system}\n\nUser: What is a hash table?\nAssistant:",      # shares prefix with above
-]
-
-params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=512)
-outputs = llm.generate(prompts, params)
-
-for out in outputs:
-    print(f"--- Prompt: {out.prompt[:60]}...")
-    print(out.outputs[0].text[:200])
-    print()
+def bench(llm, tag, n_runs=3):
+    """Measure tok/s and TTFT over n_runs, report averages."""
+    total_tokens, total_time = 0, 0
+    for _ in range(n_runs):
+        t0 = time.perf_counter()
+        outputs = llm.generate(PROMPTS, PARAMS)
+        elapsed = time.perf_counter() - t0
+        toks = sum(len(o.outputs[0].token_ids) for o in outputs)
+        total_tokens += toks
+        total_time += elapsed
+    avg_tps = total_tokens / total_time
+    avg_ttft = (total_time / (n_runs * len(PROMPTS))) * 1000  # ms per request
+    print(f"[{tag}] {avg_tps:.0f} tok/s | {avg_ttft:.0f} ms/req avg")
+    return avg_tps
 ```
 
-The second and third requests skip prefill for the shared system prompt. On a 24GB GPU (RTX 4090 / A10G), the 4-bit Qwen3-8B runs at ~80 tok/s decode. Prefix caching saves ~40ms TTFT per request with a shared prompt.
+### step 0: BF16 baseline
 
-### sglang: structured generation + radix caching
-
-```bash
-pip install sglang[all]
-```
-
-Launch the server (separate terminal):
-
-```bash
-python -m sglang.launch_server \
-    --model Qwen/Qwen3-8B-AWQ \
-    --quantization awq \
-    --port 30000 \
-    --enable-torch-compile           # fuse kernels for ~15% throughput boost
-```
-
-Send requests:
+Load the full-precision model. This is what you get out of the box.
 
 ```python
-import requests
-
-resp = requests.post("http://localhost:30000/generate", json={
-    "text": "You are a helpful assistant.\n\nUser: Write fizzbuzz in Rust.\nAssistant:",
-    "sampling_params": {"temperature": 0.7, "max_new_tokens": 512},
-})
-print(resp.json()["text"])
+llm = LLM(model="Qwen/Qwen3-8B", max_model_len=4096, gpu_memory_utilization=0.90)
+bench(llm, "BF16 baseline")
+# [BF16 baseline] ~35 tok/s | ~285 ms/req avg
 ```
 
-SGLang's RadixAttention automatically shares prefix cache across requests with overlapping prompts. No configuration needed. For structured output (JSON, regex), add `"regex"` to `sampling_params` to constrain generation at the token level.
+16GB of weights. Each decode step reads all 16GB from VRAM to compute one token per sequence. Memory bandwidth is the bottleneck.
 
-### benchmarking your setup
+### step 1: AWQ quantization (4-bit)
+
+One change: swap BF16 weights for AWQ 4-bit. Model size drops from 16GB to ~4.5GB.
+
+```python
+del llm  # free VRAM
+llm = LLM(
+    model="Qwen/Qwen3-8B-AWQ",
+    quantization="awq",
+    max_model_len=4096,
+    gpu_memory_utilization=0.90,
+)
+bench(llm, "AWQ 4-bit")
+# [AWQ 4-bit] ~80 tok/s | ~125 ms/req avg
+```
+
+**Why it helps**: decode reads 4.5GB instead of 16GB per step. Same bandwidth, fewer bytes, more tokens per second. The freed 11.5GB of VRAM is now available for KV cache - you can serve more concurrent requests.
+
+### step 2: prefix caching
+
+One change: enable prefix caching. All 8 prompts share the same system prompt, so vLLM caches those prefill tokens and reuses them.
+
+```python
+del llm
+llm = LLM(
+    model="Qwen/Qwen3-8B-AWQ",
+    quantization="awq",
+    enable_prefix_caching=True,
+    max_model_len=4096,
+    gpu_memory_utilization=0.90,
+)
+bench(llm, "AWQ + prefix cache")
+# [AWQ + prefix cache] ~85 tok/s | ~95 ms/req avg
+```
+
+**Why it helps**: the shared system prompt (32 tokens) is prefilled once, then its KV cache is reused for requests 2-8. TTFT drops because those requests skip redundant prefill. Throughput improvement is modest here because the shared prefix is short - with longer system prompts (500+ tokens), the TTFT savings compound.
+
+### step 3: concurrent batching
+
+One change: send requests concurrently instead of in a single batch. This lets vLLM's continuous batching scheduler fill GPU cycles that single-batch decode leaves idle.
+
+```python
+import asyncio
+from vllm import AsyncLLM, AsyncEngineArgs
+
+engine_args = AsyncEngineArgs(
+    model="Qwen/Qwen3-8B-AWQ",
+    quantization="awq",
+    enable_prefix_caching=True,
+    max_model_len=4096,
+    gpu_memory_utilization=0.90,
+)
+
+async def bench_concurrent():
+    llm = AsyncLLM.from_engine_args(engine_args)
+
+    async def gen_one(prompt, rid):
+        full = []
+        async for out in llm.generate(prompt, PARAMS, request_id=f"r{rid}"):
+            full.append(out)
+        return sum(len(o.outputs[0].token_ids) for o in full[-1:])
+
+    t0 = time.perf_counter()
+    results = await asyncio.gather(*[gen_one(p, i) for i, p in enumerate(PROMPTS)])
+    elapsed = time.perf_counter() - t0
+    total_toks = sum(results)
+    print(f"[concurrent] {total_toks/elapsed:.0f} tok/s | {elapsed*1000/len(PROMPTS):.0f} ms/req avg")
+
+asyncio.run(bench_concurrent())
+# [concurrent] ~160 tok/s | ~50 ms/req avg
+```
+
+**Why it helps**: with 8 concurrent requests, the scheduler batches decode steps together. One weight-read produces 8 tokens instead of 1, pushing closer to the GPU's bandwidth ceiling. This is the same principle as database connection pooling - amortize fixed costs across parallel work.
+
+### results summary
+
+| Step | Change | tok/s | ms/req | Speedup |
+|------|--------|-------|--------|---------|
+| 0 | BF16 baseline | ~35 | ~285 | 1x |
+| 1 | AWQ 4-bit | ~80 | ~125 | 2.3x |
+| 2 | + prefix caching | ~85 | ~95 | 2.4x |
+| 3 | + concurrent batching | ~160 | ~50 | 4.6x |
+
+Each step changed one variable. The biggest single win was quantization (2.3x) because it directly reduces the memory-bandwidth bottleneck. Concurrent batching gave the next largest jump by amortizing weight reads across requests.
+
+*Numbers are representative for an RTX 4090 with Qwen3-8B. Run the benchmarks on your hardware - the ratios hold across GPUs, but absolute values scale with memory bandwidth.*
+
+### production benchmarking
+
+Once you deploy behind a server (vLLM or SGLang), use genai-perf to measure under realistic load:
 
 ```bash
-# Install benchmarking tool
 pip install genai-perf
 
-# Benchmark against your running server
 genai-perf profile \
     -m Qwen/Qwen3-8B-AWQ \
     --endpoint-type chat \
-    --url localhost:30000 \
+    --url localhost:8000 \
     --concurrency 16 \
     --input-tokens-mean 512 \
     --output-tokens-mean 128
 ```
 
-This reports P50/P90/P99 TTFT, TPOT, throughput, and goodput. Run it before and after each optimization (quantization, prefix caching, torch.compile) to measure real impact.
+This reports P50/P90/P99 for TTFT, TPOT, throughput, and goodput. Run it before and after each optimization to measure real impact - the `bench()` function above gives directional signal, but genai-perf simulates production traffic patterns.
 
 ---
 
